@@ -1,5 +1,6 @@
 import LeadForm from "@/components/LeadForm";
 import {
+  ArrowRight,
   BarChart3,
   Bot,
   Layout,
@@ -14,6 +15,7 @@ export default function Home() {
       <Nav />
       <Hero />
       <Problem />
+      <Stats />
       <AITrap />
       <Method />
       <Transparency />
@@ -84,7 +86,21 @@ function Hero() {
                 어떻게 작동하는지 보기 →
               </a>
             </div>
-            <p className="mt-8 text-sm text-neutral-500">
+            <div className="mt-8 flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs">
+                <span className="font-bold text-neutral-900">5~14일</span>
+                <span className="text-neutral-500">결과</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs">
+                <span className="font-bold text-neutral-900">50%</span>
+                <span className="text-neutral-500">환불 보장</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-yellow-300 bg-yellow-50 px-3 py-1.5 text-xs">
+                <span className="font-bold text-neutral-900">100%</span>
+                <span className="text-neutral-600">데이터 공개</span>
+              </span>
+            </div>
+            <p className="mt-5 text-sm text-neutral-500">
               Mock 사이트 · 광고 계정 · 실제 데이터 다 공개 · 블랙박스 없음
             </p>
           </div>
@@ -99,7 +115,7 @@ function HeroMock() {
   return (
     <div className="relative hidden lg:block">
       {/* Mock browser */}
-      <div className="rounded-xl border border-neutral-200 bg-white shadow-xl">
+      <div className="relative rounded-xl border border-neutral-200 bg-white shadow-xl">
         <div className="flex items-center gap-1.5 border-b border-neutral-100 px-3 py-2.5">
           <div className="h-2.5 w-2.5 rounded-full bg-red-400" />
           <div className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
@@ -112,7 +128,16 @@ function HeroMock() {
           <div className="h-3 w-3/4 rounded bg-neutral-900" />
           <div className="h-2 w-1/2 rounded bg-neutral-300" />
           <div className="h-2 w-2/3 rounded bg-neutral-300" />
-          <div className="mt-2 h-20 rounded bg-neutral-100" />
+          {/* mini line chart inside the mock */}
+          <div className="mt-1 flex h-20 items-end gap-1 rounded bg-gradient-to-b from-neutral-50 to-white p-2">
+            {[18, 32, 24, 48, 38, 60, 52, 78, 70, 92].map((h, i) => (
+              <div
+                key={i}
+                className="flex-1 rounded-sm bg-neutral-900/80"
+                style={{ height: `${h}%` }}
+              />
+            ))}
+          </div>
           <div className="flex gap-2 pt-1">
             <div className="h-8 w-28 rounded bg-neutral-900" />
             <div className="h-8 w-20 rounded border border-neutral-300" />
@@ -121,8 +146,11 @@ function HeroMock() {
       </div>
       {/* Floating stat chips */}
       <div className="absolute -top-4 -right-4 rounded-lg border border-neutral-200 bg-white px-3 py-2 shadow-md">
-        <div className="text-[10px] font-medium uppercase tracking-widest text-neutral-500">
-          CTR
+        <div className="flex items-center gap-1">
+          <div className="text-[10px] font-medium uppercase tracking-widest text-neutral-500">
+            CTR
+          </div>
+          <span className="text-[10px] font-semibold text-green-600">↑</span>
         </div>
         <div className="mt-0.5 text-base font-bold text-neutral-900">3.2%</div>
       </div>
@@ -138,7 +166,53 @@ function HeroMock() {
         </div>
         <div className="mt-0.5 text-base font-bold text-neutral-900">₩820</div>
       </div>
+      {/* Decorative blur behind */}
+      <div className="absolute -bottom-10 left-1/4 -z-10 h-40 w-40 rounded-full bg-yellow-200 opacity-30 blur-3xl" />
+      <div className="absolute -top-10 right-1/4 -z-10 h-32 w-32 rounded-full bg-blue-200 opacity-30 blur-3xl" />
     </div>
+  );
+}
+
+/* ─────────────────────────  STATS  ───────────────────────── */
+function Stats() {
+  const stats = [
+    {
+      label: "검증 기간",
+      value: "5~14일",
+      sub: "Mock 사이트 → 광고 → 분석",
+    },
+    {
+      label: "환불 보장",
+      value: "50%",
+      sub: "신호 못 잡으면 자동 환불",
+    },
+    {
+      label: "데이터 공개",
+      value: "100%",
+      sub: "Mock · 광고계정 · 대시보드",
+    },
+  ];
+  return (
+    <section className="border-b border-neutral-100 bg-white">
+      <div className="mx-auto max-w-5xl px-5 py-20">
+        <div className="grid divide-y divide-neutral-200 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+          {stats.map((s, i) => (
+            <div
+              key={s.label}
+              className={`py-8 text-center sm:py-2 ${i === 0 ? "" : "sm:pl-8"} ${i === stats.length - 1 ? "" : "sm:pr-8"}`}
+            >
+              <p className="text-xs font-semibold uppercase tracking-widest text-neutral-500">
+                {s.label}
+              </p>
+              <p className="mt-3 bg-gradient-to-b from-neutral-900 to-neutral-700 bg-clip-text text-5xl font-bold tracking-tight text-transparent sm:text-6xl">
+                {s.value}
+              </p>
+              <p className="mt-3 text-sm text-neutral-600">{s.sub}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -174,13 +248,10 @@ function Problem() {
           {items.map(({ Icon, h, p }) => (
             <div
               key={h}
-              className="rounded-2xl border border-neutral-200 bg-white p-6"
+              className="rounded-2xl border border-neutral-200 bg-white p-6 transition hover:-translate-y-0.5 hover:shadow-lg"
             >
-              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-neutral-100">
-                <Icon
-                  className="h-5 w-5 text-neutral-700"
-                  strokeWidth={1.75}
-                />
+              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-yellow-100 text-neutral-900">
+                <Icon className="h-5 w-5" strokeWidth={1.75} />
               </div>
               <p className="mt-5 text-lg font-semibold">{h}</p>
               <p className="mt-3 leading-relaxed text-neutral-600">{p}</p>
@@ -273,23 +344,33 @@ function Method() {
           때랑 같은 조건으로 검증합니다. 다만 빌드 전에.
         </p>
         <div className="mt-14 grid gap-6 sm:grid-cols-3">
-          {steps.map(({ Icon, n, h, sub, body }) => (
-            <div
-              key={n}
-              className="rounded-2xl border border-neutral-200 bg-white p-7"
-            >
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-mono font-medium text-neutral-400">
-                  {n}
+          {steps.map(({ Icon, n, h, sub, body }, idx) => (
+            <div key={n} className="relative">
+              <div className="h-full rounded-2xl border border-neutral-200 bg-white p-7 transition hover:-translate-y-0.5 hover:shadow-lg">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-mono font-medium text-neutral-400">
+                    {n}
+                  </p>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-900 text-white">
+                    <Icon className="h-5 w-5" strokeWidth={1.75} />
+                  </div>
+                </div>
+                <p className="mt-3 text-2xl font-bold">{h}</p>
+                <p className="mt-1 text-sm font-medium text-neutral-500">
+                  {sub}
                 </p>
-                <Icon
-                  className="h-6 w-6 text-neutral-400"
-                  strokeWidth={1.5}
-                />
+                <p className="mt-5 leading-relaxed text-neutral-700">{body}</p>
               </div>
-              <p className="mt-3 text-2xl font-bold">{h}</p>
-              <p className="mt-1 text-sm font-medium text-neutral-500">{sub}</p>
-              <p className="mt-5 leading-relaxed text-neutral-700">{body}</p>
+              {idx < steps.length - 1 && (
+                <div className="pointer-events-none absolute -right-3 top-1/2 hidden -translate-y-1/2 sm:block">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full border border-neutral-200 bg-white shadow-sm">
+                    <ArrowRight
+                      className="h-4 w-4 text-neutral-400"
+                      strokeWidth={2}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -351,7 +432,7 @@ function Transparency() {
           {items.map((it) => (
             <div
               key={it.tag}
-              className="rounded-2xl border border-neutral-200 bg-neutral-50 p-7"
+              className="rounded-2xl border border-neutral-200 bg-neutral-50 p-7 transition hover:-translate-y-0.5 hover:shadow-lg"
             >
               <p className="text-xs font-semibold uppercase tracking-widest text-neutral-500">
                 {it.tag}
@@ -459,7 +540,7 @@ function Team() {
           {members.map((m) => (
             <div
               key={m.tag}
-              className="rounded-2xl border border-neutral-200 bg-white p-7"
+              className="rounded-2xl border border-neutral-200 bg-white p-7 transition hover:-translate-y-0.5 hover:shadow-lg"
             >
               <div className="flex items-start justify-between">
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-neutral-900 text-2xl font-bold text-white">
@@ -541,12 +622,17 @@ function Offers() {
           {tiers.map((t) => (
             <div
               key={t.h}
-              className={`rounded-2xl border p-7 ${
+              className={`relative rounded-2xl border p-7 transition hover:-translate-y-0.5 hover:shadow-xl ${
                 t.highlight
-                  ? "border-neutral-900 bg-neutral-900 text-white"
+                  ? "border-neutral-900 bg-neutral-900 text-white shadow-lg"
                   : "border-neutral-200 bg-white"
               }`}
             >
+              {t.highlight && (
+                <span className="absolute -top-3 left-7 rounded-full bg-yellow-400 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-neutral-900 shadow-sm">
+                  추천 시작점
+                </span>
+              )}
               <p
                 className={`text-xs font-semibold uppercase tracking-widest ${t.highlight ? "text-neutral-400" : "text-neutral-500"}`}
               >

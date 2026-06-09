@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 
 type Status = "idle" | "submitting" | "success" | "error";
 
@@ -18,7 +18,7 @@ export default function LeadForm() {
     setStatus("submitting");
     setErrorMsg(null);
 
-    const { error } = await supabase.from("o2o_leads").insert({
+    const { error } = await getSupabase().from("o2o_leads").insert({
       name: name.trim(),
       email: email.trim(),
       idea: idea.trim(),
