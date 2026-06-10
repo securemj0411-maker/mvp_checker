@@ -38,6 +38,7 @@ export default function Home({
       <Pricing />
       <NoGo />
       <FounderStory />
+      <Team />
       <FAQ />
       <FinalCTA />
       <Footer />
@@ -1140,29 +1141,97 @@ function FounderStory() {
           <p className="text-xl font-bold text-text">
             이 서비스는 그 '순서'를 시스템으로 만든 것입니다.
           </p>
-          <div className="grid gap-4 pt-2 sm:grid-cols-2">
-            <div className="rounded-lg border border-border bg-surface p-5">
-              <p
-                className="text-xs font-bold uppercase tracking-[0.18em] text-text-tertiary"
-                style={fontDisplay}
-              >
-                검증 설계 · 데이터 분석
-              </p>
-              <p className="mt-2 font-bold text-text">중앙대 산업보안학과</p>
-            </div>
-            <div className="rounded-lg border border-border bg-surface p-5">
-              <p
-                className="text-xs font-bold uppercase tracking-[0.18em] text-text-tertiary"
-                style={fontDisplay}
-              >
-                광고 운영 · 마케팅
-              </p>
-              <p className="mt-2 font-bold text-text">중앙대 광고홍보학과</p>
-            </div>
-          </div>
-          <p className="text-sm text-text-tertiary">
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────  TEAM  ───────────────────────── */
+function Team() {
+  const members = [
+    {
+      name: "이민제",
+      photo: "/team/lee-minje.png",
+      title: "CEO · Founder",
+      role: "비즈니스 모델 전략 수립 및 사업 총괄",
+      edu: "중앙대 산업보안학과 · 사업 3회 직접 운영",
+    },
+    {
+      name: "김지아",
+      photo: "/team/kim-jia.png",
+      title: "Marketing & PR Lead",
+      role: "시장 분석 및 서비스 브랜딩, 홍보 전략",
+      edu: "중앙대 광고홍보학과 · 광고 집행/운영",
+    },
+    {
+      name: "문준하",
+      photo: null,
+      title: "Product Manager · Developer",
+      role: "웹/앱 서비스 기획 및 데이터 기반 검증 시스템 구축",
+      edu: null,
+    },
+  ];
+  return (
+    <section id="team" className="border-b border-border bg-bg">
+      <div className="mx-auto max-w-6xl px-5 py-24 sm:py-28">
+        <div className="reveal">
+          <Eyebrow>팀</Eyebrow>
+          <h2 className="mt-4 text-4xl font-extrabold tracking-[-0.03em] text-text sm:text-5xl">
+            얼굴 걸고 합니다.
+          </h2>
+          <p className="mt-4 max-w-2xl text-lg leading-[1.7] text-text-secondary">
             실명으로, 광고 계정과 데이터를 전부 공개하고 일합니다.
           </p>
+        </div>
+        <div className="reveal-stagger mt-14 grid gap-6 sm:grid-cols-3">
+          {members.map((m) => (
+            <div
+              key={m.name}
+              className="overflow-hidden rounded-lg border border-border bg-surface transition hover:-translate-y-0.5 hover:border-border-hover"
+            >
+              {m.photo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={m.photo}
+                  alt={`${m.name} — ${m.title}`}
+                  className="aspect-[4/5] w-full object-cover object-top"
+                />
+              ) : (
+                <div
+                  className="flex aspect-[4/5] w-full items-center justify-center"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #1d9e75 0%, #0f6e56 100%)",
+                  }}
+                >
+                  <span
+                    className="text-7xl font-black text-white/90"
+                    style={fontDisplay}
+                  >
+                    문
+                  </span>
+                </div>
+              )}
+              <div className="p-6">
+                <div className="flex items-baseline justify-between gap-2">
+                  <p className="text-xl font-bold text-text">{m.name}</p>
+                  <p
+                    className="text-xs font-bold uppercase tracking-wide text-accent"
+                    style={fontDisplay}
+                  >
+                    {m.title}
+                  </p>
+                </div>
+                <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+                  {m.role}
+                </p>
+                {m.edu && (
+                  <p className="mt-2 text-xs text-text-tertiary">{m.edu}</p>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
