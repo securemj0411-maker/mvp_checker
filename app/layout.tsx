@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: "비즈필터 — 사업 아이디어 검증 | 시작하기 전에 수요부터 확인",
   description:
-    "그 사업 아이디어가 먹힐지 안 먹힐지, 시작하기 전에 압니다. 진짜 광고 데이터로 클릭·결제 의향·고객 획득 비용까지 확인 — 수요 신호가 없으면 50% 환불.",
+    "그 사업 아이디어가 먹힐지 안 먹힐지, 시작하기 전에 압니다. 진짜 광고 데이터로 클릭·결제 의향·고객 획득 비용까지 확인 — Go/No-Go 판정을 보장합니다.",
   openGraph: {
     title: "비즈필터 — 사업 아이디어, 시작하기 전에 검증",
     description:
@@ -48,7 +48,7 @@ export default function RootLayout({
         />
         <link
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap"
         />
       </head>
       <body className="min-h-full flex flex-col bg-bg text-text">

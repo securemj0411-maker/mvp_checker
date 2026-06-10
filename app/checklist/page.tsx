@@ -128,8 +128,8 @@ export default function ChecklistPage() {
           </p>
           <p className="mt-3 leading-[1.7] text-text-secondary">
             페이지 제작 → 합격선 합의 → 광고 집행 → 숫자 해석 → Go/No-Go
-            판정까지. 작업은 48시간이면 시작되고, 수요 신호가 없으면 50%
-            환불합니다. 신청은 결제가 아닙니다.
+            판정까지. 작업은 48시간이면 시작되고, Go든 No-Go든 분명한 판정을
+            보장합니다 — 못 드리면 전액 환불. 신청은 결제가 아닙니다.
           </p>
           <a
             href="/#cta"

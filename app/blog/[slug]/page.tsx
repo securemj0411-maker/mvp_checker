@@ -83,8 +83,8 @@ export default async function BlogPost({
           </p>
           <p className="mt-3 leading-[1.7] text-text-secondary">
             페이지 제작, 광고 집행, 합격선 설계, 숫자 해석까지 — 직접 하기
-            번거로우시면 맡기세요. 수요 신호가 없으면 50% 환불, 신청은 결제가
-            아닙니다.
+            번거로우시면 맡기세요. Go든 No-Go든 분명한 판정을 보장하고, 못
+            드리면 전액 환불합니다. 신청은 결제가 아닙니다.
           </p>
           <a
             href="/#cta"

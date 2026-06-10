@@ -35,6 +35,7 @@ export default function Home({
       <NoBuildBand />
       <Measure />
       <Deliverables />
+      <Cases />
       <Pricing />
       <NoGo />
       <FounderStory />
@@ -194,8 +195,8 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
             </a>
           </div>
           <p className="mt-7 text-sm text-text-tertiary">
-            신청은 결제가 아닙니다 · 수요 신호가 없으면 50% 환불 · 검증 과정
-            실시간 공개
+            신청은 결제가 아닙니다 · Go/No-Go 판정 보장 · 검증 과정 실시간
+            공개
           </p>
         </div>
       </div>
@@ -219,101 +220,121 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
           style={{ background: "var(--accent-soft)" }}
         />
         <div className="glow-dot pointer-events-none absolute bottom-20 left-1/4" />
-        <div className="relative w-full max-w-[520px]">
-          <HeroMock />
+        <div className="relative w-full max-w-[460px]">
+          <VerdictCard />
         </div>
       </div>
     </section>
   );
 }
 
-function HeroMock() {
+/* 판정서 비주얼 시스템 — 모노 폰트 + GO/NO-GO/PIVOT 스탬프 */
+const fontMono = {
+  fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
+} as const;
+const verdict = {
+  go: "#0E7A56",
+  goBg: "#E7F2EC",
+  nogo: "#C0432A",
+  nogoBg: "#F7EAE5",
+  pivot: "#A86A12",
+  pivotBg: "#F6EEDD",
+} as const;
+
+function VerdictCard() {
+  const metrics: [string, string, string][] = [
+    ["노출", "12,420", ""],
+    ["클릭 · CTR", "398", "3.2%"],
+    ["결제 클릭", "13", "3.3%"],
+    ["CAC · 고객 1명당", "₩3,846", ""],
+  ];
   return (
     <div className="reveal relative w-full">
-      <div className="rounded-xl border border-border bg-bg-alt shadow-[0_28px_70px_rgba(65,54,42,0.16)]">
-        <div className="flex items-center gap-1.5 border-b border-border px-3 py-2.5">
-          <div className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-          <div className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
-          <div className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-          <div
-            className="ml-3 flex-1 truncate rounded-md bg-bg px-2 py-1 text-xs text-text-tertiary"
-            style={fontDisplay}
+      <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-[0_34px_70px_rgba(0,0,0,0.4)]">
+        <div className="flex items-center justify-between border-b border-border bg-bg px-4 py-3">
+          <span
+            className="text-[11px] font-semibold uppercase tracking-[0.14em] text-text-tertiary"
+            style={fontMono}
           >
-            your-idea.com
-          </div>
+            검증 판정서 · 7일차
+          </span>
+          <span
+            className="rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em]"
+            style={{
+              ...fontMono,
+              color: verdict.pivot,
+              background: verdict.pivotBg,
+            }}
+          >
+            Sample
+          </span>
         </div>
-        <div className="space-y-3 p-5">
-          <div className="h-3 w-3/4 rounded bg-text/90" />
-          <div className="h-2 w-1/2 rounded bg-text/25" />
-          <div className="h-2 w-2/3 rounded bg-text/25" />
-          <div className="mt-2 flex h-20 items-end gap-1 rounded bg-bg p-2">
-            {[18, 32, 24, 48, 38, 60, 52, 78, 70, 92].map((h, i) => (
-              <div
-                key={i}
-                className="flex-1 rounded-sm"
-                style={{
-                  height: `${h}%`,
-                  background:
-                    i === 9
-                      ? "var(--accent)"
-                      : i === 8
-                        ? "var(--accent-soft)"
-                        : "rgba(var(--text-rgb), 0.18)",
-                  boxShadow:
-                    i === 9 ? "0 0 12px var(--accent-glow)" : undefined,
-                }}
-              />
+        <div className="p-5">
+          <p className="text-[13px] text-text-secondary">
+            아이디어 ·{" "}
+            <b className="font-semibold text-text">
+              주 3회 새벽배송 샐러드 구독
+            </b>
+          </p>
+          <div className="mt-4 flex items-center gap-4">
+            <span
+              className="inline-flex -rotate-3 items-center rounded-[9px] border-[2.5px] border-current px-4 py-1.5 text-[26px] font-semibold leading-none tracking-[0.04em]"
+              style={{ ...fontMono, color: verdict.go }}
+            >
+              GO
+            </span>
+            <span
+              className="text-xs leading-snug text-text-secondary"
+              style={fontMono}
+            >
+              합격선 통과
+              <br />
+              다음 단계 권고
+            </span>
+          </div>
+          <div className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-[10px] border border-border bg-border">
+            {metrics.map(([k, v, sub]) => (
+              <div key={k} className="bg-surface px-3.5 py-3">
+                <div
+                  className="text-[10px] uppercase tracking-[0.06em] text-text-tertiary"
+                  style={fontMono}
+                >
+                  {k}
+                </div>
+                <div
+                  className="mt-1 text-lg font-semibold leading-none text-text"
+                  style={fontMono}
+                >
+                  {v}
+                  {sub && (
+                    <small className="ml-1 text-xs font-medium text-text-secondary">
+                      {sub}
+                    </small>
+                  )}
+                </div>
+              </div>
             ))}
           </div>
-          <div className="flex gap-2 pt-1">
-            <div className="h-8 w-28 rounded bg-accent" />
-            <div className="h-8 w-20 rounded border border-border" />
+          <div className="mt-4 border-t border-dashed border-border-hover pt-4">
+            <div
+              className="flex items-center justify-between text-xs text-text-secondary"
+              style={fontMono}
+            >
+              <span>
+                합격선 결제 클릭률{" "}
+                <b className="font-semibold text-text">3.0%</b>
+              </span>
+              <span>
+                실측 <b className="font-semibold text-text">3.3%</b>
+              </span>
+            </div>
+            <div className="mt-2 h-1.5 overflow-hidden rounded bg-bg">
+              <i
+                className="block h-full rounded"
+                style={{ width: "84%", background: verdict.go }}
+              />
+            </div>
           </div>
-        </div>
-      </div>
-      <div className="float-1 absolute -right-4 -top-4 rounded-lg border border-border bg-bg-alt/90 px-3 py-2 backdrop-blur">
-        <div className="flex items-center gap-1">
-          <div
-            className="text-[10px] font-bold uppercase tracking-widest text-text-tertiary"
-            style={fontDisplay}
-          >
-            CTR
-          </div>
-          <span className="text-[10px] font-bold text-accent-soft">↑</span>
-        </div>
-        <div
-          className="mt-0.5 text-base font-bold text-text"
-          style={fontDisplay}
-        >
-          3.2%
-        </div>
-      </div>
-      <div className="float-2 absolute -left-6 top-1/3 rounded-lg border border-border bg-bg-alt/90 px-3 py-2 backdrop-blur">
-        <div
-          className="text-[10px] font-bold uppercase tracking-widest text-text-tertiary"
-          style={fontDisplay}
-        >
-          결제 클릭
-        </div>
-        <div
-          className="mt-0.5 text-base font-bold text-text"
-          style={fontDisplay}
-        >
-          12건
-        </div>
-      </div>
-      <div className="float-3 absolute -bottom-5 -right-2 rounded-lg border border-accent/40 bg-accent/[0.12] px-3 py-2 backdrop-blur">
-        <div
-          className="text-[10px] font-bold uppercase tracking-widest text-accent"
-          style={fontDisplay}
-        >
-          CAC · 고객 1명당
-        </div>
-        <div
-          className="mt-0.5 text-base font-bold text-text"
-          style={fontDisplay}
-        >
-          ₩4,167
         </div>
       </div>
     </div>
@@ -331,7 +352,7 @@ function Marquee() {
     "라이브 대시보드",
     "합격선 사전 합의",
     "광고 문구 2~3종 테스트",
-    "No-Go면 50% 환불",
+    "판정 못 내리면 전액 환불",
     "7일 안에 답",
   ];
   return (
@@ -884,6 +905,195 @@ function Deliverables() {
   );
 }
 
+/* ─────────────────  CASES — 말 대신, 숫자  ───────────────── */
+function Cases() {
+  const samples = [
+    {
+      idea: "B2B 계약서 검토 자동화 SaaS",
+      stamp: "GO",
+      color: verdict.go,
+      rows: [
+        ["CTR", "4.1%"],
+        ["결제 클릭률", "2.4%"],
+        ["CAC", "₩6,800"],
+      ],
+      take: "수요·단가 모두 합격선 위. \"만들어도 되는\" 흔치 않은 케이스.",
+    },
+    {
+      idea: "반려동물 맞춤 영양제 정기구독",
+      stamp: "NO-GO",
+      color: verdict.nogo,
+      rows: [
+        ["CTR", "1.4%"],
+        ["결제 클릭", "0건"],
+        ["CAC", "측정 불가"],
+      ],
+      take: "관심은 끌었지만 결제로 안 감. 6개월 전에 멈춘 게 이득.",
+    },
+    {
+      idea: "프리랜서 세금 신고 대행",
+      stamp: "PIVOT",
+      color: verdict.pivot,
+      rows: [
+        ["CTR", "3.8%"],
+        ["결제 클릭률", "0.6%"],
+        ["CAC", "₩21,400"],
+      ],
+      take: "수요는 강한데 이 가격·이 오퍼는 아님. 방향 틀면 살아남.",
+    },
+  ];
+  return (
+    <section id="cases" className="border-b border-border bg-bg-alt">
+      <div className="mx-auto max-w-6xl px-5 py-24 sm:py-28">
+        <div className="reveal">
+          <Eyebrow>사례</Eyebrow>
+          <h2 className="mt-4 text-4xl font-extrabold tracking-[-0.03em] text-text sm:text-5xl">
+            말 대신, 숫자.
+          </h2>
+          <p className="mt-4 max-w-2xl text-lg leading-[1.7] text-text-secondary">
+            저희는 저희 약부터 먹었습니다. 직접 겪은 결과를 — 좋은 답도 나쁜
+            답도 그대로 공개합니다.
+          </p>
+        </div>
+
+        {/* 실사례 — 득템잡이 No-Go */}
+        <div className="reveal mt-14 grid items-center gap-8 rounded-lg border border-border bg-surface p-7 sm:p-9 lg:grid-cols-[1fr_0.82fr]">
+          <div>
+            <span
+              className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.1em]"
+              style={{
+                ...fontMono,
+                color: verdict.nogo,
+                background: verdict.nogoBg,
+              }}
+            >
+              ● 저희가 직접 받은 No-Go
+            </span>
+            <h3 className="mt-4 text-2xl font-bold tracking-tight text-text">
+              득템잡이 — 중고 시세 인텔리전스 멤버십
+            </h3>
+            <p className="mt-3 leading-[1.7] text-text-secondary">
+              만들기 전에 광고부터 띄웠어야 했는데, 순서를 거꾸로 갔습니다. 다
+              만들고 나서야 광고 제한 · 결제 전환 막힘 · 구조적 포화가 한꺼번에
+              왔습니다.
+            </p>
+            <p className="mt-3 font-semibold leading-[1.7] text-text">
+              시장이 준 답은 분명했고, 그 수업료가 이 서비스를 만들었습니다.
+            </p>
+          </div>
+          <div className="overflow-hidden rounded-xl border border-border bg-bg">
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
+              <span
+                className="text-[11px] font-semibold uppercase tracking-[0.14em] text-text-tertiary"
+                style={fontMono}
+              >
+                검증 판정서
+              </span>
+              <span
+                className="rounded-full bg-bg-alt px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-text-tertiary"
+                style={fontMono}
+              >
+                실제 사례
+              </span>
+            </div>
+            <div className="p-5">
+              <div className="flex items-center gap-4">
+                <span
+                  className="inline-flex -rotate-3 items-center rounded-[9px] border-[2.5px] border-current px-3.5 py-1.5 text-xl font-semibold leading-none tracking-[0.04em]"
+                  style={{ ...fontMono, color: verdict.nogo }}
+                >
+                  NO-GO
+                </span>
+                <span
+                  className="text-xs leading-snug text-text-secondary"
+                  style={fontMono}
+                >
+                  수요는 있었으나
+                  <br />
+                  구조가 안 받쳐줌
+                </span>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-[10px] border border-border bg-border">
+                {[
+                  ["관심 (클릭)", "높음"],
+                  ["결제 전환", "막힘"],
+                  ["광고 승인", "제한"],
+                  ["시장 포화", "레드"],
+                ].map(([k, v]) => (
+                  <div key={k} className="bg-surface px-3.5 py-3">
+                    <div
+                      className="text-[10px] uppercase tracking-[0.06em] text-text-tertiary"
+                      style={fontMono}
+                    >
+                      {k}
+                    </div>
+                    <div
+                      className="mt-1 text-base font-semibold text-text"
+                      style={fontMono}
+                    >
+                      {v}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 포맷 예시 3종 */}
+        <div className="reveal-stagger mt-6 grid gap-5 sm:grid-cols-3">
+          {samples.map((c) => (
+            <div
+              key={c.idea}
+              className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-6 transition hover:-translate-y-0.5 hover:border-border-hover"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-[15px] font-semibold leading-snug text-text">
+                  {c.idea}
+                </p>
+                <span
+                  className="inline-flex flex-shrink-0 -rotate-3 items-center rounded-[7px] border-2 border-current px-2.5 py-1 text-[13px] font-semibold leading-none tracking-[0.06em]"
+                  style={{ ...fontMono, color: c.color }}
+                >
+                  {c.stamp}
+                </span>
+              </div>
+              <div className="flex flex-col gap-2 border-t border-border pt-3.5">
+                {c.rows.map(([k, v]) => (
+                  <div
+                    key={k}
+                    className="flex justify-between text-xs"
+                    style={fontMono}
+                  >
+                    <span className="text-text-tertiary">{k}</span>
+                    <span className="font-semibold text-text">{v}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="border-t border-dashed border-border-hover pt-3 text-[13px] leading-[1.55] text-text-secondary">
+                {c.take}
+              </p>
+              <span
+                className="self-start rounded-full border border-dashed border-border-hover px-2.5 py-0.5 text-[9.5px] font-semibold uppercase tracking-[0.1em] text-text-tertiary"
+                style={fontMono}
+              >
+                포맷 예시 · 가상 케이스
+              </span>
+            </div>
+          ))}
+        </div>
+        <p
+          className="reveal mt-7 text-xs text-text-tertiary"
+          style={fontMono}
+        >
+          ⚠ 위 3개 카드는 판정서 포맷을 보여드리기 위한 가상 예시입니다. 실제
+          검증 케이스가 쌓이는 대로 (고객 동의 하에) 실데이터로 교체됩니다.
+        </p>
+      </div>
+    </section>
+  );
+}
+
 /* ─────────────────────────  PRICING  ───────────────────────── */
 function Pricing() {
   const tiers = [
@@ -899,7 +1109,7 @@ function Pricing() {
         "GA4 + 전환 이벤트 + 결제 의향 측정",
         "클릭 단가 · 고객 획득 비용(CAC) 1차 측정",
         "라이브 대시보드 상시 공개 + Go/No-Go 리포트 + 30분 의사결정 미팅",
-        "수요 신호가 잡히지 않으면 50% 환불",
+        "판정 보장 — 분명한 Go/No-Go를 못 드리면 전액 환불",
       ],
       cta: "Quick으로 시작",
       highlight: true,
@@ -916,7 +1126,7 @@ function Pricing() {
         "인스타·페이스북 광고 추가 (광고비 20만원 포함) + 콘텐츠 5~7개",
         "잠재고객 설문 + 인터뷰 5~10명",
         "객단가(한 명이 내는 돈) · CAC · LTV · 손익 시뮬레이션",
-        "No-Go 판정 시 50% 환불",
+        "판정 보장 — 분명한 Go/No-Go를 못 드리면 전액 환불",
       ],
       cta: "Deep 상담",
       highlight: false,
@@ -1053,8 +1263,12 @@ function Pricing() {
         </div>
         <p className="reveal mt-8 text-sm text-text-tertiary">
           ※ 매출은 보장하지 않습니다 — 법적으로 누구도 보장할 수 없습니다.
-          보장은 저희가 통제할 수 있는 것, 검증 환불에만 겁니다. 광고비는 실제
-          집행 비용이라 환불 대상에서 제외됩니다.
+          저희가 보장하는 건 통제할 수 있는 것, 즉{" "}
+          <span className="font-semibold text-text-secondary">
+            광고 데이터에 근거한 분명한 판정
+          </span>
+          입니다. 이걸 못 드리면 검증비 전액을 환불합니다. 광고비는 실제 집행
+          비용이라 환불 대상에서 제외됩니다.
         </p>
       </div>
     </section>
@@ -1064,7 +1278,7 @@ function Pricing() {
 /* ─────────────────────────  NO-GO 패키지  ───────────────────────── */
 function NoGo() {
   const items = [
-    "검증비 50% 환불",
+    "데이터 근거가 첨부된 No-Go 판정서",
     "제작한 랜딩페이지 · 도메인 · 디자인, 전부 가져가세요",
     "왜 안 됐는지 분석 — 수요 자체인지, 타겟인지, 메시지인지, 가격인지",
     "피벗 방향 제안 + 재검증 시 할인",
@@ -1104,6 +1318,39 @@ function NoGo() {
           <span className="text-accent">"되겠는데요"</span>라고 말할 때, 그
           말에 무게가 생깁니다.
         </p>
+
+        {/* 판정 보장 박스 */}
+        <div className="reveal mt-12 grid items-center gap-6 rounded-lg border border-border bg-surface p-7 sm:grid-cols-[auto_1fr] sm:p-8">
+          <div
+            className="grid h-[84px] w-[84px] -rotate-3 flex-shrink-0 place-items-center rounded-full border-2 text-center text-[15px] font-semibold leading-tight"
+            style={{
+              ...fontMono,
+              borderColor: verdict.go,
+              color: verdict.go,
+            }}
+          >
+            100%
+            <br />
+            환불
+          </div>
+          <div>
+            <p className="text-lg font-bold text-text">
+              저희가 보장하는 건 결과의 방향이 아니라 — 답입니다.
+            </p>
+            <p className="mt-2 leading-[1.7] text-text-secondary">
+              진짜 광고를 집행하고, 그 데이터로 Go/No-Go를 분명히 드립니다. 이걸
+              못 드리면 — 광고를 못 돌렸거나 판정을 못 내렸으면 — 검증비
+              전액을 환불합니다. No-Go는 환불 사유가 아닙니다. 그게 당신이 산
+              답이기 때문입니다.
+            </p>
+            <p
+              className="mt-3 text-xs text-text-tertiary"
+              style={fontMono}
+            >
+              ※ 광고비는 실제 집행 비용이라 환불 대상에서 제외됩니다
+            </p>
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -1242,7 +1489,7 @@ function FAQ() {
     },
     {
       q: "환불 기준이 정확히 뭔가요?",
-      a: "Day 2에 함께 정한 합격선입니다. 검증 종료 시점에 그 숫자에 미달하면 검증비의 50%를 환불합니다. 기준을 데이터 보기 전에 정하는 이유가 이것입니다 — 끝난 뒤 기준을 두고 다투지 않기 위해서입니다.",
+      a: "저희가 보장하는 건 결과의 방향이 아니라 '분명한 판정'입니다. 진짜 광고를 집행하고 그 데이터에 근거한 Go/No-Go 판정을 드리지 못하면 — 광고를 못 돌렸거나 판단할 데이터를 못 만들었으면 — 검증비 전액을 환불합니다. No-Go 판정 자체는 환불 사유가 아닙니다. 그게 검증이 납품하는 답이기 때문입니다. 광고비는 실제 집행 비용이라 환불에서 제외되며, 집행 영수증을 공유합니다.",
     },
     {
       q: "제 아이디어를 가져가면 어떡하죠?",
