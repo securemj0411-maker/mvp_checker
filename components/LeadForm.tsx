@@ -87,8 +87,8 @@ function diagnose(a: Answers) {
   const fit =
     a.service === "offline"
       ? {
-          level: "상담 필요",
-          note: "오프라인 업종은 광고 기반 검증의 정확도가 떨어지는 유형입니다. 가능 여부를 상담에서 먼저 확인해드립니다.",
+          level: "설계 상담",
+          note: "오프라인·지역 기반 사업은 검증 설계가 달라집니다 — 지역 타겟 광고와 사전 예약 측정으로 진행합니다. 가능한 설계인지 24시간 안에 먼저 답드립니다.",
         }
       : a.service === "unknown"
         ? {

@@ -131,7 +131,9 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
           {variant === "a" ? (
             <>
               <h1 className="mt-6 text-4xl font-extrabold leading-[1.12] tracking-[-0.035em] text-text sm:text-5xl lg:text-6xl">
-                그 아이디어가 될지 안 될지,
+                그 사업 아이디어가
+                <br />
+                먹힐지 안 먹힐지,
                 <br />
                 어차피 알게 됩니다.
               </h1>
@@ -159,11 +161,12 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
             </>
           )}
           <p className="mt-7 max-w-2xl text-lg leading-[1.65] text-text-secondary">
-            제품이 없어도 됩니다.{" "}
+            비즈필터는 사업을 시작하기 전에{" "}
             <span className="font-semibold text-text">
-              진짜 서비스처럼 보이는 페이지
+              진짜 수요부터 확인해드리는 검증 서비스
             </span>
-            를 띄우고, 진짜 광고를 돌립니다. 모르는 사람들이{" "}
+            입니다. 아직 아무것도 만들지 않아도 됩니다 — 진짜처럼 보이는
+            페이지를 띄우고 진짜 광고를 돌려서, 모르는 사람들이{" "}
             <span className="font-semibold text-text">
               클릭하는지 · 가격을 보고도 결제 버튼을 누르는지
             </span>
@@ -171,7 +174,7 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
             <span className="font-semibold text-text">
               고객 1명 데려오는 데 얼마가 드는지
             </span>
-            까지 — 만들기 전에 숫자로 답합니다.
+            까지 숫자로 답합니다.
           </p>
           <div className="mt-10 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
             <a
@@ -369,8 +372,8 @@ function Problem() {
             해야 한다는 건 다들 압니다.
           </h2>
           <p className="mt-6 text-lg leading-[1.7] text-text-secondary">
-            "만들기 전에 검증부터 해라." 유튜브에서 백 번쯤 들으셨을 겁니다.
-            맞는 말이라 반박할 수도 없습니다. 그런데 막상 하려면 —
+            "시작하기 전에 검증부터 해라." 백 번쯤 들어보셨을 겁니다. 맞는
+            말이라 반박할 수도 없습니다. 그런데 막상 하려면 —
           </p>
         </div>
         <ol className="reveal-stagger mt-10 space-y-0 border-y border-border">
@@ -1017,7 +1020,7 @@ function FAQ() {
     },
     {
       q: "어떤 아이디어든 가능한가요?",
-      a: "웹 · 앱 · SaaS · 온라인 서비스가 기준입니다. 오프라인 매장이나 규제 산업은 광고 기반 검증의 정확도가 떨어져, 정중히 거절하거나 별도 상담을 드립니다.",
+      a: "업종 제한 없습니다 — 온라인 서비스, 앱, 커머스, 교육, 오프라인 매장까지. 다만 오프라인·지역 기반 사업은 검증 설계가 달라집니다(지역 타겟 광고 + 사전 예약 측정). 신청해주시면 가능한 설계인지 24시간 안에 먼저 답드립니다.",
     },
     {
       q: "Go가 나오면 만들어주기도 하나요?",

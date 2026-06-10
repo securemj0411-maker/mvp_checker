@@ -4,13 +4,13 @@ import { SITE_URL, SITE_NAME, SITE_DESC } from "@/lib/site";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "비즈필터 — 만들기 전에 살 사람이 있는지 확인하세요",
+  title: "비즈필터 — 사업 아이디어 검증 | 시작하기 전에 수요부터 확인",
   description:
-    "개발비와 시간을 쓰기 전, 진짜 광고 데이터로 클릭·문의·결제 의향을 먼저 확인합니다. 수요 신호가 없으면 50% 환불.",
+    "그 사업 아이디어가 먹힐지 안 먹힐지, 시작하기 전에 압니다. 진짜 광고 데이터로 클릭·결제 의향·고객 획득 비용까지 확인 — 수요 신호가 없으면 50% 환불.",
   openGraph: {
-    title: "비즈필터 — 만들기 전에 살 사람이 있는지 확인하세요",
+    title: "비즈필터 — 사업 아이디어, 시작하기 전에 검증",
     description:
-      "진짜처럼 보이는 페이지 + 광고 + 행동 데이터로 사업 아이디어를 검증하는 서비스.",
+      "진짜처럼 보이는 페이지 + 광고 + 행동 데이터로 사업 아이디어를 검증하는 서비스. 업종 제한 없음.",
     type: "website",
     locale: "ko_KR",
   },
