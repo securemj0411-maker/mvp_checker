@@ -1166,7 +1166,7 @@ function Team() {
     },
     {
       name: "문준하",
-      photo: null,
+      photo: "/team/moon-junha.png",
       title: "Product Manager · Developer",
       role: "웹/앱 서비스 기획 및 데이터 기반 검증 시스템 구축",
       edu: null,
@@ -1188,48 +1188,27 @@ function Team() {
           {members.map((m) => (
             <div
               key={m.name}
-              className="overflow-hidden rounded-lg border border-border bg-surface transition hover:-translate-y-0.5 hover:border-border-hover"
+              className="rounded-lg border border-border bg-surface p-8 text-center transition hover:-translate-y-0.5 hover:border-border-hover"
             >
-              {m.photo ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={m.photo}
-                  alt={`${m.name} — ${m.title}`}
-                  className="aspect-[4/5] w-full object-cover object-top"
-                />
-              ) : (
-                <div
-                  className="flex aspect-[4/5] w-full items-center justify-center"
-                  style={{
-                    background:
-                      "linear-gradient(135deg, #1d9e75 0%, #0f6e56 100%)",
-                  }}
-                >
-                  <span
-                    className="text-7xl font-black text-white/90"
-                    style={fontDisplay}
-                  >
-                    문
-                  </span>
-                </div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={m.photo}
+                alt={`${m.name} — ${m.title}`}
+                className="mx-auto h-32 w-32 rounded-full border-2 border-border object-cover object-top"
+              />
+              <p className="mt-5 text-xl font-bold text-text">{m.name}</p>
+              <p
+                className="mt-1 text-xs font-bold uppercase tracking-wide text-accent"
+                style={fontDisplay}
+              >
+                {m.title}
+              </p>
+              <p className="mt-3 text-sm leading-relaxed text-text-secondary">
+                {m.role}
+              </p>
+              {m.edu && (
+                <p className="mt-2 text-xs text-text-tertiary">{m.edu}</p>
               )}
-              <div className="p-6">
-                <div className="flex items-baseline justify-between gap-2">
-                  <p className="text-xl font-bold text-text">{m.name}</p>
-                  <p
-                    className="text-xs font-bold uppercase tracking-wide text-accent"
-                    style={fontDisplay}
-                  >
-                    {m.title}
-                  </p>
-                </div>
-                <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-                  {m.role}
-                </p>
-                {m.edu && (
-                  <p className="mt-2 text-xs text-text-tertiary">{m.edu}</p>
-                )}
-              </div>
             </div>
           ))}
         </div>
