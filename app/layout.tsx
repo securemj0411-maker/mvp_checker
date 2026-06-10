@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import { SITE_URL, SITE_NAME, SITE_DESC } from "@/lib/site";
+
+const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -62,6 +65,9 @@ export default function RootLayout({
         />
         {children}
       </body>
+      {GA_ID && process.env.NODE_ENV === "production" && (
+        <GoogleAnalytics gaId={GA_ID} />
+      )}
     </html>
   );
 }

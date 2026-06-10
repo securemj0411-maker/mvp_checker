@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { sendGAEvent } from "@next/third-parties/google";
 import { getSupabase } from "@/lib/supabase";
 
 type StepId = "service" | "audience" | "revenue" | "stage" | "fear";
@@ -161,6 +162,9 @@ export default function LeadForm() {
   }, []);
 
   function pick(id: StepId, value: string) {
+    if (Object.keys(answers).length === 0) {
+      sendGAEvent("event", "quiz_start", { first_answer: value });
+    }
     setAnswers((prev) => ({ ...prev, [id]: value }));
     // 탭 직후 짧은 지연 후 자동 진행 — 게임처럼 끊김 없이
     setTimeout(() => setStep((s) => Math.min(s + 1, QUESTIONS.length)), 170);
@@ -201,6 +205,12 @@ export default function LeadForm() {
       setStatus("error");
       return;
     }
+    sendGAEvent("event", "generate_lead", {
+      method: "quiz",
+      utm_source: utm ?? "direct",
+      stage: answers.stage ?? "unknown",
+      fear: answers.fear ?? "unknown",
+    });
     setStatus("done");
   }
 
