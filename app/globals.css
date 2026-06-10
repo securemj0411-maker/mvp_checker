@@ -1,23 +1,90 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #0a0a0a;
+  /* ─── Backgrounds (warm B2B trust) ─── */
+  --bg: #f7f3ed;
+  --bg-alt: #fffaf4;
+  --bg-light: #ece4d8;
+  --surface: rgba(255, 255, 255, 0.78);
+  --surface-hover: rgba(255, 255, 255, 0.94);
+  --surface-light: #ffffff;
+
+  /* ─── Borders ─── */
+  --border: rgba(45, 54, 63, 0.12);
+  --border-hover: rgba(45, 54, 63, 0.24);
+  --border-light: #ded6cb;
+
+  /* ─── Text on light ─── */
+  --text: #20272d;
+  --text-secondary: #59646c;
+  --text-tertiary: #879098;
+  --text-light: #0a0a0b;
+  --text-light-secondary: #555560;
+  --text-light-tertiary: #8e8e93;
+
+  /* ─── Accent (ice signal) ─── */
+  --accent: #226d7b;
+  --accent-hover: #164f5a;
+  --accent-glow: rgba(34, 109, 123, 0.18);
+  --accent-soft: #d9edf0;
+
+  /* ─── RGB ─── */
+  --bg-rgb: 247, 243, 237;
+  --bg-alt-rgb: 255, 250, 244;
+  --accent-rgb: 34, 109, 123;
+  --text-rgb: 32, 39, 45;
+}
+
+/* ─── Muted contrast band — Stats / FounderStory / FinalCTA / Footer ─── */
+.section-dark {
+  --bg: #e8e0d4;
+  --bg-alt: #f3ede5;
+  --bg-alt-rgb: 243, 237, 229;
+  --surface: rgba(255, 255, 255, 0.62);
+  --surface-hover: rgba(255, 255, 255, 0.84);
+  --border: rgba(45, 54, 63, 0.12);
+  --border-hover: rgba(45, 54, 63, 0.24);
+  --text: #20272d;
+  --text-secondary: #5f6b73;
+  --text-tertiary: #8a9297;
+  --text-rgb: 32, 39, 45;
+  background: var(--bg);
+  color: var(--text);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-bg: var(--bg);
+  --color-bg-alt: var(--bg-alt);
+  --color-bg-light: var(--bg-light);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-light: var(--surface-light);
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
+  --color-border-light: var(--border-light);
+  --color-text: var(--text);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-text-light: var(--text-light);
+  --color-text-light-secondary: var(--text-light-secondary);
+  --color-text-light-tertiary: var(--text-light-tertiary);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+
   --font-sans:
     "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
     system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo",
     "Noto Sans KR", "Malgun Gothic", sans-serif;
+  --font-display:
+    "Space Grotesk", "Pretendard Variable", -apple-system, system-ui,
+    sans-serif;
 }
 
 html,
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--bg);
+  color: var(--text);
   font-family: var(--font-sans);
   font-feature-settings: "ss06" on;
   -webkit-font-smoothing: antialiased;
@@ -25,7 +92,274 @@ body {
   word-break: keep-all;
 }
 
+body::before {
+  pointer-events: none;
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), transparent 28rem),
+    radial-gradient(55rem 32rem at 72% 0%, rgba(34, 109, 123, 0.10), transparent 62%),
+    var(--bg);
+}
+
 ::selection {
-  background: #0a0a0a;
+  background: var(--accent);
   color: #ffffff;
+}
+
+/* ─────────  Reveal animations (signature moments 1, 2, 3)  ───────── */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Default visible — IO 가 .in 추가 못 해도 콘텐츠는 항상 보임 (fallback) */
+.reveal {
+  opacity: 1;
+}
+.reveal.in {
+  animation: fadeUp 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.reveal-stagger > * {
+  opacity: 1;
+}
+.reveal-stagger.in > *:nth-child(1) {
+  animation: fadeUp 700ms 0ms both cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-stagger.in > *:nth-child(2) {
+  animation: fadeUp 700ms 80ms both cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-stagger.in > *:nth-child(3) {
+  animation: fadeUp 700ms 160ms both cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-stagger.in > *:nth-child(4) {
+  animation: fadeUp 700ms 240ms both cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-stagger.in > *:nth-child(5) {
+  animation: fadeUp 700ms 320ms both cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-stagger.in > *:nth-child(6) {
+  animation: fadeUp 700ms 400ms both cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ─────────  Float chips (Hero mock signature moment 5)  ───────── */
+@keyframes floatY {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+.float-1 {
+  animation: floatY 5s ease-in-out infinite;
+}
+.float-2 {
+  animation: floatY 6s ease-in-out infinite 0.5s;
+}
+.float-3 {
+  animation: floatY 4.5s ease-in-out infinite 1s;
+}
+
+/* ─────────  Quiz step transition  ───────── */
+.quiz-step-in {
+  animation: fadeUp 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ─────────  Marquee (horizontal infinite scroll)  ───────── */
+@keyframes marqueeScroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marqueeScroll 38s linear infinite;
+}
+.marquee-track:hover { animation-play-state: paused; }
+
+/* ─────────  Grid pattern background (hero contrast side)  ───────── */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(45, 54, 63, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(45, 54, 63, 0.05) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* ─────────  Glowing dot decoration  ───────── */
+.glow-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px var(--accent-glow), 0 0 24px var(--accent-glow);
+}
+
+/* ─────────  Hero spotlight (signature moment 6 — Background)  ───────── */
+.hero-spotlight {
+  background:
+    radial-gradient(
+      650px circle at var(--mx, 28%) var(--my, 20%),
+      rgba(34, 109, 123, 0.08),
+      transparent 55%
+    ),
+    radial-gradient(
+      500px circle at 82% 75%,
+      rgba(255, 255, 255, 0.6),
+      transparent 60%
+    );
+}
+
+.cold-panel {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 250, 244, 0.84)),
+    rgba(255, 255, 255, 0.78);
+  border: 1px solid var(--border);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 28px 70px rgba(65, 54, 42, 0.14);
+  backdrop-filter: blur(18px);
+}
+
+.section-shell {
+  position: relative;
+}
+
+.section-shell::before {
+  pointer-events: none;
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(45, 54, 63, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(45, 54, 63, 0.035) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(180deg, transparent, #000 18%, #000 82%, transparent);
+}
+
+/* ─────────  Subtle dot grid background utility  ───────── */
+.dot-grid {
+  background-image: radial-gradient(
+    rgba(0, 0, 0, 0.08) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+}
+
+/* ─────────  Reduced motion fallback (DESIGN.md 8 — Do)  ───────── */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal.in,
+  .reveal-stagger.in > *,
+  .float-1,
+  .float-2,
+  .float-3 {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────
+ *  Manual utility shortcuts
+ *  (Tailwind v4 @theme inline conflicts with `bg`/`text`/`border`
+ *   utility prefixes, so we declare these explicitly.)
+ * ────────────────────────────────────────────────────────────── */
+@layer utilities {
+  /* Backgrounds */
+  .bg-bg { background-color: var(--bg); }
+  .bg-bg-alt { background-color: var(--bg-alt); }
+  .bg-bg-light { background-color: var(--bg-light); }
+  .bg-surface { background-color: var(--surface); }
+  .bg-surface-hover { background-color: var(--surface-hover); }
+  .bg-surface-light { background-color: var(--surface-light); }
+  .bg-accent { background-color: var(--accent); }
+  .bg-accent-hover { background-color: var(--accent-hover); }
+  .bg-accent-soft { background-color: var(--accent-soft); }
+  .bg-text { background-color: var(--text); }
+  .bg-border { background-color: var(--border); }
+  .bg-border-hover { background-color: var(--border-hover); }
+
+  /* Background opacity (common ones) */
+  .bg-bg\/70 { background-color: rgba(var(--bg-rgb), 0.7); }
+  .bg-bg-alt\/90 { background-color: rgba(255, 250, 244, 0.9); }
+  .bg-text\/90 { background-color: rgba(32, 39, 45, 0.9); }
+  .bg-text\/40 { background-color: rgba(32, 39, 45, 0.4); }
+  .bg-text\/30 { background-color: rgba(32, 39, 45, 0.3); }
+  .bg-text\/25 { background-color: rgba(32, 39, 45, 0.25); }
+  .bg-text\/20 { background-color: rgba(32, 39, 45, 0.2); }
+  .bg-text\/15 { background-color: rgba(32, 39, 45, 0.15); }
+  .bg-text\/10 { background-color: rgba(32, 39, 45, 0.1); }
+  .bg-accent\/10 { background-color: rgba(var(--accent-rgb), 0.1); }
+  .bg-accent\/\[0\.04\] { background-color: rgba(var(--accent-rgb), 0.04); }
+  .bg-accent\/\[0\.05\] { background-color: rgba(var(--accent-rgb), 0.05); }
+  .bg-accent\/\[0\.08\] { background-color: rgba(var(--accent-rgb), 0.08); }
+  .bg-accent\/\[0\.12\] { background-color: rgba(var(--accent-rgb), 0.12); }
+
+  /* Borders */
+  .border-border { border-color: var(--border); }
+  .border-border-hover { border-color: var(--border-hover); }
+  .border-border-light { border-color: var(--border-light); }
+  .border-accent { border-color: var(--accent); }
+  .border-accent\/30 { border-color: rgba(var(--accent-rgb), 0.3); }
+  .border-accent\/40 { border-color: rgba(var(--accent-rgb), 0.4); }
+
+  /* Divide */
+  .divide-border > :not([hidden]) ~ :not([hidden]) {
+    border-color: var(--border);
+  }
+
+  /* Text */
+  .text-text { color: var(--text); }
+  .text-text-secondary { color: var(--text-secondary); }
+  .text-text-tertiary { color: var(--text-tertiary); }
+  .text-text-light { color: var(--text-light); }
+  .text-text-light-secondary { color: var(--text-light-secondary); }
+  .text-text-light-tertiary { color: var(--text-light-tertiary); }
+  .text-accent { color: var(--accent); }
+  .text-accent-hover { color: var(--accent-hover); }
+  .text-accent-soft { color: var(--accent-soft); }
+  .text-bg { color: var(--bg); }
+  .text-text\/\[0\.025\] { color: rgba(32, 39, 45, 0.045); }
+  .placeholder\:text-text-tertiary::placeholder { color: var(--text-tertiary); }
+
+  /* Hover variants */
+  .hover\:bg-bg:hover { background-color: var(--bg); }
+  .hover\:bg-bg-alt:hover { background-color: var(--bg-alt); }
+  .hover\:bg-surface-hover:hover { background-color: var(--surface-hover); }
+  .hover\:bg-accent:hover { background-color: var(--accent); }
+  .hover\:bg-accent-hover:hover { background-color: var(--accent-hover); }
+  .hover\:border-border-hover:hover { border-color: var(--border-hover); }
+  .hover\:border-accent:hover { border-color: var(--accent); }
+  .hover\:text-text:hover { color: var(--text); }
+  .hover\:text-accent:hover { color: var(--accent); }
+
+  /* Focus-visible outline */
+  .focus-visible\:outline-accent:focus-visible {
+    outline-color: var(--accent);
+  }
+  .focus\:border-accent:focus { border-color: var(--accent); }
+  .focus\:bg-bg:focus { background-color: var(--bg); }
+
+  /* Gradient from (used in Offers highlight card) */
+  .from-accent\/\[0\.08\] {
+    --tw-gradient-from: rgba(var(--accent-rgb), 0.08) var(--tw-gradient-from-position);
+    --tw-gradient-to: rgba(var(--accent-rgb), 0) var(--tw-gradient-to-position);
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+  }
 }

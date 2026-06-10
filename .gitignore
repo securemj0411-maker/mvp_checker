@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# media & local artifacts
+*.mp4
+*.srt
+*.mp3
+/edit/
+/thumbnail/
+/video-v4/
+/.codex/
+/사업망하고우는남자.png
+/claude-code.svg
+/codex-logo.svg

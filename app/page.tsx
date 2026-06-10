@@ -1,109 +1,220 @@
 import LeadForm from "@/components/LeadForm";
+import ScrollReveal from "@/components/ScrollReveal";
+import HeroSpotlight from "@/components/HeroSpotlight";
 import {
   ArrowRight,
-  BarChart3,
-  Bot,
-  Layout,
-  Megaphone,
-  TrendingDown,
-  Wallet,
+  Check,
+  CreditCard,
+  MessageCircle,
+  MousePointerClick,
 } from "lucide-react";
 
-export default function Home() {
+const fontDisplay = { fontFamily: "var(--font-display)" } as const;
+const glowAccent = {
+  filter: "drop-shadow(0 0 18px var(--accent-glow))",
+} as const;
+const dotAccent = { boxShadow: "0 0 8px var(--accent-glow)" } as const;
+
+type HeroVariant = "a" | "b";
+
+export default function Home({
+  heroVariant = "a",
+}: {
+  heroVariant?: HeroVariant;
+}) {
   return (
     <main className="flex-1">
       <Nav />
-      <Hero />
+      <HeroSpotlight>
+        <Hero variant={heroVariant} />
+      </HeroSpotlight>
+      <Marquee />
       <Problem />
-      <Stats />
       <AITrap />
-      <Method />
-      <Transparency />
+      <Timeline />
+      <NoBuildBand />
+      <Measure />
+      <Pricing />
+      <NoGo />
       <FounderStory />
-      <Team />
-      <Offers />
-      <RiskReversal />
       <FAQ />
       <FinalCTA />
       <Footer />
+      <ScrollReveal />
     </main>
+  );
+}
+
+/* ────────────────────  shared eyebrow label  ──────────────────── */
+function Eyebrow({ children }: { children: React.ReactNode }) {
+  return (
+    <p
+      className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-text-tertiary"
+      style={fontDisplay}
+    >
+      <span
+        className="inline-block h-1.5 w-1.5 rounded-full bg-accent"
+        style={dotAccent}
+      />
+      {children}
+    </p>
   );
 }
 
 /* ─────────────────────────  NAV  ───────────────────────── */
 function Nav() {
   return (
-    <header className="sticky top-0 z-30 border-b border-neutral-100 bg-white/80 backdrop-blur">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4">
-        <a href="#" className="text-lg font-bold tracking-tight">
-          0to1
+    <header className="sticky top-0 z-40 border-b border-border bg-bg/70 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5">
+        <a
+          href="#"
+          className="flex items-center gap-2 text-lg font-bold tracking-tight text-text"
+        >
+          <span
+            className="relative flex h-7 w-7 items-center justify-center rounded bg-text text-sm font-black text-bg"
+            style={fontDisplay}
+          >
+            B
+            <span
+              className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-accent"
+              style={dotAccent}
+            />
+          </span>
+          <span>비즈필터</span>
         </a>
+        <nav className="hidden items-center gap-7 text-sm font-medium text-text-secondary sm:flex">
+          <a href="#timeline" className="transition hover:text-text">
+            진행 방식
+          </a>
+          <a href="#pricing" className="transition hover:text-text">
+            가격
+          </a>
+          <a href="#story" className="transition hover:text-text">
+            스토리
+          </a>
+          <a href="#faq" className="transition hover:text-text">
+            FAQ
+          </a>
+          <a href="/blog" className="transition hover:text-text">
+            블로그
+          </a>
+        </nav>
         <a
           href="#cta"
-          className="rounded-full bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-700"
+          className="inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-bold text-white transition hover:bg-accent-hover hover:shadow-[0_8px_24px_var(--accent-glow)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         >
-          검증 신청
+          검증 신청 <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
         </a>
       </div>
     </header>
   );
 }
 
-/* ─────────────────────────  HERO  ───────────────────────── */
-function Hero() {
+/* ─────────────────────────  HERO (split)  ───────────────────────── */
+function Hero({ variant = "a" }: { variant?: HeroVariant }) {
   return (
-    <section className="border-b border-neutral-100">
-      <div className="mx-auto max-w-5xl px-5 py-20 sm:py-24 lg:py-28">
-        <div className="grid gap-16 lg:grid-cols-[1.3fr_1fr] lg:items-center">
-          <div>
-            <p className="mb-5 inline-block rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-xs font-medium text-neutral-700">
-              사업 아이디어 검증 서비스
-            </p>
-            <h1 className="text-4xl font-bold leading-[1.15] tracking-tight sm:text-5xl lg:text-6xl">
-              되는 사업을 해라.
-              <br />
-              우리가 다 검증해드립니다.
-            </h1>
-            <p className="mt-7 max-w-2xl text-lg leading-relaxed text-neutral-600 sm:text-xl">
-              AI는 어떤 아이디어든 "좋다"고 합니다. 우리는 Mock 사이트 띄우고
-              진짜 광고 돌려서{" "}
-              <span className="font-semibold text-neutral-900">
-                실제 시장 반응 + 객단가 + 손익
-              </span>
-              까지 답합니다.
-            </p>
-            <div className="mt-10 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-              <a
-                href="#cta"
-                className="rounded-lg bg-neutral-900 px-6 py-3.5 text-base font-semibold text-white hover:bg-neutral-700"
-              >
-                50만원으로 검증 시작
-              </a>
-              <a
-                href="#method"
-                className="px-2 py-3 text-base font-medium text-neutral-700 underline-offset-4 hover:underline"
-              >
-                어떻게 작동하는지 보기 →
-              </a>
-            </div>
-            <div className="mt-8 flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs">
-                <span className="font-bold text-neutral-900">5~14일</span>
-                <span className="text-neutral-500">결과</span>
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs">
-                <span className="font-bold text-neutral-900">50%</span>
-                <span className="text-neutral-500">환불 보장</span>
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-yellow-300 bg-yellow-50 px-3 py-1.5 text-xs">
-                <span className="font-bold text-neutral-900">100%</span>
-                <span className="text-neutral-600">데이터 공개</span>
-              </span>
-            </div>
-            <p className="mt-5 text-sm text-neutral-500">
-              Mock 사이트 · 광고 계정 · 실제 데이터 다 공개 · 블랙박스 없음
-            </p>
+    <section className="relative grid border-b border-border lg:min-h-[88vh] lg:grid-cols-2">
+      <div className="dot-grid pointer-events-none absolute inset-0 left-0 right-1/2 -z-10 opacity-40" />
+      {/* LEFT — copy */}
+      <div className="flex flex-col justify-center px-6 py-20 sm:px-12 sm:py-24 lg:px-16">
+        <div className="reveal-stagger max-w-[680px]">
+          <p
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-text-secondary"
+            style={fontDisplay}
+          >
+            <span
+              className="h-1.5 w-1.5 rounded-full bg-accent"
+              style={dotAccent}
+            />
+            사업 아이디어 검증 전문
+          </p>
+          {variant === "a" ? (
+            <>
+              <h1 className="mt-6 text-4xl font-extrabold leading-[1.12] tracking-[-0.035em] text-text sm:text-5xl lg:text-6xl">
+                그 아이디어가 될지 안 될지,
+                <br />
+                어차피 알게 됩니다.
+              </h1>
+              <p className="mt-5 text-xl font-bold leading-snug text-text-secondary sm:text-2xl">
+                6개월 뒤에 아느냐,{" "}
+                <span className="text-accent" style={glowAccent}>
+                  7일 뒤에 아느냐
+                </span>
+                의 차이일 뿐.
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="mt-6 text-4xl font-extrabold leading-[1.12] tracking-[-0.035em] text-text sm:text-5xl lg:text-6xl">
+                만들기 전에,
+                <br />살 사람이 있는지 확인하세요.
+              </h1>
+              <p className="mt-5 text-xl font-bold leading-snug text-text-secondary sm:text-2xl">
+                그 아이디어,{" "}
+                <span className="text-accent" style={glowAccent}>
+                  7일이면 데이터로 답
+                </span>
+                이 나옵니다.
+              </p>
+            </>
+          )}
+          <p className="mt-7 max-w-2xl text-lg leading-[1.65] text-text-secondary">
+            제품이 없어도 됩니다.{" "}
+            <span className="font-semibold text-text">
+              진짜 서비스처럼 보이는 페이지
+            </span>
+            를 띄우고, 진짜 광고를 돌립니다. 모르는 사람들이{" "}
+            <span className="font-semibold text-text">
+              클릭하는지 · 가격을 보고도 결제 버튼을 누르는지
+            </span>
+            , 그리고{" "}
+            <span className="font-semibold text-text">
+              고객 1명 데려오는 데 얼마가 드는지
+            </span>
+            까지 — 만들기 전에 숫자로 답합니다.
+          </p>
+          <div className="mt-10 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+            <a
+              href="#cta"
+              className="inline-flex items-center gap-2 rounded-lg bg-accent px-6 py-3.5 text-base font-bold text-white transition hover:bg-accent-hover hover:shadow-[0_12px_32px_var(--accent-glow)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            >
+              내 아이디어 검증 신청하기
+              <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
+            </a>
+            <a
+              href="#timeline"
+              className="px-2 py-3 text-base font-medium text-text-secondary underline-offset-4 transition hover:text-text hover:underline"
+            >
+              7일이 어떻게 흘러가는지 보기 →
+            </a>
           </div>
+          <p className="mt-7 text-sm text-text-tertiary">
+            신청은 결제가 아닙니다 · 수요 신호가 없으면 50% 환불 · 검증 과정
+            실시간 공개
+          </p>
+        </div>
+      </div>
+      {/* RIGHT — dark dashboard island */}
+      <div className="section-dark relative hidden items-center justify-center overflow-hidden p-8 sm:p-12 lg:flex lg:p-16">
+        <div
+          aria-hidden
+          className="grid-bg pointer-events-none absolute inset-0 opacity-60"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(circle at 50% 30%, rgba(var(--accent-rgb), 0.14), transparent 60%)",
+          }}
+        />
+        <div className="glow-dot pointer-events-none absolute left-12 top-16" />
+        <div
+          className="glow-dot pointer-events-none absolute right-16 top-1/3"
+          style={{ background: "var(--accent-soft)" }}
+        />
+        <div className="glow-dot pointer-events-none absolute bottom-20 left-1/4" />
+        <div className="relative w-full max-w-[520px]">
           <HeroMock />
         </div>
       </div>
@@ -113,150 +224,191 @@ function Hero() {
 
 function HeroMock() {
   return (
-    <div className="relative hidden lg:block">
-      {/* Mock browser */}
-      <div className="relative rounded-xl border border-neutral-200 bg-white shadow-xl">
-        <div className="flex items-center gap-1.5 border-b border-neutral-100 px-3 py-2.5">
-          <div className="h-2.5 w-2.5 rounded-full bg-red-400" />
-          <div className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
-          <div className="h-2.5 w-2.5 rounded-full bg-green-400" />
-          <div className="ml-3 flex-1 truncate rounded-md bg-neutral-100 px-2 py-1 text-xs text-neutral-500">
+    <div className="reveal relative w-full">
+      <div className="rounded-xl border border-border bg-bg-alt shadow-[0_28px_70px_rgba(65,54,42,0.16)]">
+        <div className="flex items-center gap-1.5 border-b border-border px-3 py-2.5">
+          <div className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+          <div className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+          <div className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+          <div
+            className="ml-3 flex-1 truncate rounded-md bg-bg px-2 py-1 text-xs text-text-tertiary"
+            style={fontDisplay}
+          >
             your-idea.com
           </div>
         </div>
         <div className="space-y-3 p-5">
-          <div className="h-3 w-3/4 rounded bg-neutral-900" />
-          <div className="h-2 w-1/2 rounded bg-neutral-300" />
-          <div className="h-2 w-2/3 rounded bg-neutral-300" />
-          {/* mini line chart inside the mock */}
-          <div className="mt-1 flex h-20 items-end gap-1 rounded bg-gradient-to-b from-neutral-50 to-white p-2">
+          <div className="h-3 w-3/4 rounded bg-text/90" />
+          <div className="h-2 w-1/2 rounded bg-text/25" />
+          <div className="h-2 w-2/3 rounded bg-text/25" />
+          <div className="mt-2 flex h-20 items-end gap-1 rounded bg-bg p-2">
             {[18, 32, 24, 48, 38, 60, 52, 78, 70, 92].map((h, i) => (
               <div
                 key={i}
-                className="flex-1 rounded-sm bg-neutral-900/80"
-                style={{ height: `${h}%` }}
+                className="flex-1 rounded-sm"
+                style={{
+                  height: `${h}%`,
+                  background:
+                    i === 9
+                      ? "var(--accent)"
+                      : i === 8
+                        ? "var(--accent-soft)"
+                        : "rgba(var(--text-rgb), 0.18)",
+                  boxShadow:
+                    i === 9 ? "0 0 12px var(--accent-glow)" : undefined,
+                }}
               />
             ))}
           </div>
           <div className="flex gap-2 pt-1">
-            <div className="h-8 w-28 rounded bg-neutral-900" />
-            <div className="h-8 w-20 rounded border border-neutral-300" />
+            <div className="h-8 w-28 rounded bg-accent" />
+            <div className="h-8 w-20 rounded border border-border" />
           </div>
         </div>
       </div>
-      {/* Floating stat chips */}
-      <div className="absolute -top-4 -right-4 rounded-lg border border-neutral-200 bg-white px-3 py-2 shadow-md">
+      <div className="float-1 absolute -right-4 -top-4 rounded-lg border border-border bg-bg-alt/90 px-3 py-2 backdrop-blur">
         <div className="flex items-center gap-1">
-          <div className="text-[10px] font-medium uppercase tracking-widest text-neutral-500">
+          <div
+            className="text-[10px] font-bold uppercase tracking-widest text-text-tertiary"
+            style={fontDisplay}
+          >
             CTR
           </div>
-          <span className="text-[10px] font-semibold text-green-600">↑</span>
+          <span className="text-[10px] font-bold text-accent-soft">↑</span>
         </div>
-        <div className="mt-0.5 text-base font-bold text-neutral-900">3.2%</div>
-      </div>
-      <div className="absolute top-1/3 -left-6 rounded-lg border border-neutral-200 bg-white px-3 py-2 shadow-md">
-        <div className="text-[10px] font-medium uppercase tracking-widest text-neutral-500">
-          폼 제출
+        <div
+          className="mt-0.5 text-base font-bold text-text"
+          style={fontDisplay}
+        >
+          3.2%
         </div>
-        <div className="mt-0.5 text-base font-bold text-neutral-900">47건</div>
       </div>
-      <div className="absolute -bottom-5 -right-2 rounded-lg border border-yellow-300 bg-yellow-50 px-3 py-2 shadow-md">
-        <div className="text-[10px] font-medium uppercase tracking-widest text-neutral-500">
-          CPC
+      <div className="float-2 absolute -left-6 top-1/3 rounded-lg border border-border bg-bg-alt/90 px-3 py-2 backdrop-blur">
+        <div
+          className="text-[10px] font-bold uppercase tracking-widest text-text-tertiary"
+          style={fontDisplay}
+        >
+          결제 클릭
         </div>
-        <div className="mt-0.5 text-base font-bold text-neutral-900">₩820</div>
+        <div
+          className="mt-0.5 text-base font-bold text-text"
+          style={fontDisplay}
+        >
+          12건
+        </div>
       </div>
-      {/* Decorative blur behind */}
-      <div className="absolute -bottom-10 left-1/4 -z-10 h-40 w-40 rounded-full bg-yellow-200 opacity-30 blur-3xl" />
-      <div className="absolute -top-10 right-1/4 -z-10 h-32 w-32 rounded-full bg-blue-200 opacity-30 blur-3xl" />
+      <div className="float-3 absolute -bottom-5 -right-2 rounded-lg border border-accent/40 bg-accent/[0.12] px-3 py-2 backdrop-blur">
+        <div
+          className="text-[10px] font-bold uppercase tracking-widest text-accent"
+          style={fontDisplay}
+        >
+          CAC · 고객 1명당
+        </div>
+        <div
+          className="mt-0.5 text-base font-bold text-text"
+          style={fontDisplay}
+        >
+          ₩4,167
+        </div>
+      </div>
     </div>
   );
 }
 
-/* ─────────────────────────  STATS  ───────────────────────── */
-function Stats() {
-  const stats = [
-    {
-      label: "검증 기간",
-      value: "5~14일",
-      sub: "Mock 사이트 → 광고 → 분석",
-    },
-    {
-      label: "환불 보장",
-      value: "50%",
-      sub: "신호 못 잡으면 자동 환불",
-    },
-    {
-      label: "데이터 공개",
-      value: "100%",
-      sub: "Mock · 광고계정 · 대시보드",
-    },
+/* ─────────────────────────  MARQUEE  ───────────────────────── */
+function Marquee() {
+  const items = [
+    "진짜 같은 Mock 페이지",
+    "진짜 광고",
+    "진짜 데이터",
+    "결제 의향까지 측정",
+    "CAC · 객단가 계산",
+    "라이브 대시보드",
+    "합격선 사전 합의",
+    "광고 문구 2~3종 테스트",
+    "No-Go면 50% 환불",
+    "7일 안에 답",
   ];
   return (
-    <section className="border-b border-neutral-100 bg-white">
-      <div className="mx-auto max-w-5xl px-5 py-20">
-        <div className="grid divide-y divide-neutral-200 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-          {stats.map((s, i) => (
-            <div
-              key={s.label}
-              className={`py-8 text-center sm:py-2 ${i === 0 ? "" : "sm:pl-8"} ${i === stats.length - 1 ? "" : "sm:pr-8"}`}
+    <section className="section-dark relative overflow-hidden border-b">
+      <div className="marquee-track py-6 text-xl font-bold tracking-tight sm:text-2xl">
+        {[...items, ...items].map((item, i) => (
+          <span key={i} className="flex items-center gap-10 pr-10 text-text">
+            {item}
+            <span
+              aria-hidden
+              className="text-accent"
+              style={{ filter: "drop-shadow(0 0 8px var(--accent-glow))" }}
             >
-              <p className="text-xs font-semibold uppercase tracking-widest text-neutral-500">
-                {s.label}
-              </p>
-              <p className="mt-3 bg-gradient-to-b from-neutral-900 to-neutral-700 bg-clip-text text-5xl font-bold tracking-tight text-transparent sm:text-6xl">
-                {s.value}
-              </p>
-              <p className="mt-3 text-sm text-neutral-600">{s.sub}</p>
-            </div>
-          ))}
-        </div>
+              ●
+            </span>
+          </span>
+        ))}
       </div>
     </section>
   );
 }
 
-/* ─────────────────────────  PROBLEM  ───────────────────────── */
+/* ─────────────────  PROBLEM — 아는 것과 하는 것 사이  ───────────────── */
 function Problem() {
-  const items = [
-    {
-      Icon: Bot,
-      h: "AI한테 물어보고 시작했어요.",
-      p: "ChatGPT한테 시장조사 시키니까 다 좋다고 하더라구요. 시장조사처럼 쓰여진 글이 나왔지, 진짜 시장 반응은 안 알려줬어요.",
-    },
-    {
-      Icon: TrendingDown,
-      h: "광고 돌려보고 깨달았어요.",
-      p: "수백만원 + 한 달 태우고 알았어요. '아 이거 안 되는구나.' 만들기 전에 봤어야 하는데.",
-    },
-    {
-      Icon: Wallet,
-      h: "수요는 있었어요. 단가가 안 맞았어요.",
-      p: "고객 1명 데려오는데 4만원, 결제 3만원. 수요만 봤지 단가는 안 봤어요. 손해 보면서 운영하다 접었어요.",
-    },
+  const obstacles = [
+    "랜딩페이지는 뭘로 만들지.",
+    "구글애즈 계정 세팅은 어떻게 하는지.",
+    "전환 추적 픽셀은 또 뭔지.",
+    "광고비는 얼마나 태워야 하는지.",
+    "그리고 어찌어찌 숫자가 나와도 — CTR 1.8%, 좋은 겁니까 나쁜 겁니까?",
   ];
   return (
-    <section className="border-b border-neutral-100 bg-neutral-50">
-      <div className="mx-auto max-w-5xl px-5 py-20">
-        <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          이래서 망합니다.
-        </h2>
-        <p className="mt-4 max-w-2xl text-lg text-neutral-600">
-          사업 시작 전 검증을 안 하면 길은 정해져 있어요. 셋 중 하나.
-        </p>
-        <div className="mt-12 grid gap-6 sm:grid-cols-3">
-          {items.map(({ Icon, h, p }) => (
-            <div
-              key={h}
-              className="rounded-2xl border border-neutral-200 bg-white p-6 transition hover:-translate-y-0.5 hover:shadow-lg"
+    <section className="border-b border-border bg-bg">
+      <div className="mx-auto max-w-3xl px-5 py-24 sm:py-28">
+        <div className="reveal">
+          <Eyebrow>아는 것과 하는 것 사이</Eyebrow>
+          <h2 className="mt-4 text-4xl font-extrabold tracking-[-0.03em] text-text sm:text-5xl">
+            수요검증,
+            <br />
+            해야 한다는 건 다들 압니다.
+          </h2>
+          <p className="mt-6 text-lg leading-[1.7] text-text-secondary">
+            "만들기 전에 검증부터 해라." 유튜브에서 백 번쯤 들으셨을 겁니다.
+            맞는 말이라 반박할 수도 없습니다. 그런데 막상 하려면 —
+          </p>
+        </div>
+        <ol className="reveal-stagger mt-10 space-y-0 border-y border-border">
+          {obstacles.map((o, i) => (
+            <li
+              key={o}
+              className="flex items-baseline gap-4 border-b border-border py-4 last:border-b-0"
             >
-              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-yellow-100 text-neutral-900">
-                <Icon className="h-5 w-5" strokeWidth={1.75} />
-              </div>
-              <p className="mt-5 text-lg font-semibold">{h}</p>
-              <p className="mt-3 leading-relaxed text-neutral-600">{p}</p>
-            </div>
+              <span
+                className="text-sm font-bold text-text-tertiary"
+                style={fontDisplay}
+              >
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <span className="text-lg font-medium text-text">{o}</span>
+            </li>
           ))}
+        </ol>
+        <div className="reveal mt-10">
+          <p className="text-lg leading-[1.7] text-text-secondary">
+            그래서 대부분 이렇게 합니다.
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2.5">
+            <span className="rounded-full border border-border bg-surface px-4 py-2 text-sm text-text-secondary">
+              지인 — "오, 괜찮은데?"
+            </span>
+            <span className="rounded-full border border-border bg-surface px-4 py-2 text-sm text-text-secondary">
+              AI — "훌륭한 아이디어입니다!"
+            </span>
+            <span className="rounded-full border border-accent/40 bg-accent/[0.08] px-4 py-2 text-sm font-semibold text-text">
+              …그리고 그냥 만들기 시작
+            </span>
+          </div>
+          <p className="mt-10 border-l-2 border-accent pl-6 text-2xl font-bold leading-snug text-text">
+            그리고 3개월 뒤 — 시장이 7일 만에 알려줄 수 있던 답을,
+            <br className="hidden sm:block" />
+            가장 비싼 수업료를 내고 받습니다.
+          </p>
         </div>
       </div>
     </section>
@@ -266,38 +418,52 @@ function Problem() {
 /* ─────────────────────────  AI TRAP  ───────────────────────── */
 function AITrap() {
   return (
-    <section className="border-b border-neutral-100">
+    <section className="border-b border-border bg-bg-alt">
       <div className="mx-auto max-w-3xl px-5 py-24 sm:py-28">
-        <p className="text-sm font-semibold uppercase tracking-widest text-neutral-500">
-          AI 함정
-        </p>
-        <h2 className="mt-3 text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
-          AI한테 시장조사 시켜본 적 있죠?
-        </h2>
-        <div className="mt-8 space-y-6 text-lg leading-relaxed text-neutral-700">
-          <p>
-            저도 그랬어요. ChatGPT한테 시장 분석 시키고, 수요 예측 시키고, 경쟁
-            구조까지 분석시켰어요.
-          </p>
-          <p>
-            <span className="bg-yellow-200/60 px-1 font-semibold">
-              그 결과 사업 2개를 말아먹었습니다.
-            </span>
-          </p>
-          <p>
-            AI는 어떤 아이디어든 "좋다"고 합니다. 시장조사 시키면 시장조사처럼{" "}
-            <span className="italic">쓰여진 글</span>이 나와요 — 그게 진짜 시장
-            반응이 아닙니다. 모르는 사람 데려와서 광고 보여주고, 클릭 받고, 폼
-            받고, 결제 의향까지 측정하는 거. 그건 AI가 못 합니다.
-          </p>
-          <p className="text-xl font-semibold text-neutral-900">
-            AI는 만드는 건 잘합니다.
+        <div className="reveal">
+          <Eyebrow>AI 함정</Eyebrow>
+          <h2 className="mt-4 text-4xl font-extrabold leading-[1.15] tracking-[-0.03em] text-text sm:text-5xl">
+            AI는 다 해줍니다.
             <br />
-            진짜 되는지는 — 사람 + 광고 + 데이터만 답합니다.
+            당신 사업의{" "}
+            <span className="text-accent" style={glowAccent}>
+              숫자
+            </span>
+            만 빼고.
+          </h2>
+        </div>
+        <div className="reveal-stagger mt-10 space-y-7 text-lg leading-[1.7] text-text-secondary">
+          <p>
+            ChatGPT에 "이 아이디어 어때?" 물어보셨을 겁니다. 시장 규모, 경쟁
+            구도,
+            리스크 분석 — 요즘은 "레드오션입니다, 조심하세요"라고 말리기까지
+            합니다. 다 그럴듯합니다. 그런데 그건 전부{" "}
+            <span className="font-semibold text-text">
+              세상 어딘가의 평균, 일반론
+            </span>
+            입니다.
           </p>
-          <p className="text-neutral-600">
-            그래서 우리는 Mock 사이트 띄우고 실제 광고 돌려서 답을 가져옵니다.
-            의견 X. 데이터 O.
+          <p>
+            당신 사업이 되느냐는 일반론이 아니라 구체적인 숫자입니다.{" "}
+            <span className="font-semibold text-text">
+              이 타겟이, 이 카피에, 이 가격에서 — 클릭하는가, 결제 버튼을
+              누르는가, 한 명 데려오는 데 얼마가 드는가.
+            </span>{" "}
+            이 숫자는 AI가 못 줍니다. 검색해도 안 나옵니다.{" "}
+            <span className="font-semibold text-accent">
+              아직 세상에 존재하지 않는 데이터
+            </span>
+            니까요.
+          </p>
+          <p className="text-text-tertiary">
+            그리고 솔직히 — AI가 말려도, 원하는 답이 나올 때까지 다시 묻게
+            되는 게 사람입니다.
+          </p>
+          <p className="text-xl font-bold leading-snug text-text">
+            AI는 예측을 만들고, 시장은 증거를 만듭니다.
+            <br className="hidden sm:block" />
+            저희는 진짜 광고를 돌려서, 아직 세상에 없던 당신 사업의 숫자를
+            가져옵니다.
           </p>
         </div>
       </div>
@@ -305,90 +471,223 @@ function AITrap() {
   );
 }
 
-/* ─────────────────────────  METHOD  ───────────────────────── */
-function Method() {
-  const steps = [
+/* ──────────────  TIMELINE — 좌 sticky 헤드 + 우 7일 레일  ────────────── */
+function Timeline() {
+  const days = [
     {
-      Icon: Layout,
-      n: "01",
-      h: "Mock 사이트 제작",
-      sub: "1~2일",
-      body: "광고용 랜딩 페이지를 진짜 제품처럼 만듭니다. 카피·디자인·CTA·결제의향 폼까지. 고객이 봤을 때 진짜라고 믿어야 진짜 데이터가 나옵니다.",
+      day: "DAY 1–2",
+      h: "검증용 랜딩 제작",
+      p: "진짜 서비스처럼 보이는 페이지를 만듭니다. 가격까지 노출합니다. 고객이 진짜라고 믿어야 진짜 데이터가 나옵니다.",
     },
     {
-      Icon: Megaphone,
-      n: "02",
-      h: "SNS + 광고 운영",
-      sub: "5~10일",
-      body: "인스타 계정 운영, 구글애즈·페북애즈 집행, GA 이벤트 설정. 실제 광고비 태워서 진짜 트래픽 데려옵니다. 폼·전환 데이터 다 수집.",
+      day: "DAY 2",
+      h: "합격선 합의",
+      p: "데이터를 보기 전에 통과 기준 숫자를 함께 정합니다. 정해두지 않으면, 누구나 애매한 숫자를 '그래도 되지 않을까'로 읽게 되기 때문입니다.",
     },
     {
-      Icon: BarChart3,
-      n: "03",
-      h: "종합 분석 리포트",
-      sub: "결론 + 근거 + 다음 액션",
-      body: "수요·객단가·CAC·LTV·라이프사이클까지. 이 사업 진짜 돈 벌리는 구조인지, 어떤 부분 약점인지, 방향 수정 옵션은 뭔지. 단순 데이터 X.",
+      day: "DAY 3–7",
+      h: "광고 집행",
+      p: "구글 광고로, 당신을 전혀 모르는 잠재고객에게 노출합니다. 광고 문구를 2~3가지로 나눠 집행합니다. 반응이 없을 때 — 아이디어가 문제인지, 문구가 문제인지까지 가려냅니다.",
+    },
+    {
+      day: "상시",
+      h: "라이브 대시보드",
+      p: "노출 · 클릭 · 문의 · 결제 시도를 실시간으로 같이 봅니다. 블랙박스 없습니다.",
+    },
+    {
+      day: "DAY 7",
+      h: "Go / No-Go 의사결정 미팅",
+      p: "숫자 나열이 아니라 — CTR·전환율·고객 획득 비용이 업계 기준 대비 어디인지, 해석과 다음 액션까지 드립니다.",
+      last: true,
     },
   ];
   return (
-    <section id="method" className="border-b border-neutral-100 bg-neutral-50">
-      <div className="mx-auto max-w-5xl px-5 py-24">
-        <p className="text-sm font-semibold uppercase tracking-widest text-neutral-500">
-          어떻게 검증하나
+    <section id="timeline" className="border-b border-border bg-bg">
+      <div className="mx-auto grid max-w-6xl gap-14 px-5 py-24 sm:py-28 lg:grid-cols-[1fr_1.35fr]">
+        {/* LEFT — sticky head */}
+        <div className="reveal lg:sticky lg:top-28 lg:self-start">
+          <Eyebrow>진행 방식</Eyebrow>
+          <h2 className="mt-4 text-4xl font-extrabold tracking-[-0.03em] text-text sm:text-5xl">
+            7일 동안,
+            <br />
+            이런 일이
+            <br />
+            일어납니다.
+          </h2>
+          <p className="mt-6 max-w-md text-lg leading-[1.7] text-text-secondary">
+            도구를 배우실 필요 없습니다. 전 과정을 저희가 실행하고, 당신은
+            대시보드로 같이 보기만 하면 됩니다.
+          </p>
+          <p className="mt-5 max-w-md leading-[1.7] text-text-secondary">
+            <span className="font-semibold text-text">
+              저희 작업은 48시간이면 끝납니다.
+            </span>{" "}
+            나머지 닷새는 — 시장이 답하는 데 걸리는 최소 시간입니다. 누가
+            하든, 직접 만드셔도 이 시간은 줄지 않습니다.
+          </p>
+        </div>
+        {/* RIGHT — rail */}
+        <div>
+          <ol className="reveal-stagger relative ml-2 border-l border-border">
+            {days.map((d) => (
+              <li key={d.h} className="relative pb-12 pl-8 last:pb-0">
+                <span
+                  className={`absolute -left-[5.5px] top-2 h-2.5 w-2.5 rounded-full ${d.last ? "bg-accent" : "bg-border-hover"}`}
+                  style={d.last ? dotAccent : undefined}
+                />
+                <p
+                  className={`text-xs font-bold uppercase tracking-[0.18em] ${d.last ? "text-accent" : "text-text-tertiary"}`}
+                  style={fontDisplay}
+                >
+                  {d.day}
+                </p>
+                <h3 className="mt-2 text-2xl font-bold text-text">{d.h}</h3>
+                <p className="mt-3 max-w-xl leading-[1.7] text-text-secondary">
+                  {d.p}
+                </p>
+              </li>
+            ))}
+          </ol>
+          {/* 직접 하기 비교 */}
+          <div className="reveal mt-12 rounded-lg border border-border bg-surface p-7">
+            <p className="text-lg font-bold text-text">
+              "직접 해도 되잖아요?"
+            </p>
+            <p className="mt-3 leading-[1.7] text-text-secondary">
+              됩니다. 도구 배우는 데 2~4주, 시행착오 광고비는 별도, 그리고 한
+              가지가 끝까지 발목을 잡습니다.{" "}
+              <span className="font-semibold text-text">
+                자기 아이디어 앞에서 객관적인 사람은 없습니다.
+              </span>{" "}
+              카피도 유리하게 쓰고, 애매한 숫자도 유리하게 읽게 됩니다.
+              검증의 절반은 기술이고, 절반은 남의 눈입니다.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────  NO-BUILD BAND — 이해충돌 제거 선언  ───────────── */
+function NoBuildBand() {
+  return (
+    <section className="section-dark relative overflow-hidden border-b">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(circle at 50% 120%, rgba(var(--accent-rgb), 0.12), transparent 65%)",
+        }}
+      />
+      <div className="relative mx-auto max-w-4xl px-5 py-20 text-center sm:py-24">
+        <p className="reveal text-3xl font-extrabold leading-[1.25] tracking-[-0.02em] text-text sm:text-4xl lg:text-[2.75rem]">
+          저희는{" "}
+          <span className="text-accent" style={glowAccent}>
+            개발을 팔지 않습니다.
+          </span>
+          <br />
+          그래서 "만드세요"라고 말할
+          <br className="sm:hidden" /> 금전적 이유가 없습니다.
         </p>
-        <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-          광고 한 번 돌려보는 게 아닙니다.
-        </h2>
-        <p className="mt-4 max-w-2xl text-lg text-neutral-600">
-          Mock 사이트, SNS 계정, 광고 운영, 데이터 분석까지 — 사업 시작했을
-          때랑 같은 조건으로 검증합니다. 다만 빌드 전에.
+        <p className="reveal mx-auto mt-7 max-w-2xl leading-[1.7] text-text-secondary">
+          시장조사와 개발을 함께 파는 회사는 Go라고 말할 인센티브가 있습니다.
+          저희 수입은 검증의 정확도에서만 나옵니다.
         </p>
-        <div className="mt-14 grid gap-6 sm:grid-cols-3">
-          {steps.map(({ Icon, n, h, sub, body }, idx) => (
-            <div key={n} className="relative">
-              <div className="h-full rounded-2xl border border-neutral-200 bg-white p-7 transition hover:-translate-y-0.5 hover:shadow-lg">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-mono font-medium text-neutral-400">
-                    {n}
-                  </p>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-900 text-white">
-                    <Icon className="h-5 w-5" strokeWidth={1.75} />
-                  </div>
-                </div>
-                <p className="mt-3 text-2xl font-bold">{h}</p>
-                <p className="mt-1 text-sm font-medium text-neutral-500">
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────  MEASURE — 신호 사다리 (클릭 < 문의 < 결제)  ───────────── */
+function Measure() {
+  const signals = [
+    {
+      Icon: MousePointerClick,
+      h: "클릭",
+      sub: "약한 신호",
+      barH: 56,
+      strong: false,
+    },
+    {
+      Icon: MessageCircle,
+      h: "문의",
+      sub: "중간 신호",
+      barH: 104,
+      strong: false,
+    },
+    {
+      Icon: CreditCard,
+      h: "결제 버튼 클릭",
+      sub: "저희가 끝까지 보는 것",
+      barH: 168,
+      strong: true,
+    },
+  ];
+  return (
+    <section className="border-b border-border bg-bg-alt">
+      <div className="mx-auto max-w-6xl px-5 py-24 sm:py-28">
+        <div className="reveal max-w-3xl">
+          <Eyebrow>측정하는 것</Eyebrow>
+          <h2 className="mt-4 text-4xl font-extrabold tracking-[-0.03em] text-text sm:text-5xl">
+            "괜찮네요"와 "살게요"는
+            <br />
+            다릅니다.
+          </h2>
+          <p className="mt-6 text-lg leading-[1.7] text-text-secondary">
+            클릭은 약한 신호입니다. 저희는 끝까지 갑니다 — 가격을 보여주고,
+            결제 버튼을 누르는지까지 측정합니다.{" "}
+            <span className="text-text-tertiary">
+              (실제 결제 직전 사전등록 안내로 전환되는 방식입니다. 아무에게도
+              돈을 받지 않습니다.)
+            </span>
+          </p>
+        </div>
+        {/* 신호 사다리 */}
+        <div className="reveal-stagger mx-auto mt-16 grid max-w-3xl grid-cols-3 items-end gap-4 sm:gap-8">
+          {signals.map(({ Icon, h, sub, barH, strong }) => (
+            <div key={h} className="flex flex-col items-center gap-5">
+              <div
+                className={`w-full rounded-t-lg ${strong ? "bg-accent" : "bg-border-hover"}`}
+                style={{
+                  height: barH,
+                  boxShadow: strong
+                    ? "0 0 32px var(--accent-glow)"
+                    : undefined,
+                }}
+              />
+              <div className="flex flex-col items-center gap-1.5 text-center">
+                <Icon
+                  className={`h-5 w-5 ${strong ? "text-accent" : "text-text-tertiary"}`}
+                  strokeWidth={2}
+                />
+                <p
+                  className={`text-sm font-bold sm:text-base ${strong ? "text-text" : "text-text-secondary"}`}
+                >
+                  {h}
+                </p>
+                <p
+                  className={`text-xs ${strong ? "font-semibold text-accent" : "text-text-tertiary"}`}
+                >
                   {sub}
                 </p>
-                <p className="mt-5 leading-relaxed text-neutral-700">{body}</p>
               </div>
-              {idx < steps.length - 1 && (
-                <div className="pointer-events-none absolute -right-3 top-1/2 hidden -translate-y-1/2 sm:block">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full border border-neutral-200 bg-white shadow-sm">
-                    <ArrowRight
-                      className="h-4 w-4 text-neutral-400"
-                      strokeWidth={2}
-                    />
-                  </div>
-                </div>
-              )}
             </div>
           ))}
         </div>
-        <div className="mt-14 rounded-2xl border border-neutral-900 bg-neutral-900 p-8 text-white sm:p-12">
-          <p className="text-sm font-semibold uppercase tracking-widest text-neutral-400">
-            핵심 차이
+        <div className="reveal mx-auto mt-16 max-w-3xl border-l-2 border-accent pl-6">
+          <p className="text-xl font-bold leading-snug text-text">
+            한 가지 더 — 수요가 있어도 단가가 안 맞으면, 만들수록 손해입니다.
           </p>
-          <p className="mt-3 text-2xl font-bold leading-snug sm:text-3xl">
-            보고서만 주는 시장조사 회사가 아닙니다.
-            <br />
-            <span className="text-yellow-300">
-              진짜 시장에 띄워서 답을 가져옵니다.
+          <p className="mt-3 text-lg leading-[1.7] text-text-secondary">
+            한 명 데려오는 데 광고비 4만원, 그 한 명이 3만원 결제. 저희가
+            그렇게 한 번 망해봤습니다. 그래서 클릭 단가와 고객 획득 비용까지
+            재서,{" "}
+            <span className="font-semibold text-text">
+              팔수록 남는 구조인지
             </span>
-          </p>
-          <p className="mt-5 text-base leading-relaxed text-neutral-300">
-            Mock 사이트 + 광고 + 사용자 행동 데이터 = 진짜 시장 반응. AI
-            분석·설문조사·인터뷰만 갖고 결정하는 게 아니라, 진짜 고객 행동으로
-            답합니다.
+            를 같이 답합니다.
           </p>
         </div>
       </div>
@@ -396,57 +695,225 @@ function Method() {
   );
 }
 
-/* ─────────────────────────  TRANSPARENCY  ───────────────────────── */
-function Transparency() {
-  const items = [
+/* ─────────────────────────  PRICING  ───────────────────────── */
+function Pricing() {
+  const tiers = [
     {
-      tag: "Mock 사이트",
-      h: "직접 보세요.",
-      p: "광고용으로 만든 랜딩 그대로 공유합니다. 어떤 카피·CTA·디자인으로 테스트했는지.",
+      tag: "QUICK 검증",
+      price: "50만원",
+      period: "7일",
+      desc: "아무도 원하지 않는 건 아닌지 — 수요부터 확인합니다.",
+      lines: [
+        "검증용 랜딩페이지 1장 — 종료 후 도메인·디자인 전부 고객 소유",
+        "구글 광고 운영 7일 (광고비 5만원 포함)",
+        "GA4 + 전환 이벤트 + 폼 수집",
+        "클릭 단가 · 고객 획득 비용(CAC) 1차 측정",
+        "라이브 대시보드 상시 공개",
+        "1페이지 Go/No-Go 리포트 + 30분 의사결정 미팅",
+        "수요 신호가 잡히지 않으면 50% 환불",
+      ],
+      cta: "Quick으로 시작",
+      highlight: true,
     },
     {
-      tag: "광고 계정",
-      h: "캡처 다 공개.",
-      p: "구글애즈·페북애즈 캡처. 키워드, 노출, CTR, CPC. 영수증까지.",
-    },
-    {
-      tag: "데이터 dashboard",
-      h: "결론의 근거.",
-      p: "GA 데이터, 폼 제출, 이벤트 로그. *왜* 그 결론인지 숫자로.",
+      tag: "DEEP 검증",
+      price: "130만원",
+      period: "14일",
+      desc: "원하는데 돈이 안 되는 건 아닌지 — 단가와 손익까지 확인합니다.",
+      lines: [
+        "Quick 전체 포함",
+        "인스타·페이스북 광고 추가 (광고비 20만원 포함)",
+        "콘텐츠 5~7개 제작",
+        "잠재고객 설문 + 인터뷰 5~10명",
+        "객단가(한 명이 내는 돈) · CAC · LTV · 손익 시뮬레이션",
+        "No-Go 판정 시 50% 환불",
+      ],
+      cta: "Deep 상담",
+      highlight: false,
     },
   ];
   return (
-    <section className="border-b border-neutral-100">
-      <div className="mx-auto max-w-5xl px-5 py-24">
-        <p className="text-sm font-semibold uppercase tracking-widest text-neutral-500">
-          투명성
-        </p>
-        <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-          보이지 않는 거 안 팝니다.
-        </h2>
-        <p className="mt-4 max-w-2xl text-lg text-neutral-600">
-          PDF 리포트 한 장 던지고 끝? 아닙니다. 우리가 *어떻게* 그 결론에
-          도달했는지 데이터·계정·사이트까지 다 공개합니다. 직접 검증해보세요.
-        </p>
-        <div className="mt-14 grid gap-6 sm:grid-cols-3">
-          {items.map((it) => (
-            <div
-              key={it.tag}
-              className="rounded-2xl border border-neutral-200 bg-neutral-50 p-7 transition hover:-translate-y-0.5 hover:shadow-lg"
+    <section id="pricing" className="border-b border-border bg-bg">
+      <div className="mx-auto max-w-6xl px-5 py-24 sm:py-28">
+        <div className="reveal">
+          <Eyebrow>가격</Eyebrow>
+          <h2 className="mt-4 text-4xl font-extrabold tracking-[-0.03em] text-text sm:text-5xl">
+            검증 안 한 값이,
+            <br />늘 더 비쌌습니다.
+          </h2>
+          <p className="mt-6 max-w-2xl text-lg leading-[1.7] text-text-secondary">
+            사업이 죽는 방식은 두 가지입니다.{" "}
+            <span className="font-semibold text-text">
+              아무도 원하지 않거나 — 원하는데, 돈이 안 되거나.
+            </span>{" "}
+            두 플랜이 각각 그 질문에 답합니다.
+          </p>
+        </div>
+        {/* 보험료 프레이밍 — 비교 스트립 */}
+        <div className="reveal mt-12 grid overflow-hidden rounded-lg border border-border sm:grid-cols-[1fr_auto_1fr]">
+          <div className="bg-surface p-7">
+            <p
+              className="text-xs font-bold uppercase tracking-[0.18em] text-text-tertiary"
+              style={fontDisplay}
             >
-              <p className="text-xs font-semibold uppercase tracking-widest text-neutral-500">
-                {it.tag}
+              '일단 만들기'의 평균 비용
+            </p>
+            <p className="mt-3 text-2xl font-bold text-text">
+              3~6개월 + 수백만 원
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+              외주·광고비, 그리고 그 기간 전부의 기회비용
+            </p>
+          </div>
+          <div className="flex items-center justify-center border-y border-border bg-bg px-6 py-3 sm:border-x sm:border-y-0">
+            <span
+              className="text-sm font-bold uppercase tracking-widest text-text-tertiary"
+              style={fontDisplay}
+            >
+              vs
+            </span>
+          </div>
+          <div className="bg-accent/[0.05] p-7">
+            <p
+              className="text-xs font-bold uppercase tracking-[0.18em] text-accent"
+              style={fontDisplay}
+            >
+              Quick 검증
+            </p>
+            <p className="mt-3 text-2xl font-bold text-text">7일, 50만원</p>
+            <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+              50만원은 검증 비용이 아니라,{" "}
+              <span className="font-semibold text-text">
+                6개월짜리 오답에 대한 보험료
+              </span>
+              입니다.
+            </p>
+          </div>
+        </div>
+        {/* 플랜 카드 */}
+        <div className="reveal-stagger mt-8 grid gap-5 sm:grid-cols-2">
+          {tiers.map((t) => (
+            <div
+              key={t.tag}
+              className={`relative rounded-lg border p-7 transition hover:-translate-y-0.5 ${
+                t.highlight
+                  ? "border-accent/40 bg-gradient-to-br from-accent/[0.08] to-transparent"
+                  : "border-border bg-surface hover:border-border-hover"
+              }`}
+              style={
+                t.highlight
+                  ? {
+                      boxShadow:
+                        "0 0 0 1px var(--accent-glow) inset, 0 16px 40px rgba(var(--accent-rgb), 0.10)",
+                    }
+                  : undefined
+              }
+            >
+              {t.highlight && (
+                <span
+                  className="absolute -top-3 left-7 rounded-full bg-accent px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-white"
+                  style={fontDisplay}
+                >
+                  추천 시작점
+                </span>
+              )}
+              <p
+                className="text-xs font-bold uppercase tracking-[0.18em] text-text-tertiary"
+                style={fontDisplay}
+              >
+                {t.tag}
               </p>
-              <p className="mt-3 text-xl font-bold">{it.h}</p>
-              <p className="mt-3 text-sm leading-relaxed text-neutral-600">
-                {it.p}
-              </p>
-              <div className="mt-5 flex h-32 items-center justify-center rounded-lg border border-dashed border-neutral-300 bg-white text-xs text-neutral-400">
-                실제 캡처 예시 (준비 중)
+              <div className="mt-3 flex items-baseline gap-2">
+                <p
+                  className="text-4xl font-bold tracking-[-0.03em] text-text sm:text-5xl"
+                  style={fontDisplay}
+                >
+                  {t.price}
+                </p>
+                <p className="text-sm font-medium text-text-tertiary">
+                  / {t.period}
+                </p>
               </div>
+              <p className="mt-4 text-[15px] font-semibold leading-snug text-text">
+                {t.desc}
+              </p>
+              <ul className="mt-5 space-y-2.5 text-sm leading-relaxed text-text-secondary">
+                {t.lines.map((l) => (
+                  <li key={l} className="flex items-start gap-2">
+                    <Check
+                      className="mt-0.5 h-4 w-4 flex-shrink-0 text-accent"
+                      strokeWidth={2.5}
+                    />
+                    <span>{l}</span>
+                  </li>
+                ))}
+              </ul>
+              <a
+                href="#cta"
+                className={`mt-7 block rounded-lg px-5 py-3 text-center text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                  t.highlight
+                    ? "bg-accent text-white hover:bg-accent-hover hover:shadow-[0_12px_32px_var(--accent-glow)]"
+                    : "border border-border-hover bg-bg text-text hover:border-accent hover:text-accent"
+                }`}
+              >
+                {t.cta}
+              </a>
             </div>
           ))}
         </div>
+        <p className="reveal mt-8 text-sm text-text-tertiary">
+          ※ 매출은 보장하지 않습니다 — 법적으로 누구도 보장할 수 없습니다.
+          보장은 저희가 통제할 수 있는 것, 검증 환불에만 겁니다. 광고비는 실제
+          집행 비용이라 환불 대상에서 제외됩니다.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────  NO-GO 패키지  ───────────────────────── */
+function NoGo() {
+  const items = [
+    "검증비 50% 환불",
+    "제작한 랜딩페이지 · 도메인 · 디자인, 전부 가져가세요",
+    "왜 안 됐는지 분석 — 수요 자체인지, 타겟인지, 메시지인지, 가격인지",
+    "피벗 방향 제안 + 재검증 시 할인",
+    "가장 큰 것: 들어갈 뻔했던 몇 달과 수백만 원이 그대로 남습니다",
+  ];
+  return (
+    <section className="border-b border-border bg-bg-alt">
+      <div className="mx-auto max-w-3xl px-5 py-24 sm:py-28">
+        <div className="reveal">
+          <Eyebrow>No-Go가 나오면</Eyebrow>
+          <h2 className="mt-4 text-4xl font-extrabold tracking-[-0.03em] text-text sm:text-5xl">
+            "하지 마세요"라는
+            <br />
+            결과가 나오면요?
+          </h2>
+          <p className="mt-6 text-lg leading-[1.7] text-text-secondary">
+            기분 좋은 소식은 아니지만, 손해는 아닙니다.
+          </p>
+        </div>
+        <ul className="reveal-stagger mt-10 space-y-4">
+          {items.map((it) => (
+            <li
+              key={it}
+              className="flex items-start gap-3 rounded-lg border border-border bg-surface px-5 py-4"
+            >
+              <Check
+                className="mt-0.5 h-5 w-5 flex-shrink-0 text-accent"
+                strokeWidth={2.5}
+              />
+              <span className="leading-relaxed text-text">{it}</span>
+            </li>
+          ))}
+        </ul>
+        <p className="reveal mt-10 border-l-2 border-accent pl-6 text-xl font-bold leading-[1.5] text-text">
+          저희에게 최악의 후기는 "괜히 했다"입니다. 그래서 안 될 거면, 빠르고
+          분명하게 말씀드립니다. 그래야 저희가{" "}
+          <span className="text-accent">"되겠는데요"</span>라고 말할 때, 그
+          말에 무게가 생깁니다.
+        </p>
       </div>
     </section>
   );
@@ -455,261 +922,59 @@ function Transparency() {
 /* ─────────────────────────  FOUNDER STORY  ───────────────────────── */
 function FounderStory() {
   return (
-    <section className="border-b border-neutral-100 bg-neutral-900 text-neutral-100">
-      <div className="mx-auto max-w-3xl px-5 py-24">
-        <p className="text-sm font-semibold uppercase tracking-widest text-neutral-400">
-          왜 이걸 만들었나
-        </p>
-        <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-          저도 똑같이 했습니다.
-        </h2>
-        <div className="mt-10 space-y-6 text-lg leading-relaxed text-neutral-300">
-          <p>
-            중앙대 산업보안학과 다니면서 사업 3개를 직접 운영해봤어요.
-          </p>
-          <p>
-            <span className="font-semibold text-white">AI퍼니쳐스.</span> 사진에서
-            가구를 지우는 AI 서비스. 부동산 중개인용. AI 시장조사 다 했고
-            "좋다"고 했어요. 만들고 보니 AI 이미지 모델이 너무 빨리 보편화되면서
-            수요가 증발. 한 달.
-          </p>
-          <p>
-            <span className="font-semibold text-white">버전 2 (공인중개사용).</span>{" "}
-            방향 살짝 틀어 다시. 결과: 공인중개사들 굳이 안 쓰더라. 수요 자체가
-            없었어요.{" "}
-            <span className="bg-yellow-200/20 px-1 text-white">
-              진짜 광고 한 번이면 알 수 있었던 거.
-            </span>
-          </p>
-          <p>
-            <span className="font-semibold text-white">MBTI 검사 결제.</span>{" "}
-            이번엔 수요는 있었어요. 사람들 진짜 결제했어요. 근데 광고비 4만원,
-            결제 3만원.{" "}
-            <span className="bg-yellow-200/20 px-1 text-white">
-              수요만 봤지, 객단가는 안 봤어요.
-            </span>
-          </p>
-          <p>
-            <span className="font-semibold text-white">득템잡이.</span> 그래서
-            처음으로 만들기 전에 광고부터 돌렸어요. 신호 잡힌 거 확인하고
-            만들었더니, 됐어요.
-          </p>
-          <p className="border-l-2 border-neutral-500 pl-6 text-xl font-semibold text-white">
-            그래서 이걸 만들었습니다.
+    <section id="story" className="section-dark border-b">
+      <div className="mx-auto max-w-3xl px-5 py-24 sm:py-28">
+        <div className="reveal">
+          <Eyebrow>왜 이걸 만들었나</Eyebrow>
+          <h2 className="mt-4 text-4xl font-extrabold tracking-[-0.03em] text-text sm:text-5xl">
+            두 번 망해보고
             <br />
-            당신은 그 시간·돈을 안 날리게.
+            만든 서비스입니다.
+          </h2>
+        </div>
+        <div className="reveal-stagger mt-10 space-y-7 text-lg leading-[1.75] text-text-secondary">
+          <p>
+            AI에게 시장조사를 맡기고, "좋다"는 답을 믿고 시작한 사업이 두 개
+            있었습니다.
+          </p>
+          <p>
+            <span className="font-bold text-text">하나는 고객이 없었습니다.</span>{" "}
+            <span className="font-bold text-text">
+              하나는 수요는 있었는데, 객단가가 안 맞아 만들수록 손해였습니다.
+            </span>
+          </p>
+          <p>
+            세 번째는 순서를 바꿨습니다. 만들기 전에 광고부터 띄웠고 — 그게
+            처음으로 됐습니다.{" "}
+            <span className="font-semibold text-accent">지금도 운영 중입니다.</span>
+          </p>
+          <p className="text-xl font-bold text-text">
+            이 서비스는 그 '순서'를 시스템으로 만든 것입니다.
+          </p>
+          <div className="grid gap-4 pt-2 sm:grid-cols-2">
+            <div className="rounded-lg border border-border bg-surface p-5">
+              <p
+                className="text-xs font-bold uppercase tracking-[0.18em] text-text-tertiary"
+                style={fontDisplay}
+              >
+                검증 설계 · 데이터 분석
+              </p>
+              <p className="mt-2 font-bold text-text">중앙대 산업보안학과</p>
+            </div>
+            <div className="rounded-lg border border-border bg-surface p-5">
+              <p
+                className="text-xs font-bold uppercase tracking-[0.18em] text-text-tertiary"
+                style={fontDisplay}
+              >
+                광고 운영 · 마케팅
+              </p>
+              <p className="mt-2 font-bold text-text">중앙대 광고홍보학과</p>
+            </div>
+          </div>
+          <p className="text-sm text-text-tertiary">
+            실명으로, 광고 계정과 데이터를 전부 공개하고 일합니다.
           </p>
         </div>
-      </div>
-    </section>
-  );
-}
-
-/* ─────────────────────────  TEAM  ───────────────────────── */
-function Team() {
-  const members = [
-    {
-      initial: "K",
-      role_main: "Mock 사이트 빌드 · 데이터 분석 · 사업 전략",
-      degree: "중앙대학교 산업보안학과",
-      bio: "이전 사업 3건 직접 운영 (실패 2 + 성공 1). AI 시대 사업 실패 패턴 분석에서 시작.",
-      tag: "FOUNDER",
-    },
-    {
-      initial: "P",
-      role_main: "광고 운영 · SNS 마케팅 · 객단가 분석",
-      degree: "중앙대학교 광고홍보학과",
-      bio: "구글애즈·페북애즈·인스타 캠페인 운영. CAC·LTV·CTR 데이터 해석 전문.",
-      tag: "PARTNER",
-    },
-  ];
-  return (
-    <section className="border-b border-neutral-100 bg-neutral-50">
-      <div className="mx-auto max-w-5xl px-5 py-24">
-        <p className="text-sm font-semibold uppercase tracking-widest text-neutral-500">
-          팀
-        </p>
-        <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-          누가 검증하는가.
-        </h2>
-        <p className="mt-4 max-w-2xl text-lg text-neutral-600">
-          검증은 아무나 못 합니다. Mock 사이트 만들 사람, 광고 돌릴 사람, 데이터
-          읽을 사람 — 셋 다 있어야 합니다. 우리 둘이 그걸 합니다.
-        </p>
-        <div className="mt-14 grid gap-6 sm:grid-cols-2">
-          {members.map((m) => (
-            <div
-              key={m.tag}
-              className="rounded-2xl border border-neutral-200 bg-white p-7 transition hover:-translate-y-0.5 hover:shadow-lg"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-neutral-900 text-2xl font-bold text-white">
-                  {m.initial}
-                </div>
-                <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-neutral-600">
-                  {m.tag}
-                </span>
-              </div>
-              <p className="mt-5 text-sm font-semibold text-neutral-900">
-                {m.degree}
-              </p>
-              <p className="mt-3 text-base font-semibold text-neutral-900">
-                {m.role_main}
-              </p>
-              <p className="mt-3 text-sm leading-relaxed text-neutral-600">
-                {m.bio}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ─────────────────────────  OFFERS  ───────────────────────── */
-function Offers() {
-  const tiers = [
-    {
-      tag: "STEP 1",
-      h: "Quick 검증",
-      price: "50만원",
-      sub: "Mock 사이트 + 광고 + 기본 분석",
-      lines: [
-        "7일 안에 결과",
-        "Mock 랜딩 페이지 제작",
-        "구글애즈 1주 운영 (광고비 5만 포함)",
-        "수요 · 클릭 · 폼 데이터 정성 분석",
-        "Go / No-Go 직관 판단",
-        "신호 못 잡으면 50% 환불",
-      ],
-      foot: "내 아이디어, 진짜 시장 반응 빠르게",
-      cta: "Quick 신청",
-      highlight: true,
-    },
-    {
-      tag: "STEP 2 (정밀)",
-      h: "Deep 검증",
-      price: "130만원",
-      sub: "위 + SNS 운영 + CAC/LTV/라이프사이클",
-      lines: [
-        "14일 정밀 검증",
-        "인스타·SNS 계정 운영 (콘텐츠 5~7개)",
-        "Facebook · Google 양쪽 광고 (광고비 20만 포함)",
-        "사용자 설문 + 인터뷰",
-        "CAC · LTV · 객단가 · 손익 시뮬",
-        "객관 리포트 + 다음 액션 권고",
-        "No-Go 결과 시 50% 환불",
-      ],
-      foot: "사업 본격 시작 전, 정밀 데이터 필요할 때",
-      cta: "Deep 신청",
-    },
-  ];
-  return (
-    <section className="border-b border-neutral-100">
-      <div className="mx-auto max-w-5xl px-5 py-24">
-        <p className="text-sm font-semibold uppercase tracking-widest text-neutral-500">
-          오퍼
-        </p>
-        <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-          단계별로. 통과 못 하면 다음 단계 X.
-        </h2>
-        <p className="mt-4 max-w-2xl text-lg text-neutral-600">
-          Quick에서 신호 못 잡으면 환불입니다. 빌드는 우리가 직접 하지 않아요 —
-          검증 통과 후 외부 빌드 파트너 추천드립니다 (옵션).
-        </p>
-        <div className="mt-14 grid gap-5 sm:grid-cols-2">
-          {tiers.map((t) => (
-            <div
-              key={t.h}
-              className={`relative rounded-2xl border p-7 transition hover:-translate-y-0.5 hover:shadow-xl ${
-                t.highlight
-                  ? "border-neutral-900 bg-neutral-900 text-white shadow-lg"
-                  : "border-neutral-200 bg-white"
-              }`}
-            >
-              {t.highlight && (
-                <span className="absolute -top-3 left-7 rounded-full bg-yellow-400 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-neutral-900 shadow-sm">
-                  추천 시작점
-                </span>
-              )}
-              <p
-                className={`text-xs font-semibold uppercase tracking-widest ${t.highlight ? "text-neutral-400" : "text-neutral-500"}`}
-              >
-                {t.tag}
-              </p>
-              <p className="mt-3 text-2xl font-bold">{t.h}</p>
-              <p
-                className={`mt-2 text-3xl font-bold tracking-tight ${t.highlight ? "text-white" : "text-neutral-900"}`}
-              >
-                {t.price}
-              </p>
-              <p
-                className={`mt-1 text-sm ${t.highlight ? "text-neutral-400" : "text-neutral-500"}`}
-              >
-                {t.sub}
-              </p>
-              <ul
-                className={`mt-6 space-y-2 text-sm leading-relaxed ${t.highlight ? "text-neutral-200" : "text-neutral-700"}`}
-              >
-                {t.lines.map((l) => (
-                  <li key={l} className="flex gap-2">
-                    <span
-                      className={
-                        t.highlight ? "text-neutral-500" : "text-neutral-400"
-                      }
-                    >
-                      ·
-                    </span>
-                    <span>{l}</span>
-                  </li>
-                ))}
-              </ul>
-              <p
-                className={`mt-6 text-sm ${t.highlight ? "text-neutral-300" : "text-neutral-600"}`}
-              >
-                {t.foot}
-              </p>
-              {t.cta && (
-                <a
-                  href="#cta"
-                  className={`mt-6 block rounded-lg px-5 py-3 text-center text-sm font-semibold ${t.highlight ? "bg-white text-neutral-900 hover:bg-neutral-100" : "bg-neutral-900 text-white hover:bg-neutral-700"}`}
-                >
-                  {t.cta}
-                </a>
-              )}
-            </div>
-          ))}
-        </div>
-        <p className="mt-8 text-sm text-neutral-500">
-          ※ 매출은 보장하지 않습니다 (법적으로 보장 불가). 보장은 우리가 통제할
-          수 있는 것 — 검증 환불 — 에만 겁니다. 패키지 내 광고비 (Quick 5만 ·
-          Deep 20만) 초과 시 영수증 공유 후 별도.
-        </p>
-      </div>
-    </section>
-  );
-}
-
-/* ─────────────────────────  RISK REVERSAL  ───────────────────────── */
-function RiskReversal() {
-  return (
-    <section className="border-b border-neutral-100 bg-yellow-50/60">
-      <div className="mx-auto max-w-3xl px-5 py-20 text-center">
-        <h2 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
-          수요 신호가 안 잡히면,
-          <br />
-          반은 돌려드립니다.
-        </h2>
-        <p className="mt-6 text-lg leading-relaxed text-neutral-700">
-          Quick에서 신호 못 잡으면 50% 환불 (광고비 제외). Deep도 No-Go 결과 시
-          50% 환불. 우리가 통제할 수 있는 것에만 보장을 겁니다.
-        </p>
-        <p className="mt-4 text-lg leading-relaxed text-neutral-700">
-          돈·시간 수백만원·수개월 잃고 깨닫는 것보다,
-          <br />
-          50만원으로 빨리 다음 아이디어로 가는 게 낫습니다.
-        </p>
       </div>
     </section>
   );
@@ -719,57 +984,69 @@ function RiskReversal() {
 function FAQ() {
   const qa = [
     {
-      q: "빌드도 하시나요?",
-      a: "안 합니다. 검증만 합니다. 검증 통과하면 외부 빌드 파트너 추천드립니다 (옵션). 우리는 검증 전문이어야 검증을 진짜 잘할 수 있어요.",
+      q: "제가 직접 하면 되지 않나요?",
+      a: "가능합니다. 다만 도구를 배우는 데 2~4주, 시행착오 광고비가 별도로 듭니다. 그리고 더 큰 문제는 객관성입니다. 자기 아이디어를 검증하는 사람은 카피를 유리하게 쓰고, 숫자를 유리하게 읽습니다. AI도 좋다고 하고, 본인도 좋다고 합니다 — 객관적인 건 모르는 사람의 클릭뿐입니다.",
     },
     {
-      q: "광고비는 누가 부담하나요?",
-      a: "Quick 패키지에 5만원, Deep에 20만원이 포함돼 있습니다. 초과 광고비는 영수증 공유 후 별도 청구. 패키지 내 광고비는 실제 광고 집행에 쓰여 환불 불가.",
+      q: "Claude Code 같은 걸로 MVP를 직접 만들어서 반응 보면 되지 않나요?",
+      a: "만들 수 있다는 것과 팔리는지 아는 것은 별개 문제입니다. MVP로 검증하는 경로는 — 빌드 1~2주, 광고 세팅 시행착오, 그리고 내가 만든 것에 대한 애착 때문에 숫자를 유리하게 읽게 됩니다. 저희 창업자도 직접 만들 수 있어서 그냥 만들었고, 두 번 그렇게 망했습니다. 만들기 전에 7일 — Go가 나오면 검증에 쓴 랜딩과 데이터를 그대로 가져가서 직접 만드시면 됩니다. 그게 더 빠릅니다.",
     },
     {
-      q: "AI한테 시키면 안 되나요?",
-      a: "AI는 시장조사처럼 *쓰여진 글*은 잘 만듭니다. 근데 모르는 사람 데려와서 광고 보여주고, 클릭 받고, 폼 받고, 결제 의향 측정 — 그건 AI가 못 합니다. 그게 진짜 데이터예요.",
+      q: "7일, 표본이 작은데 믿을 수 있나요?",
+      a: "7일 검증이 주는 건 '확신'이 아니라 '신호'입니다. 특히 부정 신호는 강력합니다 — 광고비를 썼는데 아무도 반응하지 않았다면, 그건 통계 문제가 아니라 현실입니다. 애매한 회색지대가 나오면 그때 Deep으로 정밀 측정을 권합니다. 처음부터 Deep을 권하지 않습니다.",
     },
     {
-      q: "Mock 사이트는 진짜 작동하나요?",
-      a: "광고용으로 진짜처럼 만듭니다. 결제 직전 단계까지 — 결제 의향 확인 후 '곧 출시됩니다 + 사전등록 받습니다'로 전환. 윤리적 페이크도어.",
+      q: "더 빨리는 안 되나요?",
+      a: "저희 작업 자체는 48시간이면 끝납니다 — 페이지 제작, 광고 세팅까지. 나머지 닷새가 줄일 수 없는 시간입니다. 요일마다 시장 반응이 달라서, 최소 한 주는 노출돼야 노이즈가 아니라 신호가 됩니다. 더 짧은 검증도 가능은 합니다. 정확하지 않을 뿐입니다.",
     },
     {
-      q: "어떤 아이디어를 받나요?",
-      a: "SaaS, 앱, 웹서비스 1순위. B2C 소비자 서비스, B2B SaaS, 마켓플레이스 등 표준 검증 가능한 카테고리. 오프라인 비즈니스는 별도 견적.",
+      q: "광고비는 별도인가요?",
+      a: "Quick 5만원, Deep 20만원이 포함돼 있습니다. 광고비는 실제 집행되는 비용이라 환불 대상에서는 제외됩니다.",
     },
     {
-      q: "얼마나 걸리나요?",
-      a: "Quick 7일, Deep 14일. 신청 → 1차 미팅(30분) → Mock 제작 1~2일 → 광고 운영 5~10일 → 분석 리포트.",
+      q: "환불 기준이 정확히 뭔가요?",
+      a: "Day 2에 함께 정한 합격선입니다. 검증 종료 시점에 그 숫자에 미달하면 검증비의 50%를 환불합니다. 기준을 데이터 보기 전에 정하는 이유가 이것입니다 — 끝난 뒤 기준을 두고 다투지 않기 위해서입니다.",
     },
     {
-      q: "결과 보장하나요?",
-      a: "매출은 법적으로 보장 불가. 보장하는 건 환불 정책. 신호 못 잡으면 50% 환불.",
+      q: "제 아이디어를 가져가면 어떡하죠?",
+      a: "비밀유지 약정을 맺고 시작합니다. 검증 산출물(사이트·도메인·데이터)은 종료 후 전부 고객 자산으로 이관되며, 저희는 어떤 권리도 갖지 않습니다. 저희는 검증을 파는 회사지, 아이디어로 사업하는 회사가 아닙니다.",
     },
     {
-      q: "해외 사업도 검증되나요?",
-      a: "현재는 한국 시장 위주. 추후 영문 버전 출시 예정. 영어권 시장 검증 원하시면 별도 상담.",
+      q: "제 잠재고객을 속이는 건 아닌가요?",
+      a: "결제 버튼을 누른 분에게는 '출시 준비 중인 서비스이며, 오픈하면 가장 먼저 안내드린다'는 사전등록 화면이 나옵니다. 돈은 받지 않습니다. 그리고 그분들은 출시하는 날, 당신의 첫 고객 명단이 됩니다.",
+    },
+    {
+      q: "어떤 아이디어든 가능한가요?",
+      a: "웹 · 앱 · SaaS · 온라인 서비스가 기준입니다. 오프라인 매장이나 규제 산업은 광고 기반 검증의 정확도가 떨어져, 정중히 거절하거나 별도 상담을 드립니다.",
+    },
+    {
+      q: "Go가 나오면 만들어주기도 하나요?",
+      a: "저희는 검증 전문입니다. 원하시면 검증된 개발 파트너를 연결해드립니다. 개발을 직접 팔지 않기 때문에, 저희 판정에는 '만들게 하려는' 이해관계가 없습니다.",
+    },
+    {
+      q: "신청하면 바로 결제인가요?",
+      a: "아닙니다. 아이디어 한 줄을 보내주시면 24시간 안에 검증 가능 여부와 적합한 플랜을 회신드립니다. 결정은 그때 하시면 됩니다.",
     },
   ];
   return (
-    <section className="border-b border-neutral-100">
+    <section id="faq" className="border-b border-border bg-bg">
       <div className="mx-auto max-w-3xl px-5 py-24">
-        <p className="text-sm font-semibold uppercase tracking-widest text-neutral-500">
-          FAQ
-        </p>
-        <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-          자주 묻는 질문
-        </h2>
-        <div className="mt-10 divide-y divide-neutral-200 border-y border-neutral-200">
+        <div className="reveal">
+          <Eyebrow>FAQ</Eyebrow>
+          <h2 className="mt-4 text-4xl font-extrabold tracking-[-0.03em] text-text sm:text-5xl">
+            자주 묻는 질문
+          </h2>
+        </div>
+        <div className="reveal mt-10 divide-y divide-border border-y border-border">
           {qa.map((it) => (
             <details key={it.q} className="group py-5">
-              <summary className="flex cursor-pointer items-center justify-between text-lg font-semibold">
+              <summary className="flex cursor-pointer items-center justify-between gap-4 text-lg font-bold text-text">
                 <span>{it.q}</span>
-                <span className="text-neutral-400 transition group-open:rotate-45">
+                <span className="text-text-tertiary transition group-open:rotate-45 group-open:text-accent">
                   +
                 </span>
               </summary>
-              <p className="mt-4 leading-relaxed text-neutral-600">{it.a}</p>
+              <p className="mt-4 leading-[1.7] text-text-secondary">{it.a}</p>
             </details>
           ))}
         </div>
@@ -781,30 +1058,57 @@ function FAQ() {
 /* ─────────────────────────  FINAL CTA  ───────────────────────── */
 function FinalCTA() {
   return (
-    <section id="cta" className="border-b border-neutral-100 bg-neutral-50">
-      <div className="mx-auto grid max-w-5xl gap-12 px-5 py-24 sm:grid-cols-5">
-        <div className="sm:col-span-2">
-          <h2 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
-            당신의 아이디어,
+    <section
+      id="cta"
+      className="section-dark relative overflow-hidden border-b"
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-16 -right-10 select-none text-[11rem] font-black leading-none tracking-tighter"
+        style={{
+          fontFamily: "var(--font-display)",
+          color: "rgba(var(--text-rgb), 0.05)",
+        }}
+      >
+        BIZFILTER
+      </div>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute right-0 top-0 h-full w-2/3"
+        style={{
+          background:
+            "radial-gradient(circle at 80% 30%, rgba(var(--accent-rgb), 0.12), transparent 60%)",
+        }}
+      />
+      <div className="relative mx-auto grid max-w-6xl gap-12 px-5 py-24 sm:grid-cols-5 sm:py-28">
+        <div className="reveal sm:col-span-2">
+          <Eyebrow>지금 시작</Eyebrow>
+          <h2 className="mt-4 text-4xl font-extrabold leading-[1.15] tracking-[-0.03em] text-text sm:text-5xl">
+            어차피 알게 될 답,
             <br />
-            진짜 되는지
-            <br />
-            먼저 보세요.
+            <span className="text-accent" style={glowAccent}>
+              7일 만에
+            </span>{" "}
+            아세요.
           </h2>
-          <p className="mt-6 text-lg leading-relaxed text-neutral-600">
-            50만원, 7일.
+          <p className="mt-6 text-lg leading-[1.7] text-text-secondary">
+            질문 다섯 개, 탭 다섯 번.
             <br />
-            신호 없으면 50% 환불.
+            제출하면{" "}
+            <span className="font-semibold text-text">
+              검증 적합도를 그 자리에서 바로
+            </span>{" "}
+            보여드리고, 24시간 안에 직접 확인 후 회신드립니다.
           </p>
-          <div className="mt-10 space-y-3 rounded-xl border border-neutral-200 bg-white p-5 text-sm">
-            <p className="font-semibold text-neutral-900">폼 쓰기 귀찮으시면</p>
-            <p className="text-neutral-600">
-              카카오톡 채널에서 바로 상담 가능. 30분 무료.{" "}
-              <span className="text-neutral-400">(채널 준비 중)</span>
+          <div className="mt-10 rounded-lg border border-border bg-surface p-5 text-sm">
+            <p className="font-bold text-text">폼 작성이 번거로우시면</p>
+            <p className="mt-1 text-text-secondary">
+              카카오톡 채널에서 바로 30분 무료 진단을 받으실 수 있습니다.{" "}
+              <span className="text-text-tertiary">(채널 준비 중)</span>
             </p>
           </div>
         </div>
-        <div className="sm:col-span-3">
+        <div className="reveal sm:col-span-3">
           <LeadForm />
         </div>
       </div>
@@ -815,16 +1119,119 @@ function FinalCTA() {
 /* ─────────────────────────  FOOTER  ───────────────────────── */
 function Footer() {
   return (
-    <footer className="bg-neutral-50">
-      <div className="mx-auto max-w-5xl px-5 py-10 text-sm text-neutral-500">
-        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-          <p>© 2026 0to1 · 사업 아이디어 검증 서비스</p>
+    <footer className="section-dark text-text-tertiary">
+      <div className="mx-auto max-w-6xl px-5 py-16">
+        <div className="grid gap-10 sm:grid-cols-12">
+          <div className="sm:col-span-5">
+            <a
+              href="#"
+              className="flex items-center gap-2 text-lg font-bold tracking-tight text-text"
+            >
+              <span
+                className="relative flex h-7 w-7 items-center justify-center rounded bg-text text-sm font-black text-bg"
+                style={fontDisplay}
+              >
+                B
+                <span
+                  className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-accent"
+                  style={dotAccent}
+                />
+              </span>
+              <span>비즈필터</span>
+            </a>
+            <p className="mt-5 max-w-sm text-sm leading-relaxed">
+              사업 아이디어 검증 전문.
+              <br />
+              만들기 전에 —{" "}
+              <span className="text-text">진짜 시장의 행동 데이터</span>로
+              답합니다.
+            </p>
+            <p className="mt-6 text-xs text-text-tertiary">
+              중앙대학교 산업보안학과 + 광고홍보학과 팀.
+            </p>
+          </div>
+          <div className="sm:col-span-3">
+            <p
+              className="text-xs font-bold uppercase tracking-widest text-text-tertiary"
+              style={fontDisplay}
+            >
+              메뉴
+            </p>
+            <ul className="mt-4 space-y-2.5 text-sm">
+              <li>
+                <a href="#timeline" className="hover:text-accent">
+                  진행 방식
+                </a>
+              </li>
+              <li>
+                <a href="#pricing" className="hover:text-accent">
+                  가격
+                </a>
+              </li>
+              <li>
+                <a href="#story" className="hover:text-accent">
+                  스토리
+                </a>
+              </li>
+              <li>
+                <a href="#faq" className="hover:text-accent">
+                  FAQ
+                </a>
+              </li>
+              <li>
+                <a href="/blog" className="hover:text-accent">
+                  블로그
+                </a>
+              </li>
+              <li>
+                <a href="/checklist" className="hover:text-accent">
+                  검증 체크리스트 (무료)
+                </a>
+              </li>
+              <li>
+                <a href="#cta" className="hover:text-accent">
+                  검증 신청
+                </a>
+              </li>
+            </ul>
+          </div>
+          <div className="sm:col-span-4">
+            <p
+              className="text-xs font-bold uppercase tracking-widest text-text-tertiary"
+              style={fontDisplay}
+            >
+              연락
+            </p>
+            <ul className="mt-4 space-y-2.5 text-sm">
+              <li>
+                이메일 · <span className="text-text-secondary">(준비 중)</span>
+              </li>
+              <li>
+                카톡 채널 ·{" "}
+                <span className="text-text-secondary">(준비 중)</span>
+              </li>
+              <li>
+                운영 시간 ·{" "}
+                <span className="text-text-secondary">평일 10~19시</span>
+              </li>
+              <li>
+                응답 시간 ·{" "}
+                <span className="text-text-secondary">24시간 이내</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div className="mt-12 flex flex-col items-start justify-between gap-4 border-t border-border pt-6 text-xs sm:flex-row sm:items-center">
+          <p>© 2026 비즈필터 — 사업 아이디어 검증 서비스</p>
           <div className="flex gap-5">
-            <a href="#" className="hover:text-neutral-900">
+            <a href="#" className="hover:text-accent">
               이용약관
             </a>
-            <a href="#" className="hover:text-neutral-900">
+            <a href="#" className="hover:text-accent">
               개인정보처리방침
+            </a>
+            <a href="#" className="hover:text-accent">
+              사업자 정보
             </a>
           </div>
         </div>
