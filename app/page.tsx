@@ -34,6 +34,7 @@ export default function Home({
       <Timeline />
       <NoBuildBand />
       <Measure />
+      <Deliverables />
       <Pricing />
       <NoGo />
       <FounderStory />
@@ -692,6 +693,190 @@ function Measure() {
             </span>
             를 같이 답합니다.
           </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────  DELIVERABLES — 산출물 샘플 미리보기  ───────────── */
+const mock = {
+  panel: {
+    background: "#101016",
+    border: "1px solid #26262e",
+  } as const,
+  label: { color: "#8e8e97" } as const,
+  value: { color: "#f5f5f7", fontFamily: "var(--font-display)" } as const,
+  teal: { color: "#2fd49e", fontFamily: "var(--font-display)" } as const,
+};
+
+function Deliverables() {
+  return (
+    <section className="border-b border-border bg-bg">
+      <div className="mx-auto max-w-6xl px-5 py-24 sm:py-28">
+        <div className="reveal">
+          <Eyebrow>받으시는 것</Eyebrow>
+          <h2 className="mt-4 text-4xl font-extrabold tracking-[-0.03em] text-text sm:text-5xl">
+            7일 뒤, 이런 화면을 받습니다.
+          </h2>
+          <p className="mt-4 max-w-2xl text-lg leading-[1.7] text-text-secondary">
+            말이 아니라 화면으로 — 검증 기간 내내 같이 보는 실제 산출물
+            형태입니다.{" "}
+            <span className="text-text-tertiary">(아래는 샘플 예시)</span>
+          </p>
+        </div>
+        <div className="reveal-stagger mt-14 grid gap-6 sm:grid-cols-3">
+          {/* 1 — 라이브 대시보드 */}
+          <div className="rounded-lg border border-border bg-surface p-6 transition hover:-translate-y-0.5 hover:border-border-hover">
+            <p
+              className="text-xs font-bold uppercase tracking-[0.18em] text-accent"
+              style={fontDisplay}
+            >
+              검증 기간 내내
+            </p>
+            <h3 className="mt-2 text-xl font-bold text-text">
+              라이브 대시보드
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+              노출 · 클릭 · 결제 클릭을 실시간 링크로 같이 봅니다.
+            </p>
+            <div className="mt-5 rounded-lg p-4" style={mock.panel}>
+              {[
+                ["노출", "12,420", false],
+                ["클릭", "398", false],
+                ["결제 클릭", "12", true],
+              ].map(([k, v, hot]) => (
+                <div
+                  key={k as string}
+                  className="flex items-center justify-between py-1.5 text-sm"
+                >
+                  <span style={mock.label}>{k}</span>
+                  <span
+                    className="font-bold"
+                    style={hot ? mock.teal : mock.value}
+                  >
+                    {v}
+                  </span>
+                </div>
+              ))}
+              <div className="mt-3 flex h-12 items-end gap-1">
+                {[22, 38, 30, 52, 44, 66, 58, 90].map((h, i) => (
+                  <div
+                    key={i}
+                    className="flex-1 rounded-sm"
+                    style={{
+                      height: `${h}%`,
+                      background:
+                        i === 7 ? "#2fd49e" : "rgba(245,245,247,0.16)",
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+          {/* 2 — Go/No-Go 리포트 */}
+          <div className="rounded-lg border border-border bg-surface p-6 transition hover:-translate-y-0.5 hover:border-border-hover">
+            <p
+              className="text-xs font-bold uppercase tracking-[0.18em] text-accent"
+              style={fontDisplay}
+            >
+              DAY 7
+            </p>
+            <h3 className="mt-2 text-xl font-bold text-text">
+              Go / No-Go 리포트
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+              합격선 대비 결과와 다음 액션 권고까지.
+            </p>
+            <div className="mt-5 rounded-lg p-4" style={mock.panel}>
+              <div className="flex items-center justify-between">
+                <span className="text-xs" style={mock.label}>
+                  검증 리포트 · 7일차
+                </span>
+                <span
+                  className="rounded-md px-2.5 py-1 text-sm font-black"
+                  style={{
+                    background: "#1d9e75",
+                    color: "#02160f",
+                    fontFamily: "var(--font-display)",
+                  }}
+                >
+                  GO
+                </span>
+              </div>
+              <div className="mt-3 flex items-center justify-between py-1.5 text-sm">
+                <span style={mock.label}>사전 합격선</span>
+                <span className="font-bold" style={mock.value}>
+                  3.0%
+                </span>
+              </div>
+              <div className="flex items-center justify-between py-1.5 text-sm">
+                <span style={mock.label}>실측 결제 클릭률</span>
+                <span className="font-bold" style={mock.teal}>
+                  4.2%
+                </span>
+              </div>
+              <div className="mt-3 space-y-2">
+                <div className="h-1.5 w-full rounded bg-white/10" />
+                <div className="h-1.5 w-4/5 rounded bg-white/10" />
+                <div className="h-1.5 w-3/5 rounded bg-white/10" />
+              </div>
+            </div>
+          </div>
+          {/* 3 — 가격 2안 테스트 */}
+          <div className="rounded-lg border border-border bg-surface p-6 transition hover:-translate-y-0.5 hover:border-border-hover">
+            <p
+              className="text-xs font-bold uppercase tracking-[0.18em] text-accent"
+              style={fontDisplay}
+            >
+              DEEP
+            </p>
+            <h3 className="mt-2 text-xl font-bold text-text">
+              가격 2안 테스트
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+              얼마를 받아야 하는지 — 감이 아니라 데이터로.
+            </p>
+            <div className="mt-5 grid grid-cols-2 gap-2">
+              <div className="rounded-lg p-3 text-center" style={mock.panel}>
+                <p className="text-xs" style={mock.label}>
+                  A안
+                </p>
+                <p className="mt-1 text-lg font-bold" style={mock.value}>
+                  ₩29,000
+                </p>
+                <p className="mt-1 text-xs" style={mock.label}>
+                  전환 3.1%
+                </p>
+              </div>
+              <div
+                className="rounded-lg p-3 text-center"
+                style={{
+                  background: "#101016",
+                  border: "1.5px solid rgba(47,212,158,.55)",
+                }}
+              >
+                <p className="text-xs font-bold" style={mock.teal}>
+                  B안 ✓
+                </p>
+                <p className="mt-1 text-lg font-bold" style={mock.value}>
+                  ₩49,000
+                </p>
+                <p className="mt-1 text-xs" style={mock.label}>
+                  전환 2.4%
+                </p>
+              </div>
+            </div>
+            <div
+              className="mt-2 rounded-lg px-3 py-2.5 text-center text-sm font-bold"
+              style={{
+                background: "rgba(29,158,117,.12)",
+                color: "#0f6e56",
+              }}
+            >
+              B안 채택 시 방문자당 매출 +31%
+            </div>
+          </div>
         </div>
       </div>
     </section>
