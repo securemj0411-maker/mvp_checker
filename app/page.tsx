@@ -1417,14 +1417,11 @@ function Footer() {
         <div className="mt-12 flex flex-col items-start justify-between gap-4 border-t border-border pt-6 text-xs sm:flex-row sm:items-center">
           <p>© 2026 비즈필터 — 사업 아이디어 검증 서비스</p>
           <div className="flex gap-5">
-            <a href="#" className="hover:text-accent">
+            <a href="/terms" className="hover:text-accent">
               이용약관
             </a>
-            <a href="#" className="hover:text-accent">
+            <a href="/privacy" className="hover:text-accent">
               개인정보처리방침
-            </a>
-            <a href="#" className="hover:text-accent">
-              사업자 정보
             </a>
           </div>
         </div>

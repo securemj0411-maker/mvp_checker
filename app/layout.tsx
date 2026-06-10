@@ -16,6 +16,7 @@ export const metadata: Metadata = {
       "진짜처럼 보이는 페이지 + 광고 + 행동 데이터로 사업 아이디어를 검증하는 서비스. 업종 제한 없음.",
     type: "website",
     locale: "ko_KR",
+    images: [{ url: "/og.png", width: 1200, height: 630 }],
   },
 };
 

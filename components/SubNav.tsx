@@ -61,6 +61,12 @@ export function SubFooter() {
           <a href="/#cta" className="hover:text-accent">
             검증 신청
           </a>
+          <a href="/terms" className="hover:text-accent">
+            이용약관
+          </a>
+          <a href="/privacy" className="hover:text-accent">
+            개인정보처리방침
+          </a>
         </div>
       </div>
     </footer>
