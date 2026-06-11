@@ -17,7 +17,7 @@ export async function generateMetadata({
   const post = getPost(slug);
   if (!post) return {};
   return {
-    title: `${post.title} — ${SITE_NAME}`,
+    title: `${post.title} | ${SITE_NAME}`,
     description: post.description,
     keywords: post.keywords,
     alternates: { canonical: `/blog/${post.slug}` },
@@ -82,16 +82,50 @@ export default async function BlogPost({
             이 과정을 7일 안에 대신 끝내드립니다
           </p>
           <p className="mt-3 leading-[1.7] text-text-secondary">
-            페이지 제작, 광고 집행, 합격선 설계, 숫자 해석까지 — 직접 하기
+            페이지 제작, 광고 집행, 합격선 설계, 숫자 해석까지. 직접 하기
             번거로우시면 맡기세요. Go든 No-Go든 분명한 판정을 보장하고, 못
             드리면 전액 환불합니다. 신청은 결제가 아닙니다.
           </p>
           <a
             href="/#cta"
-            className="mt-6 inline-block rounded-lg bg-accent px-6 py-3.5 text-base font-bold text-white transition hover:bg-accent-hover"
+            className="mt-6 inline-block rounded-full bg-accent px-6 py-3.5 text-base font-bold text-white transition hover:bg-accent-hover"
           >
             내 아이디어 검증 신청하기
           </a>
+        </div>
+
+        {/* 다른 글 */}
+        <div className="mt-16 border-t border-border pt-10">
+          <div className="flex items-center justify-between">
+            <p className="text-xl font-bold text-text">다른 검증 노트</p>
+            <a
+              href="/blog"
+              className="text-sm font-bold text-accent hover:underline"
+            >
+              전체 보기 →
+            </a>
+          </div>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            {POSTS.filter((p) => p.slug !== post.slug)
+              .slice(0, 4)
+              .map((p) => (
+                <a
+                  key={p.slug}
+                  href={`/blog/${p.slug}`}
+                  className="rounded-lg border border-border bg-surface p-6 transition hover:-translate-y-0.5 hover:border-accent/60"
+                >
+                  <p className="text-xs font-semibold text-text-tertiary">
+                    {p.readMinutes}분 read
+                  </p>
+                  <p className="mt-2 font-bold leading-snug text-text">
+                    {p.title}
+                  </p>
+                  <p className="mt-3 text-sm font-bold text-accent">
+                    읽기 →
+                  </p>
+                </a>
+              ))}
+          </div>
         </div>
       </article>
       <SubFooter />

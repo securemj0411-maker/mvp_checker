@@ -65,18 +65,18 @@ const QUESTIONS: {
     id: "fear",
     title: "가장 확인하고 싶은 것은 무엇인가요?",
     options: [
-      { value: "demand", label: "수요 — 원하는 사람이 진짜 있는지" },
-      { value: "unit", label: "수익 구조 — 팔수록 남는 게 맞는지" },
+      { value: "demand", label: "수요: 원하는 사람이 진짜 있는지" },
+      { value: "unit", label: "수익 구조: 팔수록 남는 게 맞는지" },
       {
         value: "cac",
-        label: "광고비 — 고객 1명 데려오는 데 얼마 드는지",
+        label: "광고비: 고객 1명 데려오는 데 얼마 드는지",
       },
       {
         value: "all",
-        label: "전부 다 — 수요 · 수익 구조 · 광고비",
+        label: "전부 다 (수요·수익 구조·광고비)",
         hint: "어차피 셋 다 알아야 시작할 수 있으니까",
       },
-      { value: "priority", label: "순서 — 뭐부터 해야 할지 모르겠어요" },
+      { value: "priority", label: "순서: 뭐부터 해야 할지 모르겠어요" },
     ],
   },
 ];
@@ -89,7 +89,7 @@ function diagnose(a: Answers) {
     a.service === "offline"
       ? {
           level: "설계 상담",
-          note: "오프라인·지역 기반 사업은 검증 설계가 달라집니다 — 지역 타겟 광고와 사전 예약 측정으로 진행합니다. 가능한 설계인지 24시간 안에 먼저 답드립니다.",
+          note: "오프라인·지역 기반 사업은 검증 설계가 달라집니다. 지역 타겟 광고와 사전 예약 측정으로 진행합니다. 가능한 설계인지 24시간 안에 먼저 답드립니다.",
         }
       : a.service === "unknown"
         ? {
@@ -105,7 +105,7 @@ function diagnose(a: Answers) {
     a.fear === "all"
       ? {
           name: "Quick → Deep",
-          note: "수요는 Quick 7일에서 먼저 확인하고, 수익 구조·광고비 정밀 측정은 Deep에서 — 전부 한 경로로 확인합니다.",
+          note: "수요는 Quick 7일에서 먼저 확인하고, 수익 구조·광고비 정밀 측정은 Deep에서, 전부 한 경로로 확인합니다.",
         }
       : a.fear === "unit" || a.fear === "cac"
         ? {
@@ -120,7 +120,7 @@ function diagnose(a: Answers) {
   const signals: string[] = [];
   if (a.stage === "built") {
     signals.push(
-      "이미 만드신 경우 — 수요 문제인지, 유입·전환 문제인지부터 가립니다",
+      "이미 만드신 경우, 수요 문제인지 유입·전환 문제인지부터 가립니다",
     );
   }
   signals.push(
@@ -240,7 +240,7 @@ export default function LeadForm() {
           <div>
             <p className="text-xl font-bold text-text">접수됐습니다.</p>
             <p className="text-sm text-text-secondary">
-              답변 기준 1차 진단입니다 — 24시간 안에 직접 확인 후 회신드립니다.
+              답변 기준 1차 진단입니다. 24시간 안에 직접 확인 후 회신드립니다.
             </p>
           </div>
         </div>
@@ -306,7 +306,7 @@ export default function LeadForm() {
         <Progress step={step} />
         <div>
           <p className="text-xl font-bold text-text">
-            마지막입니다 — 어떤 아이디어인가요?
+            마지막입니다. 어떤 아이디어인가요?
           </p>
           <p className="mt-1 text-sm text-text-secondary">
             제출하면 답변 기준 검증 적합도를 바로 보여드립니다.

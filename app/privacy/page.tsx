@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { SubNav, SubFooter } from "@/components/SubNav";
 
 export const metadata: Metadata = {
-  title: "개인정보처리방침 — 비즈필터",
+  title: "개인정보처리방침 | 비즈필터",
   robots: { index: false },
   alternates: { canonical: "/privacy" },
 };
@@ -13,7 +13,7 @@ const SECTIONS: { h: string; body: string[] }[] = [
     body: [
       "비즈필터(이하 '회사')는 검증 신청 및 상담 처리를 위해 다음 정보를 수집합니다.",
       "· 필수: 이름, 이메일 주소 또는 카카오톡 ID, 사업 아이디어 내용 및 신청 폼 응답(서비스 형태·대상·수익 모델·진행 단계·우선 확인 사항)",
-      "· 자동 수집: 접속 기록, 유입 경로(utm), 브라우저 정보 — Google Analytics를 통한 통계 목적",
+      "· 자동 수집: 접속 기록, 유입 경로(utm), 브라우저 정보 (Google Analytics를 통한 통계 목적)",
     ],
   },
   {
@@ -29,7 +29,7 @@ const SECTIONS: { h: string; body: string[] }[] = [
     h: "3. 보유 및 이용 기간",
     body: [
       "· 신청 정보: 상담 종료 후 1년까지 보관 후 파기 (재신청·분쟁 대응 목적)",
-      "· 계약 체결 시: 관계 법령(전자상거래법 등)에 따른 보존 기간을 따릅니다 — 계약·청약철회 기록 5년, 대금 결제 기록 5년, 소비자 불만·분쟁 처리 기록 3년",
+      "· 계약 체결 시: 관계 법령(전자상거래법 등)에 따른 보존 기간을 따릅니다. 계약·청약철회 기록 5년, 대금 결제 기록 5년, 소비자 불만·분쟁 처리 기록 3년",
       "· 정보주체가 삭제를 요청하는 경우 지체 없이 파기합니다.",
     ],
   },
@@ -37,9 +37,9 @@ const SECTIONS: { h: string; body: string[] }[] = [
     h: "4. 개인정보 처리 위탁",
     body: [
       "서비스 운영을 위해 다음 업체에 데이터 처리를 위탁합니다.",
-      "· Supabase Inc. — 신청 데이터 보관 (데이터베이스)",
-      "· Vercel Inc. — 웹사이트 호스팅",
-      "· Google LLC — 접속 통계 분석 (Google Analytics)",
+      "· Supabase Inc. (신청 데이터 보관)",
+      "· Vercel Inc. (웹사이트 호스팅)",
+      "· Google LLC (접속 통계 분석)",
     ],
   },
   {

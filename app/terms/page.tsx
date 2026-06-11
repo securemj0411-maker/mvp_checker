@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { SubNav, SubFooter } from "@/components/SubNav";
 
 export const metadata: Metadata = {
-  title: "이용약관 — 비즈필터",
+  title: "이용약관 | 비즈필터",
   robots: { index: false },
   alternates: { canonical: "/terms" },
 };
