@@ -1,55 +1,72 @@
 @import "tailwindcss";
 
 :root {
-  /* ─── Backgrounds (warm B2B trust) ─── */
-  --bg: #f7f3ed;
-  --bg-alt: #fffaf4;
-  --bg-light: #ece4d8;
-  --surface: rgba(255, 255, 255, 0.78);
-  --surface-hover: rgba(255, 255, 255, 0.94);
+  /* ─── Backgrounds (trust-blue fintech) ─── */
+  --bg: #fbfcfe;
+  --bg-alt: #f5f8fc;
+  --bg-light: #eaf1fe;
+  --surface: #ffffff;
+  --surface-hover: #ffffff;
   --surface-light: #ffffff;
 
   /* ─── Borders ─── */
-  --border: rgba(45, 54, 63, 0.12);
-  --border-hover: rgba(45, 54, 63, 0.24);
-  --border-light: #ded6cb;
+  --border: #e7ecf3;
+  --border-hover: #d6e3fb;
+  --border-light: #eef2f7;
 
   /* ─── Text on light ─── */
-  --text: #20272d;
-  --text-secondary: #59646c;
-  --text-tertiary: #879098;
-  --text-light: #0a0a0b;
-  --text-light-secondary: #555560;
-  --text-light-tertiary: #8e8e93;
+  --text: #0a1726;
+  --text-secondary: #3a4a5c;
+  --text-tertiary: #6b7b8c;
+  --text-light: #0a1726;
+  --text-light-secondary: #3a4a5c;
+  --text-light-tertiary: #6b7b8c;
 
-  /* ─── Accent (ice signal) ─── */
-  --accent: #226d7b;
-  --accent-hover: #164f5a;
-  --accent-glow: rgba(34, 109, 123, 0.18);
-  --accent-soft: #d9edf0;
+  /* ─── Accent (trust blue) ─── */
+  --accent: #2b6bf4;
+  --accent-hover: #1e5ae0;
+  --accent-glow: rgba(43, 107, 244, 0.32);
+  --accent-soft: #8fb6ff;
+
+  /* ─── Verdict colors ─── */
+  --go: #06a86b;
+  --go-tint: #e4f7ef;
+  --nogo: #e8453c;
+  --nogo-tint: #fcebe9;
+  --pivot: #e08a00;
+  --pivot-tint: #fbf1de;
 
   /* ─── RGB ─── */
-  --bg-rgb: 247, 243, 237;
-  --bg-alt-rgb: 255, 250, 244;
-  --accent-rgb: 34, 109, 123;
-  --text-rgb: 32, 39, 45;
+  --bg-rgb: 251, 252, 254;
+  --bg-alt-rgb: 245, 248, 252;
+  --accent-rgb: 43, 107, 244;
+  --text-rgb: 10, 23, 38;
 }
 
-/* ─── Muted contrast band — Stats / FounderStory / FinalCTA / Footer ─── */
+/* ─── Dark navy band — AITrap / NoBuildBand / FinalCTA / Footer ─── */
 .section-dark {
-  --bg: #e8e0d4;
-  --bg-alt: #f3ede5;
-  --bg-alt-rgb: 243, 237, 229;
-  --surface: rgba(255, 255, 255, 0.62);
-  --surface-hover: rgba(255, 255, 255, 0.84);
-  --border: rgba(45, 54, 63, 0.12);
-  --border-hover: rgba(45, 54, 63, 0.24);
-  --text: #20272d;
-  --text-secondary: #5f6b73;
-  --text-tertiary: #8a9297;
-  --text-rgb: 32, 39, 45;
+  --bg: #0a1726;
+  --bg-alt: #122236;
+  --bg-alt-rgb: 18, 34, 54;
+  --surface: rgba(255, 255, 255, 0.06);
+  --surface-hover: rgba(255, 255, 255, 0.1);
+  --border: rgba(255, 255, 255, 0.12);
+  --border-hover: rgba(255, 255, 255, 0.24);
+  --text: #ffffff;
+  --text-secondary: #b9c6d6;
+  --text-tertiary: #93a4b8;
+  --text-rgb: 255, 255, 255;
+  --accent-soft: #8fb6ff;
   background: var(--bg);
   color: var(--text);
+}
+
+/* Toss-soft radii — round up Tailwind's defaults site-wide */
+.rounded-lg {
+  border-radius: 20px;
+}
+.rounded-xl {
+  border-radius: 26px;
 }
 
 @theme inline {
@@ -77,8 +94,7 @@
     system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo",
     "Noto Sans KR", "Malgun Gothic", sans-serif;
   --font-display:
-    "Space Grotesk", "Pretendard Variable", -apple-system, system-ui,
-    sans-serif;
+    "Pretendard Variable", Pretendard, -apple-system, system-ui, sans-serif;
 }
 
 html,
@@ -99,8 +115,8 @@ body::before {
   inset: 0;
   z-index: -1;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.72), transparent 28rem),
-    radial-gradient(55rem 32rem at 72% 0%, rgba(34, 109, 123, 0.10), transparent 62%),
+    radial-gradient(55rem 32rem at 78% 0%, rgba(43, 107, 244, 0.08), transparent 62%),
+    radial-gradient(40rem 28rem at 6% 0%, rgba(43, 107, 244, 0.05), transparent 60%),
     var(--bg);
 }
 

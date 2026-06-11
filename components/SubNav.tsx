@@ -1,23 +1,21 @@
-const fontDisplay = { fontFamily: "var(--font-display)" } as const;
-const dotAccent = { boxShadow: "0 0 8px var(--accent-glow)" } as const;
-
 export function SubNav() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-bg/70 backdrop-blur-xl">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5">
         <a
           href="/"
-          className="flex items-center gap-2 text-lg font-bold tracking-tight text-text"
+          className="flex items-center gap-2.5 text-lg font-extrabold tracking-tight text-text"
         >
           <span
-            className="relative flex h-7 w-7 items-center justify-center rounded bg-text text-sm font-black text-bg"
-            style={fontDisplay}
+            className="flex h-[30px] w-[30px] items-center justify-center rounded-[9px] text-white"
+            style={{
+              background: "linear-gradient(150deg, #2B6BF4, #1648BE)",
+              boxShadow: "0 6px 16px -4px rgba(43,107,244,.5)",
+            }}
           >
-            B
-            <span
-              className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-accent"
-              style={dotAccent}
-            />
+            <svg viewBox="0 0 24 24" fill="none" className="h-[17px] w-[17px]">
+              <path d="M3 5h18l-7 8v5l-4 2v-7L3 5z" fill="currentColor" />
+            </svg>
           </span>
           <span>비즈필터</span>
         </a>
