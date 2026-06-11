@@ -18,6 +18,11 @@ export const metadata: Metadata = {
     locale: "ko_KR",
     images: [{ url: "/og.png", width: 1200, height: 630 }],
   },
+  verification: {
+    other: {
+      "naver-site-verification": "c7f7e41486761eb43204a04d7eb59ccf3eaab783",
+    },
+  },
 };
 
 export default function RootLayout({
