@@ -15,17 +15,20 @@
   --border-light: #eef2f7;
 
   /* ─── Text on light ─── */
-  --text: #0a1726;
+  --text: #16233a;
   --text-secondary: #3a4a5c;
   --text-tertiary: #6b7b8c;
-  --text-light: #0a1726;
+  --text-light: #16233a;
   --text-light-secondary: #3a4a5c;
   --text-light-tertiary: #6b7b8c;
 
-  /* ─── Accent (trust blue) ─── */
-  --accent: #2b6bf4;
-  --accent-hover: #1e5ae0;
-  --accent-glow: rgba(43, 107, 244, 0.32);
+  /* ─── Brand ink (벤 마크 비즈 / 워드마크) ─── */
+  --ink: #16233a;
+
+  /* ─── Accent (브랜드 토스 블루 = 로고 필터원과 동일) ─── */
+  --accent: #3182f6;
+  --accent-hover: #1b64da;
+  --accent-glow: rgba(49, 130, 246, 0.32);
   --accent-soft: #8fb6ff;
 
   /* ─── Verdict colors ─── */
@@ -39,8 +42,8 @@
   /* ─── RGB ─── */
   --bg-rgb: 251, 252, 254;
   --bg-alt-rgb: 245, 248, 252;
-  --accent-rgb: 43, 107, 244;
-  --text-rgb: 10, 23, 38;
+  --accent-rgb: 49, 130, 246;
+  --text-rgb: 22, 35, 58;
 }
 
 /* ─── Dark navy band — AITrap / NoBuildBand / FinalCTA / Footer ─── */
@@ -254,10 +257,10 @@ html.js .reveal-stagger:not(.in) > * {
   --surface-light: #ffffff;
   --border: #e7ecf3;
   --border-hover: #d6e3fb;
-  --text: #0a1726;
+  --text: #16233a;
   --text-secondary: #3a4a5c;
   --text-tertiary: #6b7b8c;
-  --text-rgb: 10, 23, 38;
+  --text-rgb: 22, 35, 58;
   background: #ffffff;
   border: 1px solid var(--border);
   box-shadow: 0 30px 70px -24px rgba(4, 12, 28, 0.5);

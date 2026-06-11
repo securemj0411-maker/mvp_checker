@@ -47,23 +47,40 @@ function Label({ children }: { children: React.ReactNode }) {
   return <p className="text-[17px] font-bold text-accent">{children}</p>;
 }
 
+/* 벤 다이어그램 마크 — 비즈(먹) + 필터(블루) 두 원, 교집합 렌즈에 흰 체크 */
 function BrandMark({ size = 30 }: { size?: number }) {
   return (
-    <span
-      className="flex items-center justify-center rounded-[9px] text-white"
-      style={{
-        width: size,
-        height: size,
-        background: "linear-gradient(150deg, #2B6BF4, #1648BE)",
-      }}
+    <svg
+      viewBox="0 0 100 100"
+      width={size}
+      height={size}
+      aria-hidden
+      style={{ display: "block", flex: "none" }}
     >
-      <svg
-        viewBox="0 0 24 24"
+      <circle cx="37" cy="50" r="31" fill="#16233A" />
+      <circle cx="63" cy="50" r="31" fill="#3182F6" />
+      <path
+        d="M50 21.9 A31 31 0 0 1 50 78.1 A31 31 0 0 1 50 21.9 Z"
+        fill="#11328A"
+      />
+      <path
+        d="M41 51 L49 60 L64 39"
         fill="none"
-        style={{ width: size * 0.56, height: size * 0.56 }}
-      >
-        <path d="M3 5h18l-7 8v5l-4 2v-7L3 5z" fill="currentColor" />
-      </svg>
+        stroke="#ffffff"
+        strokeWidth="8.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/* 워드마크 — 비즈(먹) 필터(블루) 투톤 */
+function Wordmark({ className = "" }: { className?: string }) {
+  return (
+    <span className={`font-extrabold tracking-[-0.04em] ${className}`}>
+      <span style={{ color: "var(--ink)" }}>비즈</span>
+      <span style={{ color: "var(--accent)" }}>필터</span>
     </span>
   );
 }
@@ -73,12 +90,9 @@ function Nav() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-bg/85 backdrop-blur-xl">
       <div className="mx-auto flex h-[68px] max-w-6xl items-center justify-between px-6">
-        <a
-          href="#"
-          className="flex items-center gap-2.5 text-[19px] font-extrabold tracking-tight text-text"
-        >
+        <a href="#" className="flex items-center gap-2.5 text-[19px]">
           <BrandMark />
-          비즈필터
+          <Wordmark />
         </a>
         <nav className="hidden items-center gap-8 text-[15px] font-semibold text-text-secondary md:flex">
           <a href="#process" className="transition hover:text-text">
@@ -1476,12 +1490,9 @@ function Footer() {
       <div className="mx-auto max-w-6xl px-6 py-16">
         <div className="grid gap-10 sm:grid-cols-12">
           <div className="sm:col-span-5">
-            <a
-              href="#"
-              className="flex items-center gap-2.5 text-lg font-extrabold tracking-tight text-text"
-            >
+            <a href="#" className="flex items-center gap-2.5 text-lg">
               <BrandMark />
-              비즈필터
+              <Wordmark />
             </a>
             <p className="mt-5 max-w-sm text-sm leading-relaxed">
               사업 아이디어 검증 전문.
