@@ -1,6 +1,8 @@
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { isAdmin } from "./auth";
 import { login, logout, updateLead } from "./actions";
+import DeleteButton from "./DeleteButton";
+import Guide from "./Guide";
 
 // 쿠키 + service_role 사용 — 절대 캐시/정적화 금지
 export const dynamic = "force-dynamic";
@@ -96,17 +98,35 @@ function fmtKST(iso: string) {
   });
 }
 
+/* 뷰 그룹 — 영업함 / 진행 고객 / 종료 */
+const VIEWS: Record<
+  string,
+  { label: string; statuses: string[] | null }
+> = {
+  inbox: { label: "신규·상담", statuses: ["new", "contacted", "consulted"] },
+  active: {
+    label: "진행 고객",
+    statuses: ["paid", "build", "live", "verdict"],
+  },
+  closed: { label: "완료·종료", statuses: ["won", "lost"] },
+  all: { label: "전체", statuses: null },
+};
+
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ e?: string }>;
+  searchParams: Promise<{ e?: string; view?: string }>;
 }) {
   const authed = await isAdmin();
-  const { e } = await searchParams;
+  const { e, view: viewParam } = await searchParams;
 
   if (!authed) {
     return <LoginScreen error={e === "1"} />;
   }
+
+  const view = viewParam && (viewParam in VIEWS || viewParam === "guide")
+    ? viewParam
+    : "inbox";
 
   const { data, error } = await getSupabaseAdmin()
     .from("o2o_leads")
@@ -122,6 +142,18 @@ export default async function AdminPage({
     (l) => l.stage === "builder" || l.stage === "built",
   ).length;
   const fromYoutube = leads.filter((l) => l.utm_source === "youtube").length;
+
+  const countFor = (key: string) => {
+    const v = VIEWS[key];
+    if (!v?.statuses) return leads.length;
+    return leads.filter((l) => v.statuses!.includes(l.status ?? "new")).length;
+  };
+  const visible =
+    view === "guide" || !VIEWS[view]?.statuses
+      ? leads
+      : leads.filter((l) =>
+          VIEWS[view].statuses!.includes(l.status ?? "new"),
+        );
 
   return (
     <main className="min-h-screen bg-bg px-5 py-10 text-text">
@@ -169,7 +201,40 @@ export default async function AdminPage({
           })}
         </div>
 
-        <div className="mt-8 overflow-x-auto rounded-lg border border-border">
+        {/* 네비게이션 탭 */}
+        <nav className="mt-8 flex flex-wrap gap-1 border-b border-border">
+          {Object.entries(VIEWS).map(([k, v]) => (
+            <a
+              key={k}
+              href={`/admin?view=${k}`}
+              className={`rounded-t-lg px-4 py-2.5 text-sm font-bold transition ${
+                view === k
+                  ? "border border-b-0 border-border bg-surface text-text"
+                  : "text-text-tertiary hover:text-text"
+              }`}
+            >
+              {v.label}{" "}
+              <span className="font-medium text-text-tertiary">
+                {countFor(k)}
+              </span>
+            </a>
+          ))}
+          <a
+            href="/admin?view=guide"
+            className={`ml-auto rounded-t-lg px-4 py-2.5 text-sm font-bold transition ${
+              view === "guide"
+                ? "border border-b-0 border-border bg-surface text-accent"
+                : "text-accent hover:opacity-80"
+            }`}
+          >
+            📋 상담 가이드
+          </a>
+        </nav>
+
+        {view === "guide" && <Guide />}
+
+        {view !== "guide" && (
+        <div className="mt-0 overflow-x-auto rounded-b-lg border border-t-0 border-border">
           <table className="w-full min-w-[1100px] border-collapse text-sm">
             <thead>
               <tr className="border-b border-border bg-surface text-left text-xs font-bold uppercase tracking-wide text-text-tertiary">
@@ -188,17 +253,17 @@ export default async function AdminPage({
               </tr>
             </thead>
             <tbody>
-              {leads.length === 0 && (
+              {visible.length === 0 && (
                 <tr>
                   <td
                     colSpan={12}
                     className="px-4 py-12 text-center text-text-tertiary"
                   >
-                    아직 신청이 없습니다.
+                    이 보기에 해당하는 리드가 없습니다.
                   </td>
                 </tr>
               )}
-              {leads.map((l) => {
+              {visible.map((l) => {
                 const isHot = l.stage === "built";
                 return (
                   <tr
@@ -284,6 +349,9 @@ export default async function AdminPage({
                           저장
                         </button>
                       </form>
+                      <div className="mt-1.5">
+                        <DeleteButton id={l.id} name={l.name} />
+                      </div>
                     </Td>
                   </tr>
                 );
@@ -291,6 +359,7 @@ export default async function AdminPage({
             </tbody>
           </table>
         </div>
+        )}
 
         <p className="mt-4 text-xs text-text-tertiary">
           최근 500건 · KST 기준 · source: landing(구폼) / landing-quiz(현재)

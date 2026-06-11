@@ -60,3 +60,17 @@ export async function updateLead(formData: FormData) {
   const { revalidatePath } = await import("next/cache");
   revalidatePath("/admin");
 }
+
+export async function deleteLead(formData: FormData) {
+  const { isAdmin } = await import("./auth");
+  if (!(await isAdmin())) redirect("/admin");
+
+  const id = String(formData.get("id") ?? "");
+  if (!id) redirect("/admin");
+
+  const { getSupabaseAdmin } = await import("@/lib/supabaseAdmin");
+  await getSupabaseAdmin().from("o2o_leads").delete().eq("id", id);
+
+  const { revalidatePath } = await import("next/cache");
+  revalidatePath("/admin");
+}
