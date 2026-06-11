@@ -137,9 +137,14 @@ body::before {
   }
 }
 
-/* Default visible — IO 가 .in 추가 못 해도 콘텐츠는 항상 보임 (fallback) */
+/* JS 없으면 항상 보임. JS가 있으면(html.js, head 인라인 스크립트가
+   첫 페인트 전에 붙임) 처음부터 숨겨서 '보였다 사라지는' 깜빡임을
+   원천 차단 — 요소는 .in 이 붙을 때 단 한 번만 나타난다. */
 .reveal {
   opacity: 1;
+}
+html.js .reveal:not(.in) {
+  opacity: 0;
 }
 .reveal.in {
   animation: fadeUp 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -147,6 +152,9 @@ body::before {
 
 .reveal-stagger > * {
   opacity: 1;
+}
+html.js .reveal-stagger:not(.in) > * {
+  opacity: 0;
 }
 .reveal-stagger.in > *:nth-child(1) {
   animation: fadeUp 700ms 0ms both cubic-bezier(0.16, 1, 0.3, 1);
@@ -275,6 +283,8 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
   .reveal,
   .reveal.in,
+  html.js .reveal:not(.in),
+  html.js .reveal-stagger:not(.in) > *,
   .reveal-stagger.in > *,
   .float-1,
   .float-2,

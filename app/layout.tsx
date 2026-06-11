@@ -28,6 +28,12 @@ export default function RootLayout({
   return (
     <html lang="ko" className="h-full antialiased">
       <head>
+        {/* 첫 페인트 전에 실행 — reveal 깜빡임 방지 게이트 */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "document.documentElement.classList.add('js')",
+          }}
+        />
         <link
           rel="preconnect"
           href="https://cdn.jsdelivr.net"
