@@ -29,3 +29,34 @@ export async function logout() {
   store.delete(ADMIN_COOKIE);
   redirect("/admin");
 }
+
+const ALLOWED_STATUSES = [
+  "new",
+  "contacted",
+  "consulted",
+  "paid",
+  "build",
+  "live",
+  "verdict",
+  "won",
+  "lost",
+] as const;
+
+export async function updateLead(formData: FormData) {
+  const { isAdmin } = await import("./auth");
+  if (!(await isAdmin())) redirect("/admin");
+
+  const id = String(formData.get("id") ?? "");
+  const status = String(formData.get("status") ?? "");
+  const memo = String(formData.get("memo") ?? "").slice(0, 2000);
+  if (!id || !ALLOWED_STATUSES.includes(status as never)) redirect("/admin");
+
+  const { getSupabaseAdmin } = await import("@/lib/supabaseAdmin");
+  await getSupabaseAdmin()
+    .from("o2o_leads")
+    .update({ status, memo: memo || null })
+    .eq("id", id);
+
+  const { revalidatePath } = await import("next/cache");
+  revalidatePath("/admin");
+}
