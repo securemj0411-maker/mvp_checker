@@ -354,7 +354,7 @@ export default function LeadForm() {
               value={contact}
               onChange={(e) => setContact(e.target.value)}
               className={inputBase}
-              placeholder="you@example.com"
+              placeholder="이메일 주소 또는 카톡 ID"
               maxLength={254}
             />
           </div>
