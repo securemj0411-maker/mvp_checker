@@ -243,15 +243,25 @@ html.js .reveal-stagger:not(.in) > * {
     );
 }
 
+/* 다크 밴드 안의 라이트 카드 — 배경뿐 아니라 텍스트/보더 변수까지
+   라이트로 리셋한다. (section-dark 안에서 흰 글자가 새는 것 방지) */
 .cold-panel {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 250, 244, 0.84)),
-    rgba(255, 255, 255, 0.78);
+  --bg: #fbfcfe;
+  --bg-alt: #f5f8fc;
+  --bg-light: #eaf1fe;
+  --surface: #ffffff;
+  --surface-hover: #ffffff;
+  --surface-light: #ffffff;
+  --border: #e7ecf3;
+  --border-hover: #d6e3fb;
+  --text: #0a1726;
+  --text-secondary: #3a4a5c;
+  --text-tertiary: #6b7b8c;
+  --text-rgb: 10, 23, 38;
+  background: #ffffff;
   border: 1px solid var(--border);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.8),
-    0 28px 70px rgba(65, 54, 42, 0.14);
-  backdrop-filter: blur(18px);
+  box-shadow: 0 30px 70px -24px rgba(4, 12, 28, 0.5);
+  color: var(--text);
 }
 
 .section-shell {
