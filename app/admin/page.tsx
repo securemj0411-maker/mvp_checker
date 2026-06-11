@@ -15,6 +15,7 @@ type Lead = {
   created_at: string;
   name: string;
   email: string;
+  phone: string | null;
   idea: string;
   source: string | null;
   utm_source: string | null;
@@ -95,7 +96,7 @@ export default async function AdminPage({
   const { data, error } = await getSupabaseAdmin()
     .from("o2o_leads")
     .select(
-      "id, created_at, name, email, idea, source, utm_source, service_type, audience, revenue_model, stage, fear",
+      "id, created_at, name, email, phone, idea, source, utm_source, service_type, audience, revenue_model, stage, fear",
     )
     .order("created_at", { ascending: false })
     .limit(500);
@@ -194,7 +195,14 @@ export default async function AdminPage({
                         </span>
                       )}
                     </Td>
-                    <Td className="whitespace-nowrap">{l.email}</Td>
+                    <Td className="whitespace-nowrap">
+                      {l.email}
+                      {l.phone && (
+                        <span className="mt-0.5 block text-xs font-semibold text-accent">
+                          📞 {l.phone}
+                        </span>
+                      )}
+                    </Td>
                     <Td className="max-w-[280px] text-text-secondary">
                       {l.idea}
                     </Td>

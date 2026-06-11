@@ -145,6 +145,7 @@ export default function LeadForm() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [contact, setContact] = useState("");
+  const [phone, setPhone] = useState("");
   const [idea, setIdea] = useState("");
 
   const isDetailStep = step === QUESTIONS.length;
@@ -185,6 +186,7 @@ export default function LeadForm() {
     const { error } = await getSupabase().from("o2o_leads").insert({
       name: name.trim(),
       email: contact.trim(),
+      phone: phone.trim() || null,
       idea: idea.trim(),
       source: "landing-quiz",
       utm_source: utm,
@@ -356,6 +358,23 @@ export default function LeadForm() {
               maxLength={254}
             />
           </div>
+        </div>
+        <div>
+          <label className="mb-2 block text-sm font-semibold text-text-secondary">
+            휴대폰 번호{" "}
+            <span className="font-normal text-text-tertiary">
+              (선택 · 빠른 상담을 원하시면)
+            </span>
+          </label>
+          <input
+            type="tel"
+            inputMode="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className={inputBase}
+            placeholder="010-1234-5678"
+            maxLength={20}
+          />
         </div>
 
         {errorMsg && (
