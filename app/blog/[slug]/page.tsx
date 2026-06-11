@@ -71,7 +71,9 @@ export default async function BlogPost({
             [&_h2]:mt-12 [&_h2]:text-2xl [&_h2]:font-extrabold [&_h2]:tracking-tight [&_h2]:text-text
             [&_strong]:font-bold [&_strong]:text-text
             [&_a]:font-semibold [&_a]:text-accent [&_a]:underline [&_a]:underline-offset-4
-            [&_blockquote]:border-l-2 [&_blockquote]:border-accent [&_blockquote]:pl-6 [&_blockquote]:text-text"
+            [&_blockquote]:border-l-2 [&_blockquote]:border-accent [&_blockquote]:pl-6 [&_blockquote]:text-text
+            [&_figure]:my-2 [&_img]:rounded-xl [&_img]:border [&_img]:border-border [&_img]:shadow-[0_10px_30px_-16px_rgba(16,42,86,0.3)]
+            [&_figcaption]:mt-3 [&_figcaption]:text-center [&_figcaption]:text-sm [&_figcaption]:text-text-tertiary"
         >
           {post.content}
         </div>

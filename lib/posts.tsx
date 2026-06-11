@@ -96,6 +96,18 @@ export const POSTS: Post[] = [
           판단하려면 오른쪽 끝, 즉 모르는 사람이 가격을 확인한 뒤에도
           결제로 향하는지를 봐야 합니다.
         </p>
+        <figure>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/sample-report.png"
+            alt="비즈필터 검증 판정 리포트 샘플 — GO 판정, 종합 신호 강도 82점, 단계별 신호 강도(말·클릭·문의·결제) 그래프"
+            loading="lazy"
+          />
+          <figcaption>
+            검증이 끝나면 받는 판정 리포트의 샘플입니다. 말부터 결제까지
+            단계별 신호 강도를 숫자로 보여드립니다.
+          </figcaption>
+        </figure>
         <h2>그래서 AI는 어떻게 써야 하는가</h2>
         <p>
           AI를 쓰지 말라는 뜻이 아닙니다. AI는 아이디어를 구체화하고,
