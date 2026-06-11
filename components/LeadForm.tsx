@@ -316,18 +316,22 @@ export default function LeadForm() {
         </div>
         <div>
           <label className="mb-2 block text-sm font-semibold text-text-secondary">
-            아이디어 한 줄
+            아이디어 설명
           </label>
-          <input
+          <textarea
             required
             value={idea}
             onChange={(e) => setIdea(e.target.value)}
-            className={inputBase}
-            placeholder="예: 직장인 점심 단체주문 자동화 서비스"
-            maxLength={1000}
+            className={`${inputBase} min-h-[110px] resize-y leading-relaxed`}
+            rows={4}
+            placeholder={
+              "예: 직장인 점심 단체주문을 자동화하는 서비스.\n누가 쓰는지, 어떤 문제를 푸는지, 어떻게 돈을 벌 계획인지 — 떠오르는 만큼 적어주세요."
+            }
+            maxLength={2000}
           />
           <p className="mt-2 text-xs text-text-tertiary">
-            아직 정리 중이어도 괜찮습니다. 핵심 고객과 문제만 짧게.
+            한 줄도 괜찮고, 자세히 적으셔도 좋습니다. 적어주신 만큼 상담이
+            빨라집니다. 나머지는 통화에서 함께 정리합니다.
           </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
