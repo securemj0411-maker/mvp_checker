@@ -1,19 +1,16 @@
 import LeadForm from "@/components/LeadForm";
 import ScrollReveal from "@/components/ScrollReveal";
-import HeroSpotlight from "@/components/HeroSpotlight";
-import {
-  ArrowRight,
-  Check,
-  CreditCard,
-  MessageCircle,
-  MousePointerClick,
-} from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 
-const fontDisplay = { fontFamily: "var(--font-display)" } as const;
-const glowAccent = {
-  filter: "drop-shadow(0 0 18px var(--accent-glow))",
+/* 판정 컬러 시스템 — GO/NO-GO/PIVOT */
+const verdict = {
+  go: "#06A86B",
+  goBg: "#E4F7EF",
+  nogo: "#E8453C",
+  nogoBg: "#FCEBE9",
+  pivot: "#E08A00",
+  pivotBg: "#FBF1DE",
 } as const;
-const dotAccent = { boxShadow: "0 0 8px var(--accent-glow)" } as const;
 
 type HeroVariant = "a" | "b";
 
@@ -25,20 +22,17 @@ export default function Home({
   return (
     <main className="flex-1">
       <Nav />
-      <HeroSpotlight>
-        <Hero variant={heroVariant} />
-      </HeroSpotlight>
-      <Marquee />
-      <Problem />
-      <AITrap />
-      <Timeline />
-      <NoBuildBand />
-      <Measure />
-      <Deliverables />
+      <Hero variant={heroVariant} />
+      <Statement />
+      <TourFakeDoor />
+      <TourAds />
+      <TourDashboard />
+      <TourVerdict />
+      <Process />
       <Cases />
       <Pricing />
-      <NoGo />
-      <FounderStory />
+      <Guarantee />
+      <Story />
       <Team />
       <FAQ />
       <FinalCTA />
@@ -48,56 +42,53 @@ export default function Home({
   );
 }
 
-/* ────────────────────  shared eyebrow label  ──────────────────── */
-function Eyebrow({ children }: { children: React.ReactNode }) {
+/* ── 작은 블루 라벨 (토스의 '홈·소비' 스타일) ── */
+function Label({ children }: { children: React.ReactNode }) {
+  return <p className="text-[17px] font-bold text-accent">{children}</p>;
+}
+
+function BrandMark({ size = 30 }: { size?: number }) {
   return (
-    <p
-      className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-text-tertiary"
-      style={fontDisplay}
+    <span
+      className="flex items-center justify-center rounded-[9px] text-white"
+      style={{
+        width: size,
+        height: size,
+        background: "linear-gradient(150deg, #2B6BF4, #1648BE)",
+      }}
     >
-      <span
-        className="inline-block h-1.5 w-1.5 rounded-full bg-accent"
-        style={dotAccent}
-      />
-      {children}
-    </p>
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        style={{ width: size * 0.56, height: size * 0.56 }}
+      >
+        <path d="M3 5h18l-7 8v5l-4 2v-7L3 5z" fill="currentColor" />
+      </svg>
+    </span>
   );
 }
 
 /* ─────────────────────────  NAV  ───────────────────────── */
 function Nav() {
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-bg/70 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5">
+    <header className="sticky top-0 z-40 border-b border-border/70 bg-bg/85 backdrop-blur-xl">
+      <div className="mx-auto flex h-[68px] max-w-6xl items-center justify-between px-6">
         <a
           href="#"
-          className="flex items-center gap-2.5 text-lg font-extrabold tracking-tight text-text"
+          className="flex items-center gap-2.5 text-[19px] font-extrabold tracking-tight text-text"
         >
-          <span
-            className="flex h-[30px] w-[30px] items-center justify-center rounded-[9px] text-white"
-            style={{
-              background: "linear-gradient(150deg, #2B6BF4, #1648BE)",
-              boxShadow: "0 6px 16px -4px rgba(43,107,244,.5)",
-            }}
-          >
-            <svg viewBox="0 0 24 24" fill="none" className="h-[17px] w-[17px]">
-              <path d="M3 5h18l-7 8v5l-4 2v-7L3 5z" fill="currentColor" />
-            </svg>
-          </span>
-          <span>비즈필터</span>
+          <BrandMark />
+          비즈필터
         </a>
-        <nav className="hidden items-center gap-7 text-sm font-semibold text-text-secondary sm:flex">
-          <a href="#timeline" className="transition hover:text-text">
+        <nav className="hidden items-center gap-8 text-[15px] font-semibold text-text-secondary md:flex">
+          <a href="#process" className="transition hover:text-text">
             진행 방식
-          </a>
-          <a href="#pricing" className="transition hover:text-text">
-            가격
           </a>
           <a href="#cases" className="transition hover:text-text">
             사례
           </a>
-          <a href="#story" className="transition hover:text-text">
-            스토리
+          <a href="#pricing" className="transition hover:text-text">
+            가격
           </a>
           <a href="#faq" className="transition hover:text-text">
             FAQ
@@ -108,818 +99,650 @@ function Nav() {
         </nav>
         <a
           href="#cta"
-          className="inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-bold text-white transition hover:bg-accent-hover hover:shadow-[0_8px_24px_var(--accent-glow)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          className="rounded-full bg-accent px-[18px] py-[10px] text-sm font-bold text-white transition hover:bg-accent-hover"
         >
-          검증 신청 <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
+          검증 신청
         </a>
       </div>
     </header>
   );
 }
 
-/* ─────────────────────────  HERO (split)  ───────────────────────── */
+/* ─────────────  HERO — 토스식 센터 타이포 + 대형 제품 샷  ───────────── */
 function Hero({ variant = "a" }: { variant?: HeroVariant }) {
   return (
-    <section className="relative grid border-b border-border lg:min-h-[88vh] lg:grid-cols-2">
-      <div className="dot-grid pointer-events-none absolute inset-0 left-0 right-1/2 -z-10 opacity-40" />
-      {/* LEFT — copy */}
-      <div className="flex flex-col justify-center px-6 py-20 sm:px-12 sm:py-24 lg:px-16">
-        <div className="reveal-stagger max-w-[680px]">
-          <p
-            className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-text-secondary"
-            style={fontDisplay}
-          >
-            <span
-              className="h-1.5 w-1.5 rounded-full bg-accent"
-              style={dotAccent}
-            />
-            사업 아이디어 검증 전문
-          </p>
+    <section className="relative overflow-hidden">
+      <div className="mx-auto max-w-6xl px-6 pb-10 pt-20 text-center sm:pt-28">
+        <div className="reveal-stagger mx-auto max-w-3xl">
+          <Label>사업 아이디어 검증</Label>
           {variant === "a" ? (
             <>
-              <h1 className="mt-6 text-4xl font-extrabold leading-[1.12] tracking-[-0.035em] text-text sm:text-5xl lg:text-6xl">
-                그 사업 아이디어가
+              <h1 className="mt-5 text-[40px] font-extrabold leading-[1.18] tracking-[-0.035em] text-text sm:text-6xl">
+                그 아이디어가 먹힐지,
                 <br />
-                먹힐지 안 먹힐지,
-                <br />
-                어차피 알게 됩니다.
+                만들기 전에 확인하세요
               </h1>
-              <p className="mt-5 text-xl font-bold leading-snug text-text-secondary sm:text-2xl">
-                6개월 뒤에 아느냐,{" "}
-                <span className="text-accent" style={glowAccent}>
-                  7일 뒤에 아느냐
-                </span>
-                의 차이일 뿐.
+              <p className="mx-auto mt-7 max-w-xl text-lg leading-[1.7] text-text-secondary sm:text-xl">
+                진짜 광고를 돌려서, 모르는 사람이 가격을 보고도
+                <br className="hidden sm:block" />
+                결제 버튼을 누르는지 봅니다. 7일이면 숫자가 나옵니다.
               </p>
             </>
           ) : (
             <>
-              <h1 className="mt-6 text-4xl font-extrabold leading-[1.12] tracking-[-0.035em] text-text sm:text-5xl lg:text-6xl">
+              <h1 className="mt-5 text-[40px] font-extrabold leading-[1.18] tracking-[-0.035em] text-text sm:text-6xl">
                 만들기 전에,
-                <br />살 사람이 있는지 확인하세요.
+                <br />살 사람부터 확인하세요
               </h1>
-              <p className="mt-5 text-xl font-bold leading-snug text-text-secondary sm:text-2xl">
-                그 아이디어,{" "}
-                <span className="text-accent" style={glowAccent}>
-                  7일이면 데이터로 답
-                </span>
-                이 나옵니다.
+              <p className="mx-auto mt-7 max-w-xl text-lg leading-[1.7] text-text-secondary sm:text-xl">
+                그 아이디어, 7일이면 데이터로 답이 나옵니다.
               </p>
             </>
           )}
-          <p className="mt-7 max-w-2xl text-lg leading-[1.7] text-text-secondary">
-            비즈필터는 만들기 전에{" "}
-            <span className="font-semibold text-text">
-              파는 것부터 해보는 검증 서비스
-            </span>
-            입니다. 진짜 광고를 돌려서, 모르는 사람이 가격을 보고도{" "}
-            <span className="font-semibold text-text">
-              결제 버튼을 누르는지
-            </span>{" "}
-            확인합니다. 7일이면 숫자가 나옵니다. 만들지 말지는 그 숫자를 보고
-            정하세요.
-          </p>
-          <div className="mt-10 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+          <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
             <a
               href="#cta"
-              className="inline-flex items-center gap-2 rounded-full bg-accent px-7 py-4 text-base font-bold text-white shadow-[0_10px_24px_-8px_var(--accent-glow)] transition hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-[0_14px_30px_-8px_var(--accent-glow)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="inline-flex items-center gap-2 rounded-full bg-accent px-7 py-4 text-base font-bold text-white shadow-[0_10px_24px_-8px_var(--accent-glow)] transition hover:-translate-y-0.5 hover:bg-accent-hover"
             >
-              내 아이디어 검증 신청하기
+              내 아이디어 검증 신청
               <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
             </a>
             <a
-              href="#timeline"
-              className="px-2 py-3 text-base font-medium text-text-secondary underline-offset-4 transition hover:text-text hover:underline"
+              href="#process"
+              className="rounded-full border border-border-hover bg-surface px-7 py-4 text-base font-bold text-text transition hover:border-accent hover:text-accent"
             >
-              7일이 어떻게 흘러가는지 보기 →
+              7일 과정 보기
             </a>
           </div>
-          <p className="mt-7 text-sm text-text-tertiary">
+          <p className="mt-7 text-sm font-medium text-text-tertiary">
             신청은 결제가 아닙니다 · Go/No-Go 판정 보장 · 검증 과정 실시간
             공개
           </p>
         </div>
-      </div>
-      {/* RIGHT — verdict card on soft blue field */}
-      <div className="relative hidden items-center justify-center overflow-hidden p-8 sm:p-12 lg:flex lg:p-16">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(60% 50% at 60% 20%, rgba(43,107,244,.10), transparent 65%)",
-          }}
-        />
-        <div className="relative w-full max-w-[440px]">
-          <VerdictCard />
-          <div className="absolute -left-7 -top-4 flex items-center gap-2.5 rounded-full border border-border bg-surface px-4 py-2.5 text-[13px] font-bold text-text shadow-[0_10px_28px_-10px_rgba(10,23,38,.2)]">
-            <span
-              className="flex h-6 w-6 items-center justify-center rounded-lg text-xs"
-              style={{ background: "var(--go-tint)", color: "var(--go)" }}
-            >
-              ✓
-            </span>
-            결제 의향까지 측정
-          </div>
-          <div className="absolute -bottom-5 -right-6 flex items-center gap-2.5 rounded-full border border-border bg-surface px-4 py-2.5 text-[13px] font-bold text-text shadow-[0_10px_28px_-10px_rgba(10,23,38,.2)]">
-            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-bg-light text-xs text-accent">
-              ◎
-            </span>
-            라이브 대시보드 공개
-          </div>
+
+        {/* 대형 제품 샷 — 대시보드 + 판정서 */}
+        <div className="reveal relative mx-auto mt-16 max-w-4xl">
+          <HeroShot />
         </div>
       </div>
     </section>
   );
 }
 
-/* 판정 컬러 시스템 — GO/NO-GO/PIVOT */
-const fontMono = {} as const;
-const verdict = {
-  go: "#06A86B",
-  goBg: "#E4F7EF",
-  nogo: "#E8453C",
-  nogoBg: "#FCEBE9",
-  pivot: "#E08A00",
-  pivotBg: "#FBF1DE",
-} as const;
-
-function VerdictCard() {
-  const metrics: [string, string, string][] = [
-    ["노출", "12,420", ""],
-    ["클릭 · CTR", "398", "3.2%"],
-    ["결제 클릭", "13", "3.3%"],
-    ["CAC · 고객 1명당", "₩3,846", ""],
-  ];
+/* 브라우저 프레임 공통 */
+function Browser({
+  url,
+  children,
+  className = "",
+}: {
+  url: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <div className="reveal relative w-full">
-      <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-[0_8px_24px_-8px_rgba(10,23,38,0.10),0_30px_60px_-28px_rgba(16,42,86,0.32)]">
-        <div className="flex items-center justify-between border-b border-border bg-bg px-4 py-3">
-          <span
-            className="text-[11px] font-semibold uppercase tracking-[0.14em] text-text-tertiary"
-            style={fontMono}
-          >
-            검증 판정서 · 7일차
-          </span>
-          <span
-            className="rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em]"
-            style={{
-              ...fontMono,
-              color: verdict.pivot,
-              background: verdict.pivotBg,
-            }}
-          >
-            Sample
-          </span>
-        </div>
-        <div className="p-5">
-          <p className="text-[13px] text-text-secondary">
-            아이디어 ·{" "}
-            <b className="font-semibold text-text">
-              주 3회 새벽배송 샐러드 구독
-            </b>
-          </p>
-          <div
-            className="mt-4 flex items-center gap-4 rounded-[16px] px-5 py-4"
-            style={{ background: verdict.goBg }}
-          >
-            <span
-              className="flex items-center gap-2 text-[22px] font-black leading-none"
-              style={{ color: verdict.go }}
-            >
-              <span
-                className="h-2.5 w-2.5 rounded-full"
-                style={{
-                  background: verdict.go,
-                  boxShadow: "0 0 0 4px rgba(6,168,107,.18)",
-                }}
-              />
-              GO
-            </span>
-            <span
-              className="border-l pl-4 text-[13px] font-semibold leading-snug"
-              style={{ borderColor: "rgba(6,168,107,.3)", color: "#2f7a5d" }}
-            >
-              합격선 통과 · 다음 단계 권고
-            </span>
-          </div>
-          <div className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-[10px] border border-border bg-border">
-            {metrics.map(([k, v, sub]) => (
-              <div key={k} className="bg-surface px-3.5 py-3">
-                <div
-                  className="text-[10px] uppercase tracking-[0.06em] text-text-tertiary"
-                  style={fontMono}
-                >
-                  {k}
-                </div>
-                <div
-                  className="mt-1 text-lg font-semibold leading-none text-text"
-                  style={fontMono}
-                >
-                  {v}
-                  {sub && (
-                    <small className="ml-1 text-xs font-medium text-text-secondary">
-                      {sub}
-                    </small>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 border-t border-dashed border-border-hover pt-4">
-            <div
-              className="flex items-center justify-between text-xs text-text-secondary"
-              style={fontMono}
-            >
-              <span>
-                합격선 결제 클릭률{" "}
-                <b className="font-semibold text-text">3.0%</b>
-              </span>
-              <span>
-                실측 <b className="font-semibold text-text">3.3%</b>
-              </span>
-            </div>
-            <div className="mt-2 h-1.5 overflow-hidden rounded bg-bg">
-              <i
-                className="block h-full rounded"
-                style={{ width: "84%", background: verdict.go }}
-              />
-            </div>
-          </div>
-        </div>
+    <div
+      className={`overflow-hidden rounded-[18px] border border-border bg-surface shadow-[0_8px_24px_-8px_rgba(10,23,38,0.08),0_36px_80px_-32px_rgba(16,42,86,0.25)] ${className}`}
+    >
+      <div className="flex items-center gap-2 border-b border-border-light bg-bg px-4 py-2.5">
+        <span className="h-2.5 w-2.5 rounded-full bg-[#FF5F57]" />
+        <span className="h-2.5 w-2.5 rounded-full bg-[#FEBC2E]" />
+        <span className="h-2.5 w-2.5 rounded-full bg-[#28C840]" />
+        <span className="ml-3 flex-1 truncate rounded-md bg-bg-alt px-3 py-1 text-left text-xs text-text-tertiary">
+          {url}
+        </span>
       </div>
+      {children}
     </div>
   );
 }
 
-/* ─────────────────────────  MARQUEE  ───────────────────────── */
-function Marquee() {
-  const items = [
-    "진짜 같은 Mock 페이지",
-    "진짜 광고",
-    "진짜 데이터",
-    "결제 의향까지 측정",
-    "CAC · 객단가 계산",
-    "라이브 대시보드",
-    "합격선 사전 합의",
-    "광고 문구 2~3종 테스트",
-    "판정 못 내리면 전액 환불",
-    "7일 안에 답",
-  ];
+function HeroShot() {
+  const days = [
+    ["월", 34],
+    ["화", 52],
+    ["수", 41],
+    ["목", 66],
+    ["금", 58],
+    ["토", 80],
+    ["일", 96],
+  ] as const;
   return (
-    <section className="relative overflow-hidden border-y border-border bg-surface">
-      <div className="marquee-track py-5 text-base font-bold tracking-tight text-text-secondary sm:text-lg">
-        {[...items, ...items].map((item, i) => (
-          <span key={i} className="flex items-center gap-8 pr-8">
-            {item}
-            <span aria-hidden className="text-[8px] text-accent-soft">
-              ●
-            </span>
-          </span>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/* ─────────────────  PROBLEM — 아는 것과 하는 것 사이  ───────────────── */
-function Problem() {
-  const obstacles = [
-    "랜딩페이지는 뭘로 만들지.",
-    "구글애즈 계정 세팅은 어떻게 하는지.",
-    "전환 추적 픽셀은 또 뭔지.",
-    "광고비는 얼마나 태워야 하는지.",
-    "그리고 어찌어찌 숫자가 나와도 — CTR 1.8%, 좋은 겁니까 나쁜 겁니까?",
-  ];
-  return (
-    <section className="border-b border-border bg-bg">
-      <div className="mx-auto max-w-3xl px-5 py-24 sm:py-28">
-        <div className="reveal">
-          <Eyebrow>아는 것과 하는 것 사이</Eyebrow>
-          <h2 className="mt-4 text-4xl font-extrabold tracking-[-0.03em] text-text sm:text-5xl">
-            수요검증,
-            <br />
-            해야 한다는 건 다들 압니다.
-          </h2>
-          <p className="mt-6 text-lg leading-[1.7] text-text-secondary">
-            "시작하기 전에 검증부터 해라." 백 번쯤 들어보셨을 겁니다. 맞는
-            말이라 반박할 수도 없습니다. 그런데 막상 하려면 —
-          </p>
-        </div>
-        <ol className="reveal-stagger mt-10 space-y-0 border-y border-border">
-          {obstacles.map((o, i) => (
-            <li
-              key={o}
-              className="flex items-baseline gap-4 border-b border-border py-4 last:border-b-0"
-            >
-              <span
-                className="text-sm font-bold text-text-tertiary"
-                style={fontDisplay}
-              >
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <span className="text-lg font-medium text-text">{o}</span>
-            </li>
-          ))}
-        </ol>
-        <div className="reveal mt-10">
-          <p className="text-lg leading-[1.7] text-text-secondary">
-            그래서 대부분 이렇게 합니다.
-          </p>
-          <div className="mt-5 flex flex-wrap gap-2.5">
-            <span className="rounded-full border border-border bg-surface px-4 py-2 text-sm text-text-secondary">
-              지인 — "오, 괜찮은데?"
-            </span>
-            <span className="rounded-full border border-border bg-surface px-4 py-2 text-sm text-text-secondary">
-              AI — "훌륭한 아이디어입니다!"
-            </span>
-            <span className="rounded-full border border-accent/40 bg-accent/[0.08] px-4 py-2 text-sm font-semibold text-text">
-              …그리고 그냥 만들기 시작
+    <Browser url="bizfilter.kr/dashboard/salady-club">
+      <div className="grid gap-0 bg-surface text-left lg:grid-cols-[1.4fr_1fr]">
+        {/* 대시보드 */}
+        <div className="border-b border-border-light p-6 sm:p-8 lg:border-b-0 lg:border-r">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[13px] font-semibold text-text-tertiary">
+                라이브 대시보드
+              </p>
+              <p className="mt-0.5 text-lg font-extrabold text-text">
+                주 3회 새벽배송 샐러드 구독
+              </p>
+            </div>
+            <span className="flex items-center gap-1.5 rounded-full bg-bg-alt px-3 py-1.5 text-xs font-bold text-text-secondary">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#06A86B]" />
+              집행 5일차
             </span>
           </div>
-          <p className="mt-10 border-l-2 border-accent pl-6 text-2xl font-bold leading-snug text-text">
-            그리고 3개월 뒤, 시장이{" "}
-            <span className="text-accent">7일 만에</span> 알려줄 수 있던 답을
-            가장 비싼 수업료를 내고 받습니다.
-          </p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ─────────────────────────  AI TRAP  ───────────────────────── */
-function AITrap() {
-  return (
-    <section className="section-dark relative overflow-hidden border-b">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(50% 60% at 85% 10%, rgba(43,107,244,.22), transparent 60%)",
-        }}
-      />
-      <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 py-24 sm:py-28 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="reveal">
-          <Eyebrow>AI 함정</Eyebrow>
-          <h2 className="mt-4 text-4xl font-extrabold leading-[1.15] tracking-[-0.03em] text-text sm:text-5xl">
-            AI는 다 해줍니다.
-            <br />
-            당신 사업의{" "}
-            <span style={{ color: "var(--accent-soft)" }}>숫자</span>만 빼고.
-          </h2>
-          <div className="mt-8 space-y-6 text-lg leading-[1.7] text-text-secondary">
-            <p>
-              "이 아이디어 어때?" 물어보면 시장 규모부터 리스크까지 그럴듯하게
-              나옵니다. 그런데 그건 전부{" "}
-              <span className="font-semibold text-text">
-                세상 어딘가의 평균
-              </span>
-              입니다.
-            </p>
-            <p>
-              당신 사업이 되느냐는 구체적인 숫자입니다. 이 타겟이, 이 카피에,
-              이 가격에서 결제 버튼을 누르는가.{" "}
-              <span className="font-semibold text-text">
-                검색해도 안 나옵니다. 아직 세상에 없는 데이터니까요.
-              </span>
-            </p>
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              ["노출", "12,420", ""],
+              ["클릭", "398", "CTR 3.2%"],
+              ["결제 클릭", "13", "3.3%"],
+              ["CAC", "₩3,846", "고객 1명당"],
+            ].map(([k, v, s]) => (
+              <div key={k} className="rounded-[14px] bg-bg-alt px-4 py-3.5">
+                <p className="text-xs font-semibold text-text-tertiary">{k}</p>
+                <p className="mt-1 text-xl font-extrabold tracking-tight text-text">
+                  {v}
+                </p>
+                {s && (
+                  <p className="mt-0.5 text-[11px] font-medium text-text-tertiary">
+                    {s}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 flex h-28 items-end gap-2.5">
+            {days.map(([d, h]) => (
+              <div key={d} className="flex flex-1 flex-col items-center gap-2">
+                <div
+                  className="w-full rounded-[6px]"
+                  style={{
+                    height: `${h}%`,
+                    background:
+                      h >= 80 ? "var(--accent)" : "var(--bg-light)",
+                  }}
+                />
+                <span className="text-[11px] font-medium text-text-tertiary">
+                  {d}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
-        <div className="reveal grid gap-4">
-          <div className="rounded-lg border border-border bg-surface p-6">
-            <p className="text-[13px] font-bold text-text-tertiary">AI</p>
-            <p className="mt-2 text-lg font-extrabold text-text">
-              예측을 만듭니다
+        {/* 판정서 */}
+        <div className="p-6 sm:p-8">
+          <div className="flex items-center justify-between">
+            <p className="text-[13px] font-semibold text-text-tertiary">
+              검증 판정서 · 7일차
             </p>
-            <p className="mt-2 text-[15px] leading-[1.65] text-text-secondary">
-              "레드오션입니다, 조심하세요." 맞는 말도 합니다. 문제는 사람이라
-              원하는 답이 나올 때까지 다시 묻게 된다는 것.
-            </p>
+            <span className="rounded-full border border-border px-2.5 py-0.5 text-[10px] font-bold tracking-wide text-text-tertiary">
+              SAMPLE
+            </span>
           </div>
           <div
-            className="rounded-lg border p-6"
-            style={{
-              background: "rgba(43,107,244,.16)",
-              borderColor: "rgba(43,107,244,.4)",
-            }}
+            className="mt-5 flex items-center gap-3 rounded-[14px] px-5 py-4"
+            style={{ background: verdict.goBg }}
           >
-            <p
-              className="text-[13px] font-bold"
-              style={{ color: "var(--accent-soft)" }}
+            <span
+              className="flex items-center gap-2 text-2xl font-black"
+              style={{ color: verdict.go }}
             >
-              비즈필터
-            </p>
-            <p className="mt-2 text-lg font-extrabold text-text">
-              증거를 가져옵니다
-            </p>
-            <p className="mt-2 text-[15px] leading-[1.65] text-text-secondary">
-              진짜 광고를 돌려서, 아직 세상에 없던 당신 사업의 숫자를
-              가져옵니다.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ──────────────  TIMELINE — 좌 sticky 헤드 + 우 7일 레일  ────────────── */
-function Timeline() {
-  const days = [
-    {
-      day: "DAY 1–2",
-      h: "미니 리서치 + 검증용 사이트 제작",
-      p: "검색 수요, 경쟁 광고, 유사 서비스 가격대를 조사합니다. 그 위에 실서비스처럼 보이는 검증용 사이트를 만들고 가격까지 노출합니다. 고객이 진짜라고 믿어야 진짜 데이터가 나옵니다.",
-    },
-    {
-      day: "DAY 2",
-      h: "합격선 합의",
-      p: "데이터를 보기 전에 통과 기준 숫자를 함께 정합니다. 정해두지 않으면, 누구나 애매한 숫자를 '그래도 되지 않을까'로 읽게 되기 때문입니다.",
-    },
-    {
-      day: "DAY 3–7",
-      h: "광고 집행",
-      p: "구글 광고로, 당신을 전혀 모르는 잠재고객에게 노출합니다. 광고 문구는 2~3가지로 나눠 집행합니다. 반응이 없으면 아이디어가 문제인지 문구가 문제인지까지 가려내기 위해서입니다.",
-    },
-    {
-      day: "상시",
-      h: "라이브 대시보드",
-      p: "노출 · 클릭 · 문의 · 결제 시도를 실시간으로 같이 봅니다. 블랙박스 없습니다.",
-    },
-    {
-      day: "DAY 7",
-      h: "Go / No-Go 의사결정 미팅",
-      p: "숫자만 던지지 않습니다. 클릭률과 고객 획득 비용이 업계 기준 대비 어디쯤인지, 해석과 다음 액션까지 드립니다.",
-      last: true,
-    },
-  ];
-  return (
-    <section id="timeline" className="border-b border-border bg-bg">
-      <div className="mx-auto grid max-w-6xl gap-14 px-5 py-24 sm:py-28 lg:grid-cols-[1fr_1.35fr]">
-        {/* LEFT — sticky head */}
-        <div className="reveal lg:sticky lg:top-28 lg:self-start">
-          <Eyebrow>진행 방식</Eyebrow>
-          <h2 className="mt-4 text-4xl font-extrabold tracking-[-0.03em] text-text sm:text-5xl">
-            7일 동안,
-            <br />
-            이런 일이
-            <br />
-            일어납니다.
-          </h2>
-          <p className="mt-6 max-w-md text-lg leading-[1.7] text-text-secondary">
-            도구를 배우실 필요 없습니다. 전 과정을 저희가 실행하고, 당신은
-            대시보드로 같이 보기만 하면 됩니다.
-          </p>
-          <p className="mt-5 max-w-md leading-[1.7] text-text-secondary">
-            <span className="font-semibold text-text">
-              저희 작업은 48시간이면 끝납니다.
-            </span>{" "}
-            나머지 닷새는 시장이 답하는 데 걸리는 최소 시간입니다. 누가 하든
-            이 시간은 줄지 않습니다.
-          </p>
-        </div>
-        {/* RIGHT — rail */}
-        <div>
-          <ol className="reveal-stagger relative ml-2 border-l border-border">
-            {days.map((d) => (
-              <li key={d.h} className="relative pb-12 pl-8 last:pb-0">
-                <span
-                  className={`absolute -left-[5.5px] top-2 h-2.5 w-2.5 rounded-full ${d.last ? "bg-accent" : "bg-border-hover"}`}
-                  style={d.last ? dotAccent : undefined}
-                />
-                <p
-                  className={`text-xs font-bold uppercase tracking-[0.18em] ${d.last ? "text-accent" : "text-text-tertiary"}`}
-                  style={fontDisplay}
-                >
-                  {d.day}
-                </p>
-                <h3 className="mt-2 text-2xl font-bold text-text">{d.h}</h3>
-                <p className="mt-3 max-w-xl leading-[1.7] text-text-secondary">
-                  {d.p}
-                </p>
-              </li>
-            ))}
-          </ol>
-          {/* 직접 하기 비교 */}
-          <div className="reveal mt-12 rounded-lg border border-border bg-surface p-7">
-            <p className="text-lg font-bold text-text">
-              "직접 해도 되잖아요?"
-            </p>
-            <p className="mt-3 leading-[1.7] text-text-secondary">
-              됩니다. 도구 배우는 데 2~4주, 시행착오 광고비는 별도, 그리고 한
-              가지가 끝까지 발목을 잡습니다.{" "}
-              <span className="font-semibold text-text">
-                자기 아이디어 앞에서 객관적인 사람은 없습니다.
-              </span>{" "}
-              카피도 유리하게 쓰고, 애매한 숫자도 유리하게 읽게 됩니다.
-              검증의 절반은 기술이고, 절반은 남의 눈입니다.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ─────────────  NO-BUILD BAND — 이해충돌 제거 선언  ───────────── */
-function NoBuildBand() {
-  return (
-    <section className="section-dark relative overflow-hidden border-b">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(circle at 50% 120%, rgba(var(--accent-rgb), 0.12), transparent 65%)",
-        }}
-      />
-      <div className="relative mx-auto max-w-4xl px-5 py-20 text-center sm:py-24">
-        <p className="reveal text-3xl font-extrabold leading-[1.25] tracking-[-0.02em] text-text sm:text-4xl lg:text-[2.75rem]">
-          저희는{" "}
-          <span className="text-accent" style={glowAccent}>
-            개발을 팔지 않습니다.
-          </span>
-          <br />
-          그래서 "만드세요"라고 말할
-          <br className="sm:hidden" /> 금전적 이유가 없습니다.
-        </p>
-        <p className="reveal mx-auto mt-7 max-w-2xl leading-[1.7] text-text-secondary">
-          시장조사와 개발을 함께 파는 회사는 Go라고 말할 인센티브가 있습니다.
-          저희 수입은 검증의 정확도에서만 나옵니다.
-        </p>
-      </div>
-    </section>
-  );
-}
-
-/* ─────────────  MEASURE — 신호 사다리 (클릭 < 문의 < 결제)  ───────────── */
-function Measure() {
-  const signals = [
-    {
-      Icon: MousePointerClick,
-      h: "클릭",
-      sub: "약한 신호",
-      barH: 56,
-      strong: false,
-    },
-    {
-      Icon: MessageCircle,
-      h: "문의",
-      sub: "중간 신호",
-      barH: 104,
-      strong: false,
-    },
-    {
-      Icon: CreditCard,
-      h: "결제 버튼 클릭",
-      sub: "저희가 끝까지 보는 것",
-      barH: 168,
-      strong: true,
-    },
-  ];
-  return (
-    <section className="border-b border-border bg-bg-alt">
-      <div className="mx-auto max-w-6xl px-5 py-24 sm:py-28">
-        <div className="reveal max-w-3xl">
-          <Eyebrow>측정하는 것</Eyebrow>
-          <h2 className="mt-4 text-4xl font-extrabold tracking-[-0.03em] text-text sm:text-5xl">
-            "괜찮네요"와 "살게요"는
-            <br />
-            다릅니다.
-          </h2>
-          <p className="mt-6 text-lg leading-[1.7] text-text-secondary">
-            클릭은 약한 신호입니다. 저희는 가격을 보여주고, 그래도 결제 버튼을
-            누르는지까지 측정합니다.{" "}
-            <span className="text-text-tertiary">
-              (버튼을 누르면 사전등록 안내로 연결됩니다. 아무에게도 돈을 받지
-              않습니다.)
-            </span>
-          </p>
-        </div>
-        {/* 신호 사다리 */}
-        <div className="reveal-stagger mx-auto mt-16 grid max-w-3xl grid-cols-3 items-end gap-4 sm:gap-8">
-          {signals.map(({ Icon, h, sub, barH, strong }) => (
-            <div key={h} className="flex flex-col items-center gap-5">
-              <div
-                className={`w-full rounded-t-lg ${strong ? "bg-accent" : "bg-border-hover"}`}
-                style={{
-                  height: barH,
-                  boxShadow: strong
-                    ? "0 0 32px var(--accent-glow)"
-                    : undefined,
-                }}
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ background: verdict.go }}
               />
-              <div className="flex flex-col items-center gap-1.5 text-center">
-                <Icon
-                  className={`h-5 w-5 ${strong ? "text-accent" : "text-text-tertiary"}`}
-                  strokeWidth={2}
+              GO
+            </span>
+            <span
+              className="border-l pl-3 text-[13px] font-semibold leading-tight"
+              style={{ borderColor: "rgba(6,168,107,.3)", color: "#2f7a5d" }}
+            >
+              합격선 통과
+              <br />
+              다음 단계 권고
+            </span>
+          </div>
+          <div className="mt-5 space-y-3">
+            <div className="flex justify-between text-sm">
+              <span className="font-medium text-text-tertiary">
+                사전 합격선
+              </span>
+              <span className="font-bold text-text">결제 클릭률 3.0%</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="font-medium text-text-tertiary">실측</span>
+              <span className="font-bold" style={{ color: verdict.go }}>
+                3.3%
+              </span>
+            </div>
+            <div className="relative mt-1 h-2 overflow-hidden rounded-full bg-bg-alt">
+              <div
+                className="h-full rounded-full"
+                style={{ width: "84%", background: verdict.go }}
+              />
+              <span className="absolute bottom-0 left-[76%] top-0 w-[2px] bg-text/70" />
+            </div>
+          </div>
+          <p className="mt-5 border-t border-dashed border-border pt-4 text-[13px] leading-relaxed text-text-secondary">
+            수요·단가 모두 기준선 위입니다. 사전등록 31명은 오픈일 첫 고객
+            명단으로 이관됩니다.
+          </p>
+        </div>
+      </div>
+    </Browser>
+  );
+}
+
+/* ─────────────  STATEMENT — 토스식 단독 선언 섹션  ───────────── */
+function Statement() {
+  return (
+    <section className="bg-bg">
+      <div className="mx-auto max-w-4xl px-6 py-28 text-center sm:py-36">
+        <p className="reveal text-2xl font-extrabold leading-[1.6] tracking-[-0.02em] text-text sm:text-[34px]">
+          아이디어가 좋다는 말은
+          <br />
+          어디서든 들을 수 있습니다.
+          <br />
+          <span className="text-text-tertiary">
+            돈을 내는 사람이 있는지는, 다른 문제입니다.
+          </span>
+        </p>
+        <p className="reveal mt-10 text-lg font-medium text-text-secondary sm:text-xl">
+          비즈필터는 그걸 만들기 전에 확인합니다.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────  PRODUCT TOUR — 한 화면, 한 메시지, 한 목업  ───────────── */
+function TourRow({
+  label,
+  title,
+  body,
+  shot,
+  flip = false,
+}: {
+  label: string;
+  title: React.ReactNode;
+  body: React.ReactNode;
+  shot: React.ReactNode;
+  flip?: boolean;
+}) {
+  return (
+    <section className="overflow-hidden bg-bg">
+      <div
+        className={`mx-auto grid max-w-6xl items-center gap-12 px-6 py-20 sm:py-28 lg:grid-cols-2 lg:gap-20`}
+      >
+        <div className={`reveal ${flip ? "lg:order-2" : ""}`}>
+          <Label>{label}</Label>
+          <h2 className="mt-4 text-[32px] font-extrabold leading-[1.22] tracking-[-0.03em] text-text sm:text-[42px]">
+            {title}
+          </h2>
+          <p className="mt-6 max-w-md text-lg leading-[1.75] text-text-secondary">
+            {body}
+          </p>
+        </div>
+        <div className={`reveal ${flip ? "lg:order-1" : ""}`}>{shot}</div>
+      </div>
+    </section>
+  );
+}
+
+function TourFakeDoor() {
+  return (
+    <TourRow
+      label="검증용 사이트"
+      title={
+        <>
+          진짜 서비스처럼 보이는
+          <br />
+          페이지를 띄웁니다
+        </>
+      }
+      body={
+        <>
+          가격까지 노출합니다. 고객이 진짜라고 믿어야 진짜 데이터가 나오기
+          때문입니다. 결제 버튼을 누르면 사전등록 안내로 연결됩니다. 돈은
+          받지 않습니다.
+        </>
+      }
+      shot={
+        <Browser url="salady-club.kr">
+          <div className="bg-surface p-7 text-left sm:p-9">
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2 text-[15px] font-extrabold text-text">
+                <span className="h-5 w-5 rounded-md bg-[#06A86B]" />
+                샐러디클럽
+              </span>
+              <span className="hidden gap-4 text-xs font-semibold text-text-tertiary sm:flex">
+                <span>구성</span>
+                <span>후기</span>
+                <span>가격</span>
+              </span>
+            </div>
+            <p className="mt-8 text-[26px] font-extrabold leading-[1.25] tracking-tight text-text">
+              주 3회 새벽배송,
+              <br />
+              샐러드 정기구독
+            </p>
+            <p className="mt-3 text-sm leading-relaxed text-text-secondary">
+              월·수·금 아침 7시 전 문 앞에. 식단 고민 없이 받아보세요.
+            </p>
+            <div className="mt-6 flex items-baseline gap-2">
+              <p className="text-2xl font-black tracking-tight text-text">
+                ₩29,000
+              </p>
+              <p className="text-sm font-medium text-text-tertiary">/ 주</p>
+            </div>
+            <div className="mt-5 flex gap-2.5">
+              <span className="rounded-full bg-accent px-6 py-3 text-sm font-bold text-white">
+                구독 시작하기
+              </span>
+              <span className="rounded-full border border-border px-6 py-3 text-sm font-bold text-text-secondary">
+                식단 보기
+              </span>
+            </div>
+            <p className="mt-4 text-[11px] text-text-tertiary">
+              ↑ 이 버튼이 결제 의향 측정 지점입니다
+            </p>
+          </div>
+        </Browser>
+      }
+    />
+  );
+}
+
+function TourAds() {
+  return (
+    <TourRow
+      flip
+      label="진짜 광고"
+      title={
+        <>
+          당신을 모르는 사람들에게
+          <br />
+          광고를 보여줍니다
+        </>
+      }
+      body={
+        <>
+          지인의 칭찬은 수요가 아닙니다. 구글 광고로 전혀 모르는 잠재고객을
+          데려옵니다. 문구는 2~3가지로 나눠 집행합니다. 반응이 없으면
+          아이디어가 문제인지 문구가 문제인지까지 가려내기 위해서입니다.
+        </>
+      }
+      shot={
+        <div className="space-y-3">
+          <div className="rounded-[18px] border border-border bg-surface p-5 shadow-[0_8px_24px_-12px_rgba(10,23,38,0.10)]">
+            <div className="flex items-center gap-3 rounded-full border border-border bg-bg px-5 py-3">
+              <svg viewBox="0 0 24 24" className="h-4 w-4 text-text-tertiary">
+                <path
+                  fill="currentColor"
+                  d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"
                 />
-                <p
-                  className={`text-sm font-bold sm:text-base ${strong ? "text-text" : "text-text-secondary"}`}
-                >
-                  {h}
+              </svg>
+              <span className="text-sm font-medium text-text-secondary">
+                직장인 샐러드 배송
+              </span>
+            </div>
+          </div>
+          {[
+            {
+              head: "주 3회 새벽배송 샐러드 | 아침 7시 전 문 앞 도착",
+              hot: true,
+              ctr: "CTR 3.8%",
+            },
+            {
+              head: "식단 고민 끝, 샐러드 정기구독 | 첫 주 구성 보기",
+              hot: false,
+              ctr: "CTR 2.1%",
+            },
+          ].map((ad) => (
+            <div
+              key={ad.head}
+              className={`rounded-[18px] border bg-surface p-5 text-left shadow-[0_8px_24px_-12px_rgba(10,23,38,0.10)] ${
+                ad.hot ? "border-border-hover" : "border-border"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-bold text-text">
+                  스폰서 ·{" "}
+                  <span className="font-medium text-text-tertiary">
+                    salady-club.kr
+                  </span>
                 </p>
-                <p
-                  className={`text-xs ${strong ? "font-semibold text-accent" : "text-text-tertiary"}`}
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                    ad.hot ? "text-accent" : "text-text-tertiary"
+                  }`}
+                  style={{
+                    background: ad.hot ? "var(--bg-light)" : "var(--bg-alt)",
+                  }}
                 >
-                  {sub}
-                </p>
+                  {ad.ctr}
+                </span>
               </div>
+              <p className="mt-2 text-[15px] font-semibold leading-snug text-accent">
+                {ad.head}
+              </p>
+              <p className="mt-1 text-[13px] leading-relaxed text-text-secondary">
+                월·수·금 새벽 도착. 주 ₩29,000. 이번 주 구성을 확인해
+                보세요.
+              </p>
             </div>
           ))}
         </div>
-        <div className="reveal mx-auto mt-16 max-w-3xl border-l-2 border-accent pl-6">
-          <p className="text-xl font-bold leading-snug text-text">
-            한 가지 더 — 수요가 있어도 단가가 안 맞으면, 만들수록 손해입니다.
-          </p>
-          <p className="mt-3 text-lg leading-[1.7] text-text-secondary">
-            한 명 데려오는 데 광고비 4만원, 그 한 명이 3만원 결제. 저희가
-            그렇게 한 번 망해봤습니다. 그래서 클릭 단가와 고객 획득 비용까지
-            재서,{" "}
-            <span className="font-semibold text-text">
-              팔수록 남는 구조인지
-            </span>
-            를 같이 답합니다.
-          </p>
-        </div>
-      </div>
-    </section>
+      }
+    />
   );
 }
 
-/* ─────────────  DELIVERABLES — 산출물 샘플 미리보기  ───────────── */
-const mock = {
-  panel: {
-    background: "var(--bg-alt)",
-    border: "1px solid var(--border)",
-  } as const,
-  label: { color: "var(--text-tertiary)" } as const,
-  value: { color: "var(--text)" } as const,
-  teal: { color: "var(--go)" } as const,
-};
-
-function Deliverables() {
+function TourDashboard() {
   return (
-    <section className="border-b border-border bg-bg">
-      <div className="mx-auto max-w-6xl px-5 py-24 sm:py-28">
-        <div className="reveal">
-          <Eyebrow>받으시는 것</Eyebrow>
-          <h2 className="mt-4 text-4xl font-extrabold tracking-[-0.03em] text-text sm:text-5xl">
-            7일 뒤, 이런 화면을 받습니다.
-          </h2>
-          <p className="mt-4 max-w-2xl text-lg leading-[1.7] text-text-secondary">
-            말이 아니라 화면으로 — 검증 기간 내내 같이 보는 실제 산출물
-            형태입니다.{" "}
-            <span className="text-text-tertiary">(아래는 샘플 예시)</span>
-          </p>
-        </div>
-        <div className="reveal-stagger mt-14 grid gap-6 sm:grid-cols-3">
-          {/* 1 — 라이브 대시보드 */}
-          <div className="rounded-lg border border-border bg-surface p-6 transition hover:-translate-y-0.5 hover:border-border-hover">
-            <p
-              className="text-xs font-bold uppercase tracking-[0.18em] text-accent"
-              style={fontDisplay}
-            >
-              검증 기간 내내
-            </p>
-            <h3 className="mt-2 text-xl font-bold text-text">
-              라이브 대시보드
-            </h3>
-            <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-              노출 · 클릭 · 결제 클릭을 실시간 링크로 같이 봅니다.
-            </p>
-            <div className="mt-5 rounded-lg p-4" style={mock.panel}>
-              {[
-                ["노출", "12,420", false],
-                ["클릭", "398", false],
-                ["결제 클릭", "12", true],
-              ].map(([k, v, hot]) => (
-                <div
-                  key={k as string}
-                  className="flex items-center justify-between py-1.5 text-sm"
-                >
-                  <span style={mock.label}>{k}</span>
+    <TourRow
+      label="라이브 대시보드"
+      title={
+        <>
+          노출부터 결제 클릭까지,
+          <br />
+          실시간으로 같이 봅니다
+        </>
+      }
+      body={
+        <>
+          블랙박스 없습니다. 광고 계정 화면 그대로, 노출·클릭·결제 클릭이
+          쌓이는 걸 같은 링크로 봅니다. 클릭은 약한 신호입니다. 저희는 가격을
+          본 뒤의 결제 클릭까지 측정합니다.
+        </>
+      }
+      shot={
+        <div className="rounded-[18px] border border-border bg-surface p-6 shadow-[0_8px_24px_-8px_rgba(10,23,38,0.08),0_36px_80px_-32px_rgba(16,42,86,0.22)] sm:p-7">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-bold text-text">신호 강도</p>
+            <span className="text-xs font-medium text-text-tertiary">
+              5일차 누적
+            </span>
+          </div>
+          <div className="mt-6 space-y-5">
+            {[
+              { k: "클릭", v: "398", w: "100%", weak: true, sub: "약한 신호" },
+              { k: "문의", v: "27", w: "38%", weak: true, sub: "중간 신호" },
+              {
+                k: "결제 클릭",
+                v: "13",
+                w: "16%",
+                weak: false,
+                sub: "끝까지 보는 것",
+              },
+            ].map((r) => (
+              <div key={r.k}>
+                <div className="flex items-baseline justify-between text-sm">
                   <span
-                    className="font-bold"
-                    style={hot ? mock.teal : mock.value}
+                    className={`font-bold ${r.weak ? "text-text-secondary" : "text-text"}`}
                   >
-                    {v}
+                    {r.k}{" "}
+                    <span className="ml-1 text-xs font-medium text-text-tertiary">
+                      {r.sub}
+                    </span>
+                  </span>
+                  <span
+                    className={`text-lg font-extrabold tracking-tight ${r.weak ? "text-text-secondary" : "text-accent"}`}
+                  >
+                    {r.v}
                   </span>
                 </div>
-              ))}
-              <div className="mt-3 flex h-12 items-end gap-1">
-                {[22, 38, 30, 52, 44, 66, 58, 90].map((h, i) => (
+                <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-bg-alt">
                   <div
-                    key={i}
-                    className="flex-1 rounded-sm"
+                    className="h-full rounded-full"
                     style={{
-                      height: `${h}%`,
-                      background:
-                        i === 7 ? "var(--go)" : "rgba(10,23,38,0.10)",
+                      width: r.w,
+                      background: r.weak
+                        ? "var(--border-hover)"
+                        : "var(--accent)",
                     }}
                   />
-                ))}
+                </div>
               </div>
-            </div>
+            ))}
           </div>
-          {/* 2 — Go/No-Go 리포트 */}
-          <div className="rounded-lg border border-border bg-surface p-6 transition hover:-translate-y-0.5 hover:border-border-hover">
-            <p
-              className="text-xs font-bold uppercase tracking-[0.18em] text-accent"
-              style={fontDisplay}
-            >
-              DAY 7
-            </p>
-            <h3 className="mt-2 text-xl font-bold text-text">
-              Go / No-Go 리포트
-            </h3>
-            <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-              합격선 대비 결과와 다음 액션 권고까지.
-            </p>
-            <div className="mt-5 rounded-lg p-4" style={mock.panel}>
-              <div className="flex items-center justify-between">
-                <span className="text-xs" style={mock.label}>
-                  검증 리포트 · 7일차
-                </span>
-                <span
-                  className="rounded-full px-3 py-1 text-sm font-black"
-                  style={{ background: verdict.goBg, color: verdict.go }}
-                >
-                  GO
-                </span>
-              </div>
-              <div className="mt-3 flex items-center justify-between py-1.5 text-sm">
-                <span style={mock.label}>사전 합격선</span>
-                <span className="font-bold" style={mock.value}>
-                  3.0%
-                </span>
-              </div>
-              <div className="flex items-center justify-between py-1.5 text-sm">
-                <span style={mock.label}>실측 결제 클릭률</span>
-                <span className="font-bold" style={mock.teal}>
-                  4.2%
-                </span>
-              </div>
-              <div className="mt-3 space-y-2">
-                <div className="h-1.5 w-full rounded bg-text/10" />
-                <div className="h-1.5 w-4/5 rounded bg-text/10" />
-                <div className="h-1.5 w-3/5 rounded bg-text/10" />
-              </div>
-            </div>
-          </div>
-          {/* 3 — 가격 2안 테스트 */}
-          <div className="rounded-lg border border-border bg-surface p-6 transition hover:-translate-y-0.5 hover:border-border-hover">
-            <p
-              className="text-xs font-bold uppercase tracking-[0.18em] text-accent"
-              style={fontDisplay}
-            >
-              DEEP
-            </p>
-            <h3 className="mt-2 text-xl font-bold text-text">
-              가격 2안 테스트
-            </h3>
-            <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-              얼마를 받아야 하는지, 감이 아니라 데이터로.
-            </p>
-            <div className="mt-5 grid grid-cols-2 gap-2">
-              <div className="rounded-lg p-3 text-center" style={mock.panel}>
-                <p className="text-xs" style={mock.label}>
-                  A안
-                </p>
-                <p className="mt-1 text-lg font-bold" style={mock.value}>
-                  ₩29,000
-                </p>
-                <p className="mt-1 text-xs" style={mock.label}>
-                  전환 3.1%
-                </p>
-              </div>
-              <div
-                className="rounded-lg p-3 text-center"
-                style={{
-                  background: verdict.goBg,
-                  border: "1.5px solid rgba(6,168,107,.45)",
-                }}
-              >
-                <p className="text-xs font-bold" style={mock.teal}>
-                  B안 ✓
-                </p>
-                <p className="mt-1 text-lg font-bold" style={mock.value}>
-                  ₩49,000
-                </p>
-                <p className="mt-1 text-xs" style={mock.label}>
-                  전환 2.4%
-                </p>
-              </div>
-            </div>
+          <p className="mt-6 rounded-[14px] bg-bg-alt px-5 py-4 text-[13px] leading-relaxed text-text-secondary">
+            수요가 있어도 단가가 안 맞으면 만들수록 손해입니다. 고객 1명을
+            데려오는 비용(CAC)까지 같이 잽니다.
+          </p>
+        </div>
+      }
+    />
+  );
+}
+
+function TourVerdict() {
+  return (
+    <TourRow
+      flip
+      label="판정"
+      title={
+        <>
+          7일 뒤, Go / No-Go
+          <br />
+          판정서를 받습니다
+        </>
+      }
+      body={
+        <>
+          숫자만 던지지 않습니다. 합격선 대비 어디인지, 업계 기준으로 어느
+          수준인지, 다음 액션은 무엇인지. 30분 미팅으로 해석까지
+          전달드립니다.
+        </>
+      }
+      shot={
+        <div className="space-y-3">
+          {[
+            {
+              stamp: "GO",
+              c: verdict.go,
+              bg: verdict.goBg,
+              t: "수요·단가 모두 합격선 위. 만들 근거가 생겼습니다.",
+            },
+            {
+              stamp: "PIVOT",
+              c: verdict.pivot,
+              bg: verdict.pivotBg,
+              t: "수요는 강한데 이 가격은 아닙니다. 방향을 틀면 삽니다.",
+            },
+            {
+              stamp: "NO-GO",
+              c: verdict.nogo,
+              bg: verdict.nogoBg,
+              t: "결제 의향 0건. 멈춘 게 몇 달과 수백만 원을 아꼈습니다.",
+            },
+          ].map((v) => (
             <div
-              className="mt-2 rounded-lg px-3 py-2.5 text-center text-sm font-bold"
-              style={{ background: verdict.goBg, color: verdict.go }}
+              key={v.stamp}
+              className="flex items-center gap-5 rounded-[18px] border border-border bg-surface p-5 shadow-[0_8px_24px_-12px_rgba(10,23,38,0.08)]"
             >
-              B안 채택 시 방문자당 매출 +31%
+              <span
+                className="w-[92px] flex-shrink-0 rounded-full py-2.5 text-center text-sm font-black"
+                style={{ color: v.c, background: v.bg }}
+              >
+                {v.stamp}
+              </span>
+              <p className="text-[14px] leading-relaxed text-text-secondary">
+                {v.t}
+              </p>
             </div>
-          </div>
+          ))}
+          <p className="pt-1 text-xs text-text-tertiary">
+            세 가지 중 하나를, 데이터 근거와 함께 분명하게 드립니다.
+          </p>
+        </div>
+      }
+    />
+  );
+}
+
+/* ─────────────────  PROCESS — 7일, 3단계  ───────────────── */
+function Process() {
+  const steps = [
+    {
+      n: "1",
+      d: "DAY 1–2",
+      h: "리서치와 제작",
+      p: "검색 수요와 경쟁 광고를 조사하고, 검증용 사이트를 만듭니다. 데이터를 보기 전에 합격선부터 함께 정합니다.",
+    },
+    {
+      n: "2",
+      d: "DAY 3–7",
+      h: "광고 집행",
+      p: "구글 광고를 집행합니다. 문구 2~3종을 나눠 돌리고, 대시보드를 실시간으로 공유합니다.",
+    },
+    {
+      n: "3",
+      d: "DAY 7",
+      h: "판정 미팅",
+      p: "Go / No-Go 판정서를 들고 30분 미팅. 숫자의 해석과 다음 액션까지 정리해 드립니다.",
+    },
+  ];
+  return (
+    <section id="process" className="border-y border-border bg-bg-alt">
+      <div className="mx-auto max-w-6xl px-6 py-24 sm:py-32">
+        <div className="reveal mx-auto max-w-2xl text-center">
+          <Label>진행 방식</Label>
+          <h2 className="mt-4 text-[32px] font-extrabold leading-[1.2] tracking-[-0.03em] text-text sm:text-5xl">
+            7일이면 끝납니다
+          </h2>
+          <p className="mt-6 text-lg leading-[1.7] text-text-secondary">
+            도구를 배우실 필요 없습니다. 저희 작업은 48시간이면 끝나고,
+            나머지 닷새는 시장이 답하는 데 걸리는 최소 시간입니다.
+          </p>
+        </div>
+        <div className="reveal-stagger mt-14 grid gap-5 md:grid-cols-3">
+          {steps.map((s) => (
+            <div
+              key={s.n}
+              className="rounded-[20px] border border-border bg-surface p-8"
+            >
+              <div className="flex items-center justify-between">
+                <span className="grid h-10 w-10 place-items-center rounded-full bg-bg-light text-base font-extrabold text-accent">
+                  {s.n}
+                </span>
+                <span className="text-xs font-bold tracking-wide text-text-tertiary">
+                  {s.d}
+                </span>
+              </div>
+              <h3 className="mt-5 text-xl font-extrabold text-text">{s.h}</h3>
+              <p className="mt-3 text-[15px] leading-[1.7] text-text-secondary">
+                {s.p}
+              </p>
+            </div>
+          ))}
+        </div>
+        <div className="reveal mx-auto mt-12 max-w-3xl rounded-[20px] border border-border bg-surface p-8">
+          <p className="text-lg font-bold text-text">"직접 해도 되잖아요?"</p>
+          <p className="mt-3 leading-[1.75] text-text-secondary">
+            됩니다. 도구 배우는 데 2~4주, 시행착오 광고비는 별도입니다. 더 큰
+            문제는 따로 있습니다.{" "}
+            <span className="font-semibold text-text">
+              자기 아이디어 앞에서 객관적인 사람은 없습니다.
+            </span>{" "}
+            카피도 유리하게 쓰고, 애매한 숫자도 유리하게 읽게 됩니다. 그리고
+            저희는 개발을 팔지 않습니다. "만드세요"라고 말할 금전적 이유가
+            없습니다.
+          </p>
         </div>
       </div>
     </section>
@@ -933,17 +756,19 @@ function Cases() {
       idea: "B2B 계약서 검토 자동화 SaaS",
       stamp: "GO",
       color: verdict.go,
+      bg: verdict.goBg,
       rows: [
         ["CTR", "4.1%"],
         ["결제 클릭률", "2.4%"],
         ["CAC", "₩6,800"],
       ],
-      take: "수요·단가 모두 합격선 위. \"만들어도 되는\" 흔치 않은 케이스.",
+      take: "수요·단가 모두 합격선 위. 만들어도 되는 흔치 않은 케이스.",
     },
     {
       idea: "반려동물 맞춤 영양제 정기구독",
       stamp: "NO-GO",
       color: verdict.nogo,
+      bg: verdict.nogoBg,
       rows: [
         ["CTR", "1.4%"],
         ["결제 클릭", "0건"],
@@ -955,165 +780,123 @@ function Cases() {
       idea: "프리랜서 세금 신고 대행",
       stamp: "PIVOT",
       color: verdict.pivot,
+      bg: verdict.pivotBg,
       rows: [
         ["CTR", "3.8%"],
         ["결제 클릭률", "0.6%"],
         ["CAC", "₩21,400"],
       ],
-      take: "수요는 강한데 이 가격·이 오퍼는 아님. 방향 틀면 살아남.",
+      take: "수요는 강한데 이 가격은 아님. 방향을 틀면 산다.",
     },
   ];
   return (
-    <section id="cases" className="border-b border-border bg-bg-alt">
-      <div className="mx-auto max-w-6xl px-5 py-24 sm:py-28">
-        <div className="reveal">
-          <Eyebrow>사례</Eyebrow>
-          <h2 className="mt-4 text-4xl font-extrabold tracking-[-0.03em] text-text sm:text-5xl">
-            말 대신, 숫자.
+    <section id="cases" className="bg-bg">
+      <div className="mx-auto max-w-6xl px-6 py-24 sm:py-32">
+        <div className="reveal mx-auto max-w-2xl text-center">
+          <Label>사례</Label>
+          <h2 className="mt-4 text-[32px] font-extrabold leading-[1.2] tracking-[-0.03em] text-text sm:text-5xl">
+            말 대신, 숫자
           </h2>
-          <p className="mt-4 max-w-2xl text-lg leading-[1.7] text-text-secondary">
-            저희는 저희 약부터 먹었습니다. 직접 겪은 결과를 — 좋은 답도 나쁜
-            답도 그대로 공개합니다.
+          <p className="mt-6 text-lg leading-[1.7] text-text-secondary">
+            저희는 저희 약부터 먹었습니다. 좋은 답도 나쁜 답도 그대로
+            공개합니다.
           </p>
         </div>
 
-        {/* 실사례 — 득템잡이 No-Go */}
-        <div className="reveal mt-14 grid items-center gap-8 rounded-lg border border-border bg-surface p-7 sm:p-9 lg:grid-cols-[1fr_0.82fr]">
+        {/* 득템잡이 — 실사례 */}
+        <div className="reveal mt-14 grid items-center gap-10 rounded-[24px] border border-border bg-surface p-8 shadow-[0_14px_30px_-16px_rgba(10,23,38,0.10)] sm:p-10 lg:grid-cols-[1.2fr_0.8fr]">
           <div>
-            <span className="inline-flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <span
-                className="rounded-full px-3 py-1.5 text-xs font-extrabold"
+                className="rounded-full px-3.5 py-1.5 text-xs font-extrabold"
                 style={{ color: verdict.nogo, background: verdict.nogoBg }}
               >
                 NO-GO
               </span>
-              <span className="rounded-full bg-text px-3 py-1.5 text-xs font-extrabold text-bg">
+              <span className="rounded-full bg-text px-3.5 py-1.5 text-xs font-extrabold text-bg">
                 저희가 직접 받은 결과
               </span>
-            </span>
-            <h3 className="mt-4 text-2xl font-bold tracking-tight text-text">
-              득템잡이 — 중고 시세 인텔리전스 멤버십
+            </div>
+            <h3 className="mt-5 text-2xl font-extrabold tracking-tight text-text sm:text-[28px]">
+              득템잡이 — 중고 시세 인텔리전스
             </h3>
-            <p className="mt-3 leading-[1.7] text-text-secondary">
+            <p className="mt-4 max-w-lg leading-[1.75] text-text-secondary">
               만들기 전에 광고부터 띄웠어야 했는데, 순서를 거꾸로 갔습니다. 다
-              만들고 나서야 광고 제한 · 결제 전환 막힘 · 구조적 포화가 한꺼번에
-              왔습니다.
-            </p>
-            <p className="mt-3 font-semibold leading-[1.7] text-text">
-              시장이 준 답은 분명했고, 그 수업료가 이 서비스를 만들었습니다.
+              만들고 나서야 광고 제한과 결제 막힘이 한꺼번에 왔습니다. 시장이
+              준 답은 분명했고,{" "}
+              <span className="font-semibold text-text">
+                그 수업료가 이 서비스를 만들었습니다.
+              </span>
             </p>
           </div>
-          <div className="overflow-hidden rounded-xl border border-border bg-bg">
-            <div className="flex items-center justify-between border-b border-border px-4 py-3">
-              <span
-                className="text-[11px] font-semibold uppercase tracking-[0.14em] text-text-tertiary"
-                style={fontMono}
-              >
-                검증 판정서
-              </span>
-              <span
-                className="rounded-full bg-bg-alt px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-text-tertiary"
-                style={fontMono}
-              >
-                실제 사례
+          <div className="rounded-[18px] bg-bg-alt p-6">
+            <div className="flex items-center justify-between border-b border-dashed border-border pb-4">
+              <span className="text-[13px] font-semibold text-text-tertiary">
+                검증 판정서 · 실제 사례
               </span>
             </div>
-            <div className="p-5">
-              <div className="flex items-center gap-4">
-                <span
-                  className="inline-flex items-center rounded-full px-4 py-2 text-lg font-black leading-none"
-                  style={{ color: verdict.nogo, background: verdict.nogoBg }}
+            <div className="mt-4 space-y-3.5">
+              {[
+                ["관심 (클릭)", "높음", false],
+                ["결제 전환", "막힘", true],
+                ["광고 승인", "제한", false],
+                ["시장 포화", "레드", true],
+              ].map(([k, v, bad]) => (
+                <div
+                  key={k as string}
+                  className="flex justify-between text-[15px]"
                 >
-                  NO-GO
-                </span>
-                <span className="text-xs font-semibold leading-snug text-text-secondary">
-                  수요는 있었으나
-                  <br />
-                  구조가 안 받쳐줌
-                </span>
-              </div>
-              <div className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-[10px] border border-border bg-border">
-                {[
-                  ["관심 (클릭)", "높음"],
-                  ["결제 전환", "막힘"],
-                  ["광고 승인", "제한"],
-                  ["시장 포화", "레드"],
-                ].map(([k, v]) => (
-                  <div key={k} className="bg-surface px-3.5 py-3">
-                    <div
-                      className="text-[10px] uppercase tracking-[0.06em] text-text-tertiary"
-                      style={fontMono}
-                    >
-                      {k}
-                    </div>
-                    <div
-                      className="mt-1 text-base font-semibold text-text"
-                      style={fontMono}
-                    >
-                      {v}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  <span className="font-medium text-text-tertiary">{k}</span>
+                  <span
+                    className="font-extrabold"
+                    style={{ color: bad ? verdict.nogo : "var(--text)" }}
+                  >
+                    {v}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
         {/* 포맷 예시 3종 */}
-        <div className="reveal-stagger mt-6 grid gap-5 sm:grid-cols-3">
+        <div className="reveal-stagger mt-6 grid gap-5 md:grid-cols-3">
           {samples.map((c) => (
             <div
               key={c.idea}
-              className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-6 transition hover:-translate-y-0.5 hover:border-border-hover"
+              className="flex flex-col gap-4 rounded-[20px] border border-border bg-surface p-7 transition hover:-translate-y-1 hover:shadow-[0_20px_40px_-26px_rgba(10,23,38,0.3)]"
             >
               <div className="flex items-start justify-between gap-3">
-                <p className="text-[15px] font-semibold leading-snug text-text">
+                <p className="text-[16px] font-bold leading-snug text-text">
                   {c.idea}
                 </p>
                 <span
-                  className="inline-flex flex-shrink-0 items-center rounded-full px-3 py-1.5 text-xs font-extrabold leading-none"
-                  style={{
-                    color: c.color,
-                    background:
-                      c.stamp === "GO"
-                        ? verdict.goBg
-                        : c.stamp === "NO-GO"
-                          ? verdict.nogoBg
-                          : verdict.pivotBg,
-                  }}
+                  className="flex-shrink-0 rounded-full px-3 py-1.5 text-xs font-extrabold"
+                  style={{ color: c.color, background: c.bg }}
                 >
                   {c.stamp}
                 </span>
               </div>
-              <div className="flex flex-col gap-2 border-t border-border pt-3.5">
+              <div className="flex gap-6 border-t border-border-light pt-4">
                 {c.rows.map(([k, v]) => (
-                  <div
-                    key={k}
-                    className="flex justify-between text-xs"
-                    style={fontMono}
-                  >
-                    <span className="text-text-tertiary">{k}</span>
-                    <span className="font-semibold text-text">{v}</span>
+                  <div key={k}>
+                    <p className="text-[11px] font-semibold text-text-tertiary">
+                      {k}
+                    </p>
+                    <p className="mt-1 text-[15px] font-extrabold text-text">
+                      {v}
+                    </p>
                   </div>
                 ))}
               </div>
-              <p className="border-t border-dashed border-border-hover pt-3 text-[13px] leading-[1.55] text-text-secondary">
+              <p className="border-t border-dashed border-border pt-3.5 text-[13px] leading-relaxed text-text-secondary">
                 {c.take}
               </p>
-              <span
-                className="self-start rounded-full border border-dashed border-border-hover px-2.5 py-0.5 text-[9.5px] font-semibold uppercase tracking-[0.1em] text-text-tertiary"
-                style={fontMono}
-              >
-                포맷 예시 · 가상 케이스
-              </span>
             </div>
           ))}
         </div>
-        <p
-          className="reveal mt-7 text-xs text-text-tertiary"
-          style={fontMono}
-        >
-          ⚠ 위 3개 카드는 판정서 포맷을 보여드리기 위한 가상 예시입니다. 실제
+        <p className="reveal mt-7 text-center text-[13px] text-text-tertiary">
+          위 3개 카드는 판정서 포맷을 보여드리기 위한 가상 예시입니다. 실제
           검증 케이스가 쌓이는 대로 (고객 동의 하에) 실데이터로 교체됩니다.
         </p>
       </div>
@@ -1160,227 +943,182 @@ function Pricing() {
     },
   ];
   return (
-    <section id="pricing" className="border-b border-border bg-bg">
-      <div className="mx-auto max-w-6xl px-5 py-24 sm:py-28">
-        <div className="reveal">
-          <Eyebrow>가격</Eyebrow>
-          <h2 className="mt-4 text-4xl font-extrabold tracking-[-0.03em] text-text sm:text-5xl">
+    <section id="pricing" className="border-y border-border bg-bg-alt">
+      <div className="mx-auto max-w-6xl px-6 py-24 sm:py-32">
+        <div className="reveal mx-auto max-w-2xl text-center">
+          <Label>가격</Label>
+          <h2 className="mt-4 text-[32px] font-extrabold leading-[1.2] tracking-[-0.03em] text-text sm:text-5xl">
             검증 안 한 값이,
-            <br />늘 더 비쌌습니다.
+            <br />늘 더 비쌌습니다
           </h2>
-          <p className="mt-6 max-w-2xl text-lg leading-[1.7] text-text-secondary">
-            사업이 죽는 방식은 두 가지입니다.{" "}
-            <span className="font-semibold text-text">
-              아무도 원하지 않거나 — 원하는데, 돈이 안 되거나.
-            </span>{" "}
-            두 플랜이 각각 그 질문에 답합니다.
+          <p className="mt-6 text-lg leading-[1.7] text-text-secondary">
+            사업이 죽는 방식은 두 가지입니다. 아무도 원하지 않거나, 원하는데
+            돈이 안 되거나. 두 플랜이 각각 그 질문에 답합니다.
           </p>
         </div>
-        {/* 보험료 프레이밍 — 비교 스트립 */}
-        <div className="reveal mt-12 grid overflow-hidden rounded-lg border border-border sm:grid-cols-[1fr_auto_1fr]">
-          <div className="bg-surface p-7">
-            <p
-              className="text-xs font-bold uppercase tracking-[0.18em] text-text-tertiary"
-              style={fontDisplay}
-            >
-              '일단 만들기'의 평균 비용
-            </p>
-            <p className="mt-3 text-2xl font-bold text-text">
-              3~6개월 + 수백만 원
-            </p>
-            <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-              외주·광고비, 그리고 그 기간 전부의 기회비용
-            </p>
-          </div>
-          <div className="flex items-center justify-center border-y border-border bg-bg px-6 py-3 sm:border-x sm:border-y-0">
-            <span
-              className="text-sm font-bold uppercase tracking-widest text-text-tertiary"
-              style={fontDisplay}
-            >
-              vs
-            </span>
-          </div>
-          <div className="bg-accent/[0.05] p-7">
-            <p
-              className="text-xs font-bold uppercase tracking-[0.18em] text-accent"
-              style={fontDisplay}
-            >
-              Quick 검증
-            </p>
-            <p className="mt-3 text-2xl font-bold text-text">7일, 50만원</p>
-            <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-              50만원은 검증 비용이 아니라,{" "}
-              <span className="font-semibold text-text">
-                6개월짜리 오답에 대한 보험료
-              </span>
-              입니다.
-            </p>
-          </div>
-        </div>
+
         {/* 비용 비교 */}
-        <div className="reveal mt-12 grid items-stretch gap-4 sm:grid-cols-[1fr_auto_1fr]">
+        <div className="reveal mx-auto mt-14 grid max-w-4xl items-stretch gap-4 sm:grid-cols-[1fr_auto_1fr]">
           <div
-            className="rounded-lg p-7"
-            style={{
-              background: verdict.nogoBg,
-              border: "1px solid #F4C9C5",
-            }}
+            className="rounded-[20px] p-7"
+            style={{ background: verdict.nogoBg }}
           >
-            <p
-              className="text-sm font-bold"
-              style={{ color: "#b5413a" }}
-            >
+            <p className="text-sm font-bold" style={{ color: "#b5413a" }}>
               '일단 만들기'의 평균 비용
             </p>
-            <p className="mt-2 text-2xl font-extrabold tracking-tight text-text sm:text-3xl">
+            <p className="mt-2 text-2xl font-extrabold tracking-tight text-text">
               3~6개월 + 수백만 원
             </p>
-            <p className="mt-2 text-[15px] leading-relaxed text-text-secondary">
+            <p className="mt-2 text-[14px] leading-relaxed text-text-secondary">
               외주비, 광고비, 그리고 그 기간 전부의 기회비용.
             </p>
           </div>
           <p className="self-center text-center text-sm font-extrabold text-text-tertiary">
             VS
           </p>
-          <div className="rounded-lg border border-border-hover bg-bg-light p-7">
+          <div className="rounded-[20px] bg-bg-light p-7">
             <p className="text-sm font-bold text-accent">Quick 검증</p>
-            <p className="mt-2 text-2xl font-extrabold tracking-tight text-text sm:text-3xl">
+            <p className="mt-2 text-2xl font-extrabold tracking-tight text-text">
               7일 · 50만원
             </p>
-            <p className="mt-2 text-[15px] leading-relaxed text-text-secondary">
+            <p className="mt-2 text-[14px] leading-relaxed text-text-secondary">
               검증 비용이 아니라, 6개월짜리 오답에 대한 보험료입니다.
             </p>
           </div>
         </div>
+
         {/* 플랜 카드 */}
-        <div className="reveal-stagger mt-8 grid gap-5 sm:grid-cols-2">
+        <div className="reveal-stagger mt-8 grid gap-6 lg:grid-cols-2">
           {tiers.map((t) => (
             <div
               key={t.tag}
-              className={`relative rounded-lg border p-7 transition hover:-translate-y-0.5 ${
+              className={`relative flex flex-col rounded-[24px] bg-surface p-9 ${
                 t.highlight
-                  ? "border-accent/40 bg-gradient-to-br from-accent/[0.08] to-transparent"
-                  : "border-border bg-surface hover:border-border-hover"
+                  ? "border-2 border-accent shadow-[0_30px_60px_-28px_rgba(16,42,86,0.32)]"
+                  : "border border-border shadow-[0_2px_8px_rgba(10,23,38,0.04)]"
               }`}
-              style={
-                t.highlight
-                  ? {
-                      boxShadow:
-                        "0 0 0 1px var(--accent-glow) inset, 0 16px 40px rgba(var(--accent-rgb), 0.10)",
-                    }
-                  : undefined
-              }
             >
               {t.highlight && (
-                <span
-                  className="absolute -top-3 left-7 rounded-full bg-accent px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-white"
-                  style={fontDisplay}
-                >
+                <span className="absolute -top-3.5 left-9 rounded-full bg-accent px-4 py-1.5 text-xs font-extrabold text-white shadow-[0_10px_24px_-8px_var(--accent-glow)]">
                   추천 시작점
                 </span>
               )}
-              <p
-                className="text-xs font-bold uppercase tracking-[0.18em] text-text-tertiary"
-                style={fontDisplay}
-              >
+              <p className="text-sm font-extrabold tracking-wide text-accent">
                 {t.tag}
               </p>
               <div className="mt-3 flex items-baseline gap-2">
-                <p
-                  className="text-4xl font-bold tracking-[-0.03em] text-text sm:text-5xl"
-                  style={fontDisplay}
-                >
+                <p className="text-[42px] font-extrabold tracking-[-0.03em] text-text">
                   {t.price}
                 </p>
-                <p className="text-sm font-medium text-text-tertiary">
+                <p className="text-[15px] font-semibold text-text-tertiary">
                   / {t.period}
                 </p>
               </div>
-              <p className="mt-4 text-[15px] font-semibold leading-snug text-text">
+              <p className="mt-3 text-[15px] font-semibold leading-snug text-text-secondary">
                 {t.desc}
               </p>
-              <ul className="mt-5 space-y-2.5 text-sm leading-relaxed text-text-secondary">
-                {t.lines.map((l) => (
-                  <li key={l} className="flex items-start gap-2">
-                    <Check
-                      className="mt-0.5 h-4 w-4 flex-shrink-0 text-accent"
-                      strokeWidth={2.5}
-                    />
-                    <span>{l}</span>
+              <ul className="mt-7 flex-1 space-y-3.5 text-[14px] leading-[1.55] text-text-secondary">
+                {t.lines.map((l, i) => (
+                  <li key={l} className="grid grid-cols-[auto_1fr] gap-3">
+                    <span
+                      className="mt-0.5 grid h-5 w-5 place-items-center rounded-full"
+                      style={{
+                        background:
+                          i === t.lines.length - 1
+                            ? verdict.goBg
+                            : "var(--bg-light)",
+                      }}
+                    >
+                      <Check
+                        className="h-3 w-3"
+                        strokeWidth={3.4}
+                        style={{
+                          color:
+                            i === t.lines.length - 1
+                              ? verdict.go
+                              : "var(--accent)",
+                        }}
+                      />
+                    </span>
+                    <span
+                      className={
+                        i === t.lines.length - 1
+                          ? "font-bold text-text"
+                          : undefined
+                      }
+                    >
+                      {l}
+                    </span>
                   </li>
                 ))}
               </ul>
               <a
                 href="#cta"
-                className={`mt-7 block rounded-full px-5 py-3.5 text-center text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                className={`mt-8 block rounded-full py-4 text-center text-[15px] font-bold transition ${
                   t.highlight
-                    ? "bg-accent text-white hover:bg-accent-hover hover:shadow-[0_12px_32px_var(--accent-glow)]"
-                    : "border border-border-hover bg-bg text-text hover:border-accent hover:text-accent"
+                    ? "bg-accent text-white hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-[0_14px_30px_-8px_var(--accent-glow)]"
+                    : "bg-text text-bg hover:-translate-y-0.5"
                 }`}
               >
-                {t.cta}
+                {t.cta} →
               </a>
             </div>
           ))}
         </div>
-        <p className="reveal mt-8 text-sm leading-relaxed text-text-tertiary">
-          ※ 매출은 보장 못 합니다. 그건 누구도 못 합니다. 저희가 보장하는 건
-          하나입니다.{" "}
-          <span className="font-semibold text-text-secondary">
-            광고를 실제로 돌리고, 그 데이터로 분명한 판정을 드리는 것.
-          </span>{" "}
-          못 드리면 전액 환불입니다. 광고비는 실제 집행 비용이라 제외됩니다.
+        <p className="reveal mx-auto mt-9 max-w-3xl text-center text-[13px] leading-relaxed text-text-tertiary">
+          매출은 보장 못 합니다. 그건 누구도 못 합니다. 저희가 보장하는 건
+          하나입니다. 광고를 실제로 돌리고, 그 데이터로 분명한 판정을 드리는
+          것. 못 드리면 전액 환불입니다. 광고비는 실제 집행 비용이라
+          제외됩니다.
         </p>
       </div>
     </section>
   );
 }
 
-/* ─────────────────────────  NO-GO 패키지  ───────────────────────── */
-function NoGo() {
+/* ─────────────────  GUARANTEE — No-Go가 나오면  ───────────────── */
+function Guarantee() {
   const items = [
     "데이터 근거가 첨부된 No-Go 판정서",
     "제작한 랜딩페이지 · 도메인 · 디자인, 전부 가져가세요",
-    "왜 안 됐는지 분석 — 수요 자체인지, 타겟인지, 메시지인지, 가격인지",
+    "왜 안 됐는지 분석 — 수요·타겟·메시지·가격 중 무엇인지",
     "피벗 방향 제안 + 재검증 시 할인",
     "가장 큰 것: 들어갈 뻔했던 몇 달과 수백만 원이 그대로 남습니다",
   ];
   return (
-    <section className="border-b border-border bg-bg-alt">
-      <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-24 sm:py-28 lg:grid-cols-[0.8fr_1.2fr]">
-        {/* 좌 — 환불 배지 */}
+    <section className="bg-bg">
+      <div className="mx-auto grid max-w-6xl items-center gap-14 px-6 py-24 sm:py-32 lg:grid-cols-[0.75fr_1.25fr]">
         <div className="reveal flex justify-center">
           <div
-            className="grid aspect-square w-[210px] place-items-center rounded-full border-2 border-dashed border-border-hover text-center shadow-[0_14px_30px_-16px_rgba(10,23,38,0.16)] sm:w-[230px]"
+            className="grid aspect-square w-[220px] place-items-center rounded-full border-2 border-dashed border-border-hover text-center"
             style={{
               background:
                 "radial-gradient(circle at 50% 35%, #fff, var(--bg-light))",
             }}
           >
             <div>
-              <p className="text-5xl font-black tracking-tight text-accent sm:text-6xl">
+              <p className="text-[56px] font-black leading-none tracking-tight text-accent">
                 100%
               </p>
-              <p className="mt-1.5 text-[15px] font-extrabold text-accent-hover">
+              <p className="mt-2 text-[15px] font-extrabold text-accent-hover">
                 환불 보장
               </p>
             </div>
           </div>
         </div>
-        {/* 우 — 내용 */}
         <div className="reveal">
-          <Eyebrow>No-Go가 나오면</Eyebrow>
-          <h2 className="mt-4 text-4xl font-extrabold tracking-[-0.03em] text-text sm:text-5xl">
+          <Label>No-Go가 나오면</Label>
+          <h2 className="mt-4 text-[32px] font-extrabold leading-[1.2] tracking-[-0.03em] text-text sm:text-5xl">
             "하지 마세요"라는
             <br />
             결과가 나오면요?
           </h2>
-          <p className="mt-6 text-lg leading-[1.7] text-text-secondary">
+          <p className="mt-6 max-w-xl text-lg leading-[1.75] text-text-secondary">
             기분 좋은 소식은 아니지만, 손해는 아닙니다. 저희가 보장하는 건
             결과의 방향이 아니라{" "}
-            <span className="font-bold text-text">답</span>입니다. 광고를
-            집행하고 분명한 판정을 드리는 것. 못 드리면 전액 환불합니다.
-            No-Go는 환불 사유가 아닙니다. 그게 당신이 산 답이기 때문입니다.
+            <span className="font-bold text-text">답</span>입니다. 분명한
+            판정을 못 드리면 전액 환불합니다. No-Go는 환불 사유가 아닙니다.
+            그게 당신이 산 답이기 때문입니다.
           </p>
           <ul className="mt-8 space-y-3.5">
             {items.map((it) => (
@@ -1410,16 +1148,16 @@ function NoGo() {
   );
 }
 
-/* ─────────────────────────  FOUNDER STORY  ───────────────────────── */
-function FounderStory() {
+/* ─────────────────────────  STORY  ───────────────────────── */
+function Story() {
   const steps = [
     {
       n: "01",
       win: false,
       body: (
         <>
-          하나는 <b className="font-bold text-text">고객이 없었습니다.</b>{" "}
-          AI는 좋다고 했고, 저도 좋다고 했습니다.
+          하나는 <b className="font-bold text-text">고객이 없었습니다.</b> AI는
+          좋다고 했고, 저도 좋다고 했습니다.
         </>
       ),
     },
@@ -1429,9 +1167,7 @@ function FounderStory() {
       body: (
         <>
           하나는 수요는 있었는데,{" "}
-          <b className="font-bold text-text">
-            객단가가 안 맞아 만들수록 손해
-          </b>
+          <b className="font-bold text-text">객단가가 안 맞아 만들수록 손해</b>
           였습니다.
         </>
       ),
@@ -1451,16 +1187,16 @@ function FounderStory() {
     },
   ];
   return (
-    <section id="story" className="border-b border-border bg-bg">
-      <div className="mx-auto max-w-3xl px-5 py-24 sm:py-28">
-        <div className="reveal">
-          <Eyebrow>왜 이걸 만들었나</Eyebrow>
-          <h2 className="mt-4 text-4xl font-extrabold tracking-[-0.03em] text-text sm:text-5xl">
+    <section id="story" className="border-y border-border bg-bg-alt">
+      <div className="mx-auto max-w-3xl px-6 py-24 sm:py-32">
+        <div className="reveal text-center">
+          <Label>왜 이걸 만들었나</Label>
+          <h2 className="mt-4 text-[32px] font-extrabold leading-[1.2] tracking-[-0.03em] text-text sm:text-5xl">
             두 번 망해보고
             <br />
-            만든 서비스입니다.
+            만든 서비스입니다
           </h2>
-          <p className="mt-6 text-lg leading-[1.7] text-text-secondary">
+          <p className="mx-auto mt-6 max-w-xl text-lg leading-[1.7] text-text-secondary">
             AI에게 시장조사를 맡기고 "좋다"는 답을 믿고 시작한 사업이 두 개
             있었습니다. 이 서비스는 그때 거꾸로 갔던 '순서'를 시스템으로 만든
             것입니다.
@@ -1470,17 +1206,15 @@ function FounderStory() {
           {steps.map((s) => (
             <div
               key={s.n}
-              className={`grid grid-cols-[auto_1fr] items-start gap-5 rounded-lg border p-6 ${
+              className={`grid grid-cols-[auto_1fr] items-start gap-5 rounded-[20px] p-7 ${
                 s.win
-                  ? "border-border-hover bg-bg-light"
-                  : "border-border bg-surface"
+                  ? "bg-bg-light"
+                  : "border border-border bg-surface"
               }`}
             >
               <span
-                className={`grid h-11 w-11 place-items-center rounded-[13px] text-base font-extrabold ${
-                  s.win
-                    ? "bg-accent text-white"
-                    : "bg-bg-alt text-text-tertiary"
+                className={`grid h-11 w-11 place-items-center rounded-[14px] text-base font-extrabold ${
+                  s.win ? "bg-accent text-white" : "bg-bg-alt text-text-tertiary"
                 }`}
               >
                 {s.n}
@@ -1522,41 +1256,40 @@ function Team() {
     },
   ];
   return (
-    <section id="team" className="border-b border-border bg-bg-alt">
-      <div className="mx-auto max-w-6xl px-5 py-24 sm:py-28">
-        <div className="reveal">
-          <Eyebrow>팀</Eyebrow>
-          <h2 className="mt-4 text-4xl font-extrabold tracking-[-0.03em] text-text sm:text-5xl">
-            얼굴 걸고 합니다.
+    <section id="team" className="bg-bg">
+      <div className="mx-auto max-w-6xl px-6 py-24 sm:py-32">
+        <div className="reveal mx-auto max-w-2xl text-center">
+          <Label>팀</Label>
+          <h2 className="mt-4 text-[32px] font-extrabold leading-[1.2] tracking-[-0.03em] text-text sm:text-5xl">
+            얼굴 걸고 합니다
           </h2>
-          <p className="mt-4 max-w-2xl text-lg leading-[1.7] text-text-secondary">
+          <p className="mt-6 text-lg leading-[1.7] text-text-secondary">
             실명으로, 광고 계정과 데이터를 전부 공개하고 일합니다.
           </p>
         </div>
-        <div className="reveal-stagger mt-14 grid gap-6 sm:grid-cols-3">
+        <div className="reveal-stagger mx-auto mt-14 grid max-w-4xl gap-6 sm:grid-cols-3">
           {members.map((m) => (
             <div
               key={m.name}
-              className="rounded-lg border border-border bg-surface p-8 text-center transition hover:-translate-y-0.5 hover:border-border-hover"
+              className="rounded-[20px] border border-border bg-surface p-8 text-center"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={m.photo}
                 alt={`${m.name} — ${m.title}`}
-                className="mx-auto h-32 w-32 rounded-full border-2 border-border object-cover object-top"
+                className="mx-auto h-28 w-28 rounded-full object-cover object-top"
               />
-              <p className="mt-5 text-xl font-bold text-text">{m.name}</p>
-              <p
-                className="mt-1 text-xs font-bold uppercase tracking-wide text-accent"
-                style={fontDisplay}
-              >
+              <p className="mt-5 text-xl font-extrabold text-text">{m.name}</p>
+              <p className="mt-1 text-[13px] font-bold text-accent">
                 {m.title}
               </p>
               <p className="mt-3 text-sm leading-relaxed text-text-secondary">
                 {m.role}
               </p>
               {m.edu && (
-                <p className="mt-2 text-xs text-text-tertiary">{m.edu}</p>
+                <p className="mt-3 border-t border-border-light pt-3 text-xs text-text-tertiary">
+                  {m.edu}
+                </p>
               )}
             </div>
           ))}
@@ -1571,27 +1304,27 @@ function FAQ() {
   const qa = [
     {
       q: "제가 직접 하면 되지 않나요?",
-      a: "가능합니다. 다만 도구를 배우는 데 2~4주, 시행착오 광고비가 별도로 듭니다. 그리고 더 큰 문제는 객관성입니다. 자기 아이디어를 검증하는 사람은 카피를 유리하게 쓰고, 숫자를 유리하게 읽습니다. AI도 좋다고 하고, 본인도 좋다고 합니다 — 객관적인 건 모르는 사람의 클릭뿐입니다.",
+      a: "가능합니다. 다만 도구를 배우는 데 2~4주, 시행착오 광고비가 별도로 듭니다. 그리고 더 큰 문제는 객관성입니다. 자기 아이디어를 검증하는 사람은 카피를 유리하게 쓰고, 숫자를 유리하게 읽습니다. 객관적인 건 모르는 사람의 클릭뿐입니다.",
     },
     {
       q: "Claude Code 같은 걸로 MVP를 직접 만들어서 반응 보면 되지 않나요?",
-      a: "만들 수 있다는 것과 팔리는지 아는 것은 별개 문제입니다. MVP로 검증하는 경로는 — 빌드 1~2주, 광고 세팅 시행착오, 그리고 내가 만든 것에 대한 애착 때문에 숫자를 유리하게 읽게 됩니다. 저희 창업자도 직접 만들 수 있어서 그냥 만들었고, 두 번 그렇게 망했습니다. 만들기 전에 7일 — Go가 나오면 검증에 쓴 랜딩과 데이터를 그대로 가져가서 직접 만드시면 됩니다. 그게 더 빠릅니다.",
+      a: "만들 수 있다는 것과 팔리는지 아는 것은 별개 문제입니다. MVP 경로는 빌드 1~2주에 광고 시행착오가 더해지고, 내가 만든 것에 대한 애착 때문에 숫자를 유리하게 읽게 됩니다. 만들기 전 7일이 더 빠릅니다. Go가 나오면 검증에 쓴 랜딩과 데이터를 그대로 가져가서 만드시면 됩니다.",
     },
     {
       q: "7일, 표본이 작은데 믿을 수 있나요?",
-      a: "7일 검증이 주는 건 '확신'이 아니라 '신호'입니다. 특히 부정 신호는 강력합니다 — 광고비를 썼는데 아무도 반응하지 않았다면, 그건 통계 문제가 아니라 현실입니다. 애매한 회색지대가 나오면 그때 Deep으로 정밀 측정을 권합니다. 처음부터 Deep을 권하지 않습니다.",
+      a: "7일 검증이 주는 건 '확신'이 아니라 '신호'입니다. 특히 부정 신호는 강력합니다. 광고비를 썼는데 아무도 반응하지 않았다면 그건 통계 문제가 아니라 현실입니다. 애매한 회색지대가 나오면 그때 Deep으로 정밀 측정을 권합니다.",
     },
     {
       q: "더 빨리는 안 되나요?",
-      a: "저희 작업 자체는 48시간이면 끝납니다 — 페이지 제작, 광고 세팅까지. 나머지 닷새가 줄일 수 없는 시간입니다. 요일마다 시장 반응이 달라서, 최소 한 주는 노출돼야 노이즈가 아니라 신호가 됩니다. 더 짧은 검증도 가능은 합니다. 정확하지 않을 뿐입니다.",
+      a: "저희 작업 자체는 48시간이면 끝납니다. 나머지 닷새가 줄일 수 없는 시간입니다. 요일마다 시장 반응이 달라서, 최소 한 주는 노출돼야 노이즈가 아니라 신호가 됩니다.",
     },
     {
       q: "광고비는 별도인가요?",
-      a: "Quick 5만원, Deep 20만원이 포함돼 있습니다. 광고비는 실제 집행되는 비용이라 환불 대상에서는 제외됩니다.",
+      a: "Quick 5만원, Deep 20만원이 포함돼 있습니다. 광고비는 실제 집행되는 비용이라 환불 대상에서는 제외되며, 집행 영수증을 공유합니다.",
     },
     {
       q: "환불 기준이 정확히 뭔가요?",
-      a: "저희가 보장하는 건 결과의 방향이 아니라 '분명한 판정'입니다. 진짜 광고를 집행하고 그 데이터에 근거한 Go/No-Go 판정을 드리지 못하면 — 광고를 못 돌렸거나 판단할 데이터를 못 만들었으면 — 검증비 전액을 환불합니다. No-Go 판정 자체는 환불 사유가 아닙니다. 그게 검증이 납품하는 답이기 때문입니다. 광고비는 실제 집행 비용이라 환불에서 제외되며, 집행 영수증을 공유합니다.",
+      a: "저희가 보장하는 건 결과의 방향이 아니라 '분명한 판정'입니다. 광고를 집행하고 그 데이터에 근거한 Go/No-Go 판정을 드리지 못하면 검증비 전액을 환불합니다. No-Go 판정 자체는 환불 사유가 아닙니다. 그게 검증이 납품하는 답이기 때문입니다.",
     },
     {
       q: "제 아이디어를 가져가면 어떡하죠?",
@@ -1599,15 +1332,15 @@ function FAQ() {
     },
     {
       q: "제 잠재고객을 속이는 건 아닌가요?",
-      a: "결제 버튼을 누른 분에게는 '출시 준비 중인 서비스이며, 오픈하면 가장 먼저 안내드린다'는 사전등록 화면이 나옵니다. 돈은 받지 않습니다. 그리고 그분들은 출시하는 날, 당신의 첫 고객 명단이 됩니다.",
+      a: "결제 버튼을 누른 분에게는 '출시 준비 중인 서비스이며, 오픈하면 가장 먼저 안내드린다'는 사전등록 화면이 나옵니다. 돈은 받지 않습니다. 그분들은 출시하는 날 당신의 첫 고객 명단이 됩니다.",
     },
     {
       q: "어떤 아이디어든 가능한가요?",
-      a: "업종 제한 없습니다 — 온라인 서비스, 앱, 커머스, 교육, 오프라인 매장까지. 다만 오프라인·지역 기반 사업은 검증 설계가 달라집니다(지역 타겟 광고 + 사전 예약 측정). 신청해주시면 가능한 설계인지 24시간 안에 먼저 답드립니다.",
+      a: "업종 제한 없습니다. 온라인 서비스, 앱, 커머스, 교육, 오프라인 매장까지. 다만 오프라인·지역 기반 사업은 검증 설계가 달라집니다(지역 타겟 광고 + 사전 예약 측정). 신청해주시면 가능한 설계인지 24시간 안에 먼저 답드립니다.",
     },
     {
       q: "검증용 사이트라면, 웹사이트 제작도 해주시는 건가요?",
-      a: "구분이 필요합니다. 검증용 사이트는 광고 반응을 측정하기 위한 실서비스형 페이지이며, 회원가입·결제 같은 기능 개발이 들어가는 정식 서비스 개발과는 다릅니다. 종료 후 도메인·디자인을 전부 이관해드리므로 검증을 통과하면 그 위에 그대로 키워가실 수 있고, 기능 개발이 필요하시면 개발 파트너를 연결해드립니다.",
+      a: "구분이 필요합니다. 검증용 사이트는 광고 반응을 측정하기 위한 실서비스형 페이지이며, 회원가입·결제 같은 기능 개발이 들어가는 정식 개발과는 다릅니다. 종료 후 전부 이관해드리므로 그 위에 키워가실 수 있고, 기능 개발이 필요하시면 개발 파트너를 연결해드립니다.",
     },
     {
       q: "Go가 나오면 만들어주기도 하나요?",
@@ -1619,24 +1352,26 @@ function FAQ() {
     },
   ];
   return (
-    <section id="faq" className="border-b border-border bg-bg">
-      <div className="mx-auto max-w-3xl px-5 py-24">
-        <div className="reveal">
-          <Eyebrow>FAQ</Eyebrow>
-          <h2 className="mt-4 text-4xl font-extrabold tracking-[-0.03em] text-text sm:text-5xl">
+    <section id="faq" className="border-t border-border bg-bg">
+      <div className="mx-auto max-w-3xl px-6 py-24 sm:py-32">
+        <div className="reveal text-center">
+          <Label>FAQ</Label>
+          <h2 className="mt-4 text-[32px] font-extrabold tracking-[-0.03em] text-text sm:text-5xl">
             자주 묻는 질문
           </h2>
         </div>
-        <div className="reveal mt-10 divide-y divide-border border-y border-border">
+        <div className="reveal mt-12 border-t border-border">
           {qa.map((it) => (
-            <details key={it.q} className="group py-5">
-              <summary className="flex cursor-pointer items-center justify-between gap-4 text-lg font-bold text-text">
+            <details key={it.q} className="group border-b border-border">
+              <summary className="flex cursor-pointer items-center justify-between gap-5 py-6 text-[17px] font-bold text-text [&::-webkit-details-marker]:hidden">
                 <span>{it.q}</span>
-                <span className="text-text-tertiary transition group-open:rotate-45 group-open:text-accent">
+                <span className="grid h-7 w-7 flex-shrink-0 place-items-center rounded-full bg-bg-alt text-text-secondary transition group-open:rotate-45 group-open:bg-accent group-open:text-white">
                   +
                 </span>
               </summary>
-              <p className="mt-4 leading-[1.7] text-text-secondary">{it.a}</p>
+              <p className="max-w-2xl pb-7 leading-[1.75] text-text-secondary">
+                {it.a}
+              </p>
             </details>
           ))}
         </div>
@@ -1648,50 +1383,37 @@ function FAQ() {
 /* ─────────────────────────  FINAL CTA  ───────────────────────── */
 function FinalCTA() {
   return (
-    <section
-      id="cta"
-      className="section-dark relative overflow-hidden border-b"
-    >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -bottom-16 -right-10 select-none text-[11rem] font-black leading-none tracking-tighter"
-        style={{
-          fontFamily: "var(--font-display)",
-          color: "rgba(var(--text-rgb), 0.05)",
-        }}
-      >
-        BIZFILTER
-      </div>
-      <div
-        aria-hidden
-        className="pointer-events-none absolute right-0 top-0 h-full w-2/3"
-        style={{
-          background:
-            "radial-gradient(circle at 80% 30%, rgba(var(--accent-rgb), 0.12), transparent 60%)",
-        }}
-      />
-      <div className="relative mx-auto grid max-w-6xl gap-12 px-5 py-24 sm:grid-cols-5 sm:py-28">
-        <div className="reveal sm:col-span-2">
-          <Eyebrow>지금 시작</Eyebrow>
-          <h2 className="mt-4 text-4xl font-extrabold leading-[1.15] tracking-[-0.03em] text-text sm:text-5xl">
-            어차피 알게 될 답,
-            <br />
-            <span className="text-accent" style={glowAccent}>
-              7일 만에
-            </span>{" "}
-            아세요.
-          </h2>
-          <p className="mt-6 text-lg leading-[1.7] text-text-secondary">
-            질문 다섯 개, 탭 다섯 번. 제출하면{" "}
-            <span className="font-semibold text-text">
-              검증 적합도를 그 자리에서 바로
-            </span>{" "}
-            보여드립니다. 24시간 안에 직접 확인 후 회신드립니다. 신청은
-            결제가 아닙니다.
-          </p>
-        </div>
-        <div className="reveal sm:col-span-3">
-          <LeadForm />
+    <section id="cta" className="bg-bg">
+      <div className="mx-auto max-w-6xl px-6 py-20 sm:py-24">
+        <div className="section-dark relative overflow-hidden rounded-[28px] px-7 py-14 sm:px-14 sm:py-16">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(50% 80% at 85% 10%, rgba(43,107,244,.35), transparent 60%)",
+            }}
+          />
+          <div className="relative grid items-center gap-12 lg:grid-cols-2">
+            <div className="reveal">
+              <p className="text-[15px] font-bold" style={{ color: "#8FB6FF" }}>
+                지금 시작
+              </p>
+              <h2 className="mt-4 text-[32px] font-extrabold leading-[1.2] tracking-[-0.03em] text-text sm:text-[40px]">
+                어차피 알게 될 답,
+                <br />
+                7일 만에 아세요
+              </h2>
+              <p className="mt-6 max-w-md text-lg leading-[1.7] text-text-secondary">
+                질문 다섯 개, 탭 다섯 번. 제출하면 검증 적합도를 그 자리에서
+                바로 보여드립니다. 24시간 안에 직접 확인 후 회신드립니다.
+                신청은 결제가 아닙니다.
+              </p>
+            </div>
+            <div className="reveal">
+              <LeadForm />
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -1701,47 +1423,37 @@ function FinalCTA() {
 /* ─────────────────────────  FOOTER  ───────────────────────── */
 function Footer() {
   return (
-    <footer className="section-dark text-text-tertiary">
-      <div className="mx-auto max-w-6xl px-5 py-16">
+    <footer className="border-t border-border bg-bg-alt text-text-tertiary">
+      <div className="mx-auto max-w-6xl px-6 py-16">
         <div className="grid gap-10 sm:grid-cols-12">
           <div className="sm:col-span-5">
             <a
               href="#"
-              className="flex items-center gap-2 text-lg font-bold tracking-tight text-text"
+              className="flex items-center gap-2.5 text-lg font-extrabold tracking-tight text-text"
             >
-              <span
-                className="relative flex h-7 w-7 items-center justify-center rounded bg-text text-sm font-black text-bg"
-                style={fontDisplay}
-              >
-                B
-                <span
-                  className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-accent"
-                  style={dotAccent}
-                />
-              </span>
-              <span>비즈필터</span>
+              <BrandMark />
+              비즈필터
             </a>
             <p className="mt-5 max-w-sm text-sm leading-relaxed">
               사업 아이디어 검증 전문.
               <br />
-              만들기 전에 —{" "}
-              <span className="text-text">진짜 시장의 행동 데이터</span>로
-              답합니다.
+              만들기 전에,{" "}
+              <span className="text-text-secondary">
+                진짜 시장의 행동 데이터
+              </span>
+              로 답합니다.
             </p>
-            <p className="mt-6 text-xs text-text-tertiary">
+            <p className="mt-6 text-xs">
               중앙대학교 산업보안학과 + 광고홍보학과 팀.
             </p>
           </div>
           <div className="sm:col-span-3">
-            <p
-              className="text-xs font-bold uppercase tracking-widest text-text-tertiary"
-              style={fontDisplay}
-            >
+            <p className="text-xs font-extrabold uppercase tracking-widest">
               메뉴
             </p>
-            <ul className="mt-4 space-y-2.5 text-sm">
+            <ul className="mt-4 space-y-2.5 text-sm font-medium text-text-secondary">
               <li>
-                <a href="#timeline" className="hover:text-accent">
+                <a href="#process" className="hover:text-accent">
                   진행 방식
                 </a>
               </li>
@@ -1778,10 +1490,7 @@ function Footer() {
             </ul>
           </div>
           <div className="sm:col-span-4">
-            <p
-              className="text-xs font-bold uppercase tracking-widest text-text-tertiary"
-              style={fontDisplay}
-            >
+            <p className="text-xs font-extrabold uppercase tracking-widest">
               연락
             </p>
             <ul className="mt-4 space-y-2.5 text-sm">
@@ -1789,7 +1498,7 @@ function Footer() {
                 이메일 ·{" "}
                 <a
                   href="mailto:mj12270411@gmail.com"
-                  className="text-text-secondary hover:text-accent"
+                  className="font-medium text-text-secondary hover:text-accent"
                 >
                   mj12270411@gmail.com
                 </a>
@@ -1805,10 +1514,8 @@ function Footer() {
             </ul>
           </div>
         </div>
-        <div className="mt-12 flex flex-col items-start justify-between gap-4 border-t border-border pt-6 text-xs sm:flex-row sm:items-center">
-          <p>
-            © 2026 비즈필터 · 대표 이민제 · 문의 mj12270411@gmail.com
-          </p>
+        <div className="mt-12 flex flex-col items-start justify-between gap-4 border-t border-border pt-6 text-[13px] sm:flex-row sm:items-center">
+          <p>© 2026 비즈필터 · 대표 이민제 · 문의 mj12270411@gmail.com</p>
           <div className="flex gap-5">
             <a href="/terms" className="hover:text-accent">
               이용약관
