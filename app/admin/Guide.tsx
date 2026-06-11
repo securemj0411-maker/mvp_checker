@@ -1,11 +1,55 @@
+"use client";
+
 /* 상담 가이드 — 운영 플레이북(docs/운영플레이북_v1.md) 핵심 발췌.
    상담 중에 바로 보면서 판단·복붙하는 용도. */
 
+import { useState } from "react";
+
 function Tmpl({ children }: { children: string }) {
+  const [copied, setCopied] = useState(false);
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(children);
+    } catch {
+      // 클립보드 권한 없는 환경 폴백
+      const ta = document.createElement("textarea");
+      ta.value = children;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      ta.remove();
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
+
   return (
-    <pre className="mt-3 whitespace-pre-wrap rounded-lg border border-border bg-bg-alt p-4 text-[13px] leading-relaxed text-text-secondary">
-      {children}
-    </pre>
+    <div className="relative mt-3">
+      <pre className="whitespace-pre-wrap rounded-lg border border-border bg-bg-alt p-4 pr-12 text-[13px] leading-relaxed text-text-secondary">
+        {children}
+      </pre>
+      <button
+        onClick={copy}
+        aria-label="복사"
+        className={`absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-md border text-xs transition ${
+          copied
+            ? "border-[#06A86B] bg-[#E4F7EF] text-[#06A86B]"
+            : "border-border bg-surface text-text-tertiary hover:border-border-hover hover:text-text"
+        }`}
+      >
+        {copied ? (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 6 9 17l-5-5" />
+          </svg>
+        ) : (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" />
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+          </svg>
+        )}
+      </button>
+    </div>
   );
 }
 
