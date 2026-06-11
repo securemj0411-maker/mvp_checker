@@ -75,7 +75,7 @@ const QUESTIONS: {
       {
         value: "all",
         label: "전부 다 (수요·수익 구조·광고비)",
-        hint: "어차피 셋 다 알아야 시작할 수 있으니까",
+        hint: "세 가지 모두 한 경로로 확인합니다",
       },
       { value: "priority", label: "순서: 뭐부터 해야 할지 모르겠어요" },
     ],
@@ -345,7 +345,8 @@ export default function LeadForm() {
           />
           <p className="mt-2 text-xs text-text-tertiary">
             한 줄도 괜찮고, 자세히 적으셔도 좋습니다. 적어주신 만큼 상담이
-            빨라집니다. 나머지는 통화에서 함께 정리합니다.
+            빨라집니다. 나머지는 상담(카카오톡 또는 전화)에서 함께
+            정리합니다.
           </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
