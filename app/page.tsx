@@ -123,9 +123,9 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
                 만들기 전에 확인하세요
               </h1>
               <p className="mx-auto mt-7 max-w-xl text-lg leading-[1.7] text-text-secondary sm:text-xl">
-                진짜 광고를 돌려서, 모르는 사람이 가격을 보고도
+                검증용 사이트 제작부터 광고 집행, 수요 분석까지.
                 <br className="hidden sm:block" />
-                결제 버튼을 누르는지 봅니다. 7일이면 숫자가 나옵니다.
+                7일 안에 사업 가능성을 데이터로 확인합니다.
               </p>
             </>
           ) : (

@@ -2,4 +2,4 @@
 export const SITE_URL = "https://www.bizfilter.kr";
 export const SITE_NAME = "비즈필터";
 export const SITE_DESC =
-  "사업 아이디어, 시작하기 전에 검증합니다. 진짜 광고 데이터로 클릭·결제 의향·고객 획득 비용까지 — Go/No-Go 판정 보장, 판정을 못 드리면 전액 환불. 업종 제한 없음.";
+  "사업 아이디어, 만들기 전에 검증합니다. 검증용 사이트 제작부터 광고 집행, 수요 분석까지 7일 안에 사업 가능성을 데이터로 확인 — Go/No-Go 판정 보장. 업종 제한 없음.";
