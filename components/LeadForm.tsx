@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { sendGAEvent } from "@next/third-parties/google";
 import { getSupabase } from "@/lib/supabase";
+import { KAKAO_CHAT_URL } from "@/lib/site";
 
 type StepId = "service" | "audience" | "revenue" | "stage" | "fear";
 type Answers = Partial<Record<StepId, string>>;
@@ -290,9 +291,22 @@ export default function LeadForm() {
           </p>
         </div>
 
-        <p className="mt-5 text-center text-xs text-text-tertiary">
-          최종 가능 여부와 견적은 사람이 직접 검토 후 회신드립니다 ·
-          비밀유지 약속
+        <a
+          href={KAKAO_CHAT_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => sendGAEvent("event", "kakao_open", { from: "result" })}
+          className="mt-6 flex items-center justify-center gap-2 rounded-lg px-6 py-4 text-base font-bold transition hover:brightness-95"
+          style={{ background: "#FEE500", color: "#191600" }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+            <path d="M12 3C6.5 3 2 6.5 2 10.8c0 2.8 1.9 5.2 4.7 6.6-.2.7-.7 2.6-.8 3-.1.5.2.5.4.4.2-.1 2.6-1.8 3.7-2.5.6.1 1.3.1 2 .1 5.5 0 10-3.5 10-7.8C22 6.5 17.5 3 12 3z" />
+          </svg>
+          지금 바로 카톡으로 상담 시작하기
+        </a>
+        <p className="mt-3 text-center text-xs text-text-tertiary">
+          가장 빠른 답변은 카톡입니다. 메일/전화로도 24시간 안에
+          회신드립니다 · 비밀유지 약속
         </p>
       </div>
     );
@@ -396,6 +410,19 @@ export default function LeadForm() {
             ? "보내는 중..."
             : "제출하고 검증 적합도 바로 보기"}
         </button>
+        <p className="text-center text-xs text-text-tertiary">
+          폼 작성이 번거로우시면{" "}
+          <a
+            href={KAKAO_CHAT_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => sendGAEvent("event", "kakao_open", { from: "form" })}
+            className="font-bold text-text underline underline-offset-2"
+          >
+            카카오톡으로 바로 문의
+          </a>
+          하셔도 됩니다.
+        </p>
         <div className="flex items-center justify-between">
           <BackButton onClick={() => setStep((s) => s - 1)} />
           <p className="text-xs text-text-tertiary">

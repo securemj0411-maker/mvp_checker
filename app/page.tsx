@@ -1555,6 +1555,17 @@ function Footer() {
             </p>
             <ul className="mt-4 space-y-2.5 text-sm">
               <li>
+                카카오톡 ·{" "}
+                <a
+                  href="https://pf.kakao.com/_xiCvnX/chat"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-text-secondary hover:text-accent"
+                >
+                  @비즈필터 채널 상담
+                </a>
+              </li>
+              <li>
                 이메일 ·{" "}
                 <a
                   href="mailto:mj12270411@gmail.com"
