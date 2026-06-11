@@ -317,10 +317,29 @@ function HeroShot() {
               <span className="absolute bottom-0 left-[76%] top-0 w-[2px] bg-text/70" />
             </div>
           </div>
-          <p className="mt-5 border-t border-dashed border-border pt-4 text-[13px] leading-relaxed text-text-secondary">
-            수요·단가 모두 기준선 위입니다. 사전등록 31명은 오픈일 첫 고객
-            명단으로 이관됩니다.
-          </p>
+          <div className="mt-5 border-t border-dashed border-border pt-4">
+            <p className="text-[11px] font-semibold text-text-tertiary">
+              리포트 포함
+            </p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {[
+                "시장 수요 분석",
+                "경쟁·가격대 조사",
+                "CAC 분석",
+                "다음 액션 권고",
+              ].map((c) => (
+                <span
+                  key={c}
+                  className="rounded-full bg-bg-alt px-2.5 py-1 text-[11px] font-semibold text-text-secondary"
+                >
+                  {c}
+                </span>
+              ))}
+            </div>
+            <p className="mt-3 text-[12px] leading-relaxed text-text-tertiary">
+              사전등록 31명은 오픈일 첫 고객 명단으로 이관됩니다.
+            </p>
+          </div>
         </div>
       </div>
     </Browser>
@@ -396,48 +415,77 @@ function TourFakeDoor() {
       }
       body={
         <>
-          가격까지 노출합니다. 고객이 진짜라고 믿어야 진짜 데이터가 나오기
-          때문입니다. 결제 버튼을 누르면 사전등록 안내로 연결됩니다. 돈은
-          받지 않습니다.
+          저희가 당신의 아이디어를, 이미 운영 중인 것처럼 보이는 사이트로
+          만듭니다. 판매 가격까지 그대로 보여줍니다. 방문자가 진짜라고 믿어야
+          진짜 반응이 나오기 때문입니다. 방문자가 결제 버튼을 누르면 '오픈
+          예정' 사전등록 안내가 나옵니다. 방문자에게 돈을 받는 일은 없습니다.
         </>
       }
       shot={
         <Browser url="salady-club.kr">
-          <div className="bg-surface p-7 text-left sm:p-9">
+          <div className="bg-surface p-6 text-left sm:p-8">
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-2 text-[15px] font-extrabold text-text">
-                <span className="h-5 w-5 rounded-md bg-[#06A86B]" />
+                <span className="grid h-5 w-5 place-items-center rounded-md bg-[#06A86B] text-[10px] font-black text-white">
+                  S
+                </span>
                 샐러디클럽
               </span>
-              <span className="hidden gap-4 text-xs font-semibold text-text-tertiary sm:flex">
+              <span className="hidden items-center gap-4 text-xs font-semibold text-text-tertiary sm:flex">
                 <span>구성</span>
                 <span>후기</span>
                 <span>가격</span>
+                <span className="rounded-full bg-[#06A86B] px-3 py-1.5 font-bold text-white">
+                  구독하기
+                </span>
               </span>
             </div>
-            <p className="mt-8 text-[26px] font-extrabold leading-[1.25] tracking-tight text-text">
+            <p className="mt-7 text-[25px] font-extrabold leading-[1.25] tracking-tight text-text">
               주 3회 새벽배송,
               <br />
               샐러드 정기구독
             </p>
-            <p className="mt-3 text-sm leading-relaxed text-text-secondary">
+            <p className="mt-2.5 text-sm leading-relaxed text-text-secondary">
               월·수·금 아침 7시 전 문 앞에. 식단 고민 없이 받아보세요.
             </p>
-            <div className="mt-6 flex items-baseline gap-2">
-              <p className="text-2xl font-black tracking-tight text-text">
-                ₩29,000
-              </p>
-              <p className="text-sm font-medium text-text-tertiary">/ 주</p>
+            <div className="mt-2 flex items-center gap-1.5 text-[12px] font-semibold text-text-secondary">
+              <span style={{ color: "#E08A00" }}>★ 4.9</span>
+              <span className="text-text-tertiary">· 후기 132개</span>
             </div>
-            <div className="mt-5 flex gap-2.5">
+            <div className="mt-5 grid grid-cols-3 gap-2">
+              {[
+                ["월요일", "리코타 베리", "linear-gradient(140deg,#DFF3E6,#BCE5CB)"],
+                ["수요일", "케일 치킨", "linear-gradient(140deg,#E8F3DC,#CDE7B8)"],
+                ["금요일", "콥 샐러드", "linear-gradient(140deg,#F3EFD9,#E4DCAE)"],
+              ].map(([d, n, g]) => (
+                <div
+                  key={d as string}
+                  className="overflow-hidden rounded-[12px] border border-border-light"
+                >
+                  <div className="h-12" style={{ background: g as string }} />
+                  <div className="px-2.5 py-2">
+                    <p className="text-[10px] font-semibold text-text-tertiary">
+                      {d}
+                    </p>
+                    <p className="text-[11px] font-bold text-text">{n}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-5 flex items-center justify-between rounded-[14px] bg-bg-alt px-5 py-4">
+              <div>
+                <p className="text-[11px] font-semibold text-text-tertiary">
+                  주당 구독료 · 배송비 포함
+                </p>
+                <p className="text-xl font-black tracking-tight text-text">
+                  ₩29,000
+                </p>
+              </div>
               <span className="rounded-full bg-accent px-6 py-3 text-sm font-bold text-white">
                 구독 시작하기
               </span>
-              <span className="rounded-full border border-border px-6 py-3 text-sm font-bold text-text-secondary">
-                식단 보기
-              </span>
             </div>
-            <p className="mt-4 text-[11px] text-text-tertiary">
+            <p className="mt-3 text-[11px] text-text-tertiary">
               ↑ 이 버튼이 결제 의향 측정 지점입니다
             </p>
           </div>
@@ -545,9 +593,9 @@ function TourDashboard() {
       }
       body={
         <>
-          블랙박스 없습니다. 광고 계정 화면 그대로, 노출·클릭·결제 클릭이
-          쌓이는 걸 같은 링크로 봅니다. 클릭은 약한 신호입니다. 저희는 가격을
-          본 뒤의 결제 클릭까지 측정합니다.
+          광고 계정 화면을 같은 링크로 함께 봅니다. 노출·클릭·결제 클릭이
+          쌓이는 과정을 숨기는 것 없이 그대로 공개합니다. 클릭은 약한
+          신호입니다. 저희는 가격을 본 뒤의 결제 클릭까지 측정합니다.
         </>
       }
       shot={
@@ -624,9 +672,9 @@ function TourVerdict() {
       }
       body={
         <>
-          숫자만 던지지 않습니다. 합격선 대비 어디인지, 업계 기준으로 어느
-          수준인지, 다음 액션은 무엇인지. 30분 미팅으로 해석까지
-          전달드립니다.
+          Go는 진행, No-Go는 중단, Pivot은 방향 수정입니다. 숫자만 던지지
+          않습니다. 합격선 대비 어디인지, 시장·경쟁 조사에서 무엇이
+          보였는지, 다음 액션은 무엇인지까지 30분 미팅으로 전달드립니다.
         </>
       }
       shot={
@@ -731,17 +779,14 @@ function Process() {
             </div>
           ))}
         </div>
-        <div className="reveal mx-auto mt-12 max-w-3xl rounded-[20px] border border-border bg-surface p-8">
-          <p className="text-lg font-bold text-text">"직접 해도 되잖아요?"</p>
+        <div className="reveal mx-auto mt-12 max-w-3xl rounded-[20px] border border-border bg-surface p-8 text-center">
+          <p className="text-lg font-bold text-text">
+            저희는 개발을 팔지 않습니다.
+          </p>
           <p className="mt-3 leading-[1.75] text-text-secondary">
-            됩니다. 도구 배우는 데 2~4주, 시행착오 광고비는 별도입니다. 더 큰
-            문제는 따로 있습니다.{" "}
-            <span className="font-semibold text-text">
-              자기 아이디어 앞에서 객관적인 사람은 없습니다.
-            </span>{" "}
-            카피도 유리하게 쓰고, 애매한 숫자도 유리하게 읽게 됩니다. 그리고
-            저희는 개발을 팔지 않습니다. "만드세요"라고 말할 금전적 이유가
-            없습니다.
+            시장조사와 개발을 함께 파는 회사는 "만드세요"라고 말할 금전적
+            이유가 있습니다. 저희 수입은 판정의 정확도에서만 나옵니다. 그래서
+            안 되는 아이디어에는 안 된다고 말씀드립니다.
           </p>
         </div>
       </div>
@@ -798,12 +843,12 @@ function Cases() {
             말 대신, 숫자
           </h2>
           <p className="mt-6 text-lg leading-[1.7] text-text-secondary">
-            저희는 저희 약부터 먹었습니다. 좋은 답도 나쁜 답도 그대로
-            공개합니다.
+            직접 검증하고 분석한 결과를 그대로 공개합니다. 좋은 답도, 나쁜
+            답도.
           </p>
         </div>
 
-        {/* 득템잡이 — 실사례 */}
+        {/* 사후 진단 — 실제 사례 */}
         <div className="reveal mt-14 grid items-center gap-10 rounded-[24px] border border-border bg-surface p-8 shadow-[0_14px_30px_-16px_rgba(10,23,38,0.10)] sm:p-10 lg:grid-cols-[1.2fr_0.8fr]">
           <div>
             <div className="flex items-center gap-2.5">
@@ -814,25 +859,26 @@ function Cases() {
                 NO-GO
               </span>
               <span className="rounded-full bg-text px-3.5 py-1.5 text-xs font-extrabold text-bg">
-                저희가 직접 받은 결과
+                사후 진단 · 실제 사례
               </span>
             </div>
             <h3 className="mt-5 text-2xl font-extrabold tracking-tight text-text sm:text-[28px]">
-              득템잡이 — 중고 시세 인텔리전스
+              중고 시세 분석 멤버십
             </h3>
             <p className="mt-4 max-w-lg leading-[1.75] text-text-secondary">
-              만들기 전에 광고부터 띄웠어야 했는데, 순서를 거꾸로 갔습니다. 다
-              만들고 나서야 광고 제한과 결제 막힘이 한꺼번에 왔습니다. 시장이
-              준 답은 분명했고,{" "}
+              다 만들어 출시한 뒤에야 광고 제한, 결제 전환 막힘, 시장 포화가
+              한꺼번에 확인된 실제 서비스입니다. 사후 분석 결과, 전부{" "}
               <span className="font-semibold text-text">
-                그 수업료가 이 서비스를 만들었습니다.
+                시작 전 7일 검증에서 잡히는 신호
               </span>
+              였습니다. 같은 답을 몇 달과 수백만 원 대신 광고비 몇만 원으로
+              받는 것, 그게 검증의 목적입니다.
             </p>
           </div>
           <div className="rounded-[18px] bg-bg-alt p-6">
             <div className="flex items-center justify-between border-b border-dashed border-border pb-4">
               <span className="text-[13px] font-semibold text-text-tertiary">
-                검증 판정서 · 실제 사례
+                사후 진단서 · 실제 사례
               </span>
             </div>
             <div className="mt-4 space-y-3.5">
@@ -952,8 +998,8 @@ function Pricing() {
             <br />늘 더 비쌌습니다
           </h2>
           <p className="mt-6 text-lg leading-[1.7] text-text-secondary">
-            사업이 죽는 방식은 두 가지입니다. 아무도 원하지 않거나, 원하는데
-            돈이 안 되거나. 두 플랜이 각각 그 질문에 답합니다.
+            Quick은 '원하는 사람이 있는가'에, Deep은 '팔수록 남는가'에
+            답합니다.
           </p>
         </div>
 
@@ -1096,12 +1142,15 @@ function Guarantee() {
                 "radial-gradient(circle at 50% 35%, #fff, var(--bg-light))",
             }}
           >
-            <div>
-              <p className="text-[56px] font-black leading-none tracking-tight text-accent">
+            <div className="px-6">
+              <p className="text-[13px] font-bold text-text-secondary">
+                판정을 못 드리면
+              </p>
+              <p className="mt-1 text-[52px] font-black leading-none tracking-tight text-accent">
                 100%
               </p>
-              <p className="mt-2 text-[15px] font-extrabold text-accent-hover">
-                환불 보장
+              <p className="mt-1.5 text-[15px] font-extrabold text-accent-hover">
+                전액 환불
               </p>
             </div>
           </div>
@@ -1156,8 +1205,8 @@ function Story() {
       win: false,
       body: (
         <>
-          하나는 <b className="font-bold text-text">고객이 없었습니다.</b> AI는
-          좋다고 했고, 저도 좋다고 했습니다.
+          <b className="font-bold text-text">아무도 원하지 않는다.</b> 수요가
+          없는 아이디어는 마케팅으로도 살릴 수 없습니다.
         </>
       ),
     },
@@ -1166,9 +1215,9 @@ function Story() {
       win: false,
       body: (
         <>
-          하나는 수요는 있었는데,{" "}
-          <b className="font-bold text-text">객단가가 안 맞아 만들수록 손해</b>
-          였습니다.
+          <b className="font-bold text-text">원하는데, 돈이 안 된다.</b> 고객
+          한 명을 데려오는 비용이 그 고객이 내는 돈보다 크면, 팔수록
+          손해입니다.
         </>
       ),
     },
@@ -1177,11 +1226,11 @@ function Story() {
       win: true,
       body: (
         <>
-          세 번째는 순서를 바꿨습니다.{" "}
+          이 둘을 시작 전에 확인하면,{" "}
           <b className="font-bold text-text">
-            만들기 전에 광고부터 띄웠고, 그게 처음으로 됐습니다.
-          </b>{" "}
-          지금도 운영 중입니다.
+            실패의 비용이 몇 달과 수백만 원에서 7일과 광고비 몇만 원으로
+            줄어듭니다.
+          </b>
         </>
       ),
     },
@@ -1190,16 +1239,15 @@ function Story() {
     <section id="story" className="border-y border-border bg-bg-alt">
       <div className="mx-auto max-w-3xl px-6 py-24 sm:py-32">
         <div className="reveal text-center">
-          <Label>왜 이걸 만들었나</Label>
+          <Label>왜 검증부터인가</Label>
           <h2 className="mt-4 text-[32px] font-extrabold leading-[1.2] tracking-[-0.03em] text-text sm:text-5xl">
-            두 번 망해보고
+            사업이 무너지는 길은
             <br />
-            만든 서비스입니다
+            둘뿐입니다
           </h2>
           <p className="mx-auto mt-6 max-w-xl text-lg leading-[1.7] text-text-secondary">
-            AI에게 시장조사를 맡기고 "좋다"는 답을 믿고 시작한 사업이 두 개
-            있었습니다. 이 서비스는 그때 거꾸로 갔던 '순서'를 시스템으로 만든
-            것입니다.
+            수백 가지 이유처럼 보여도 결국 둘 중 하나로 수렴합니다. 그리고 둘
+            다, 만들기 전에 확인할 수 있습니다.
           </p>
         </div>
         <div className="reveal-stagger mt-12 space-y-4">
@@ -1252,7 +1300,7 @@ function Team() {
       photo: "/team/moon-junha.png",
       title: "Product Manager · Developer",
       role: "웹/앱 서비스 기획 및 데이터 기반 검증 시스템 구축",
-      edu: null,
+      edu: "중앙대 소프트웨어학과 · 검증 시스템 구축",
     },
   ];
   return (
@@ -1261,10 +1309,11 @@ function Team() {
         <div className="reveal mx-auto max-w-2xl text-center">
           <Label>팀</Label>
           <h2 className="mt-4 text-[32px] font-extrabold leading-[1.2] tracking-[-0.03em] text-text sm:text-5xl">
-            얼굴 걸고 합니다
+            검증을 맡는 사람들
           </h2>
           <p className="mt-6 text-lg leading-[1.7] text-text-secondary">
-            실명으로, 광고 계정과 데이터를 전부 공개하고 일합니다.
+            실명과 소속을 공개합니다. 검증 과정의 광고 계정과 데이터도
+            그대로 보여드립니다.
           </p>
         </div>
         <div className="reveal-stagger mx-auto mt-14 grid max-w-4xl gap-6 sm:grid-cols-3">
@@ -1343,8 +1392,8 @@ function FAQ() {
       a: "구분이 필요합니다. 검증용 사이트는 광고 반응을 측정하기 위한 실서비스형 페이지이며, 회원가입·결제 같은 기능 개발이 들어가는 정식 개발과는 다릅니다. 종료 후 전부 이관해드리므로 그 위에 키워가실 수 있고, 기능 개발이 필요하시면 개발 파트너를 연결해드립니다.",
     },
     {
-      q: "Go가 나오면 만들어주기도 하나요?",
-      a: "저희는 검증 전문입니다. 원하시면 검증된 개발 파트너를 연결해드립니다. 개발을 직접 팔지 않기 때문에, 저희 판정에는 '만들게 하려는' 이해관계가 없습니다.",
+      q: "Go 판정이 나오면, 실제 서비스 개발까지 해주시나요?",
+      a: "아니요, 저희는 검증 전문이고 개발은 하지 않습니다. 원하시면 검증된 외부 개발 파트너를 연결해드립니다. 개발을 직접 팔지 않기 때문에, 저희 판정에는 '만들게 하려는' 이해관계가 없습니다.",
     },
     {
       q: "신청하면 바로 결제인가요?",
@@ -1464,7 +1513,7 @@ function Footer() {
               </li>
               <li>
                 <a href="#story" className="hover:text-accent">
-                  스토리
+                  왜 검증인가
                 </a>
               </li>
               <li>
