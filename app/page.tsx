@@ -92,9 +92,9 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
   const headline =
     variant === "a" ? (
       <>
-        이 사업이 될지 안 될지,
+        그 아이디어가 먹힐지,
         <br />
-        진짜 사람들로 확인합니다
+        만들기 전에 확인하세요
       </>
     ) : (
       <>
@@ -154,7 +154,7 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
         />
         <div className="px-6 pb-12 pt-16">
           <p className="text-sm font-bold" style={{ color: "#8FB6FF" }}>
-            사업 아이디어 검증
+            사업 아이디어 검증 전문
           </p>
           <h1 className="mt-4 text-[34px] font-extrabold leading-[1.2] tracking-[-0.03em] text-white">
             {headline}
@@ -172,7 +172,7 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
       {/* ── 데스크탑/태블릿: 밝은 2단, 좌 텍스트 우 인물 ── */}
       <div className="mx-auto hidden max-w-6xl items-center gap-8 px-6 pb-8 pt-16 sm:grid sm:grid-cols-2 lg:gap-12 lg:pt-24">
         <div className="reveal-stagger">
-          <Label>사업 아이디어 검증</Label>
+          <Label>사업 아이디어 검증 전문</Label>
           <h1 className="mt-5 text-[44px] font-extrabold leading-[1.16] tracking-[-0.035em] text-text lg:text-[56px]">
             {headline}
           </h1>
