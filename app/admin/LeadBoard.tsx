@@ -4,6 +4,13 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateLead, deleteLead } from "./actions";
 import Guide from "./Guide";
+import {
+  TIER_INFO,
+  BANK_INFO,
+  type BriefDraft,
+  type ConfirmedBrief,
+  type Report,
+} from "@/lib/diagnosis";
 
 export type Lead = {
   id: string;
@@ -12,6 +19,7 @@ export type Lead = {
   email: string;
   phone: string | null;
   idea: string;
+  idea_refined: string | null;
   status: string;
   memo: string | null;
   source: string | null;
@@ -19,8 +27,20 @@ export type Lead = {
   service_type: string | null;
   audience: string | null;
   revenue_model: string | null;
-  stage: string | null;
-  fear: string | null;
+  build_status: string | null;
+  price_band: string | null;
+  alternative: string | null;
+  location: string | null;
+  page_url: string | null;
+  page_measurable: boolean | null;
+  access_code: string | null;
+  tier: string | null;
+  brief: { draft?: BriefDraft; confirmed?: ConfirmedBrief } | null;
+  brief_confirmed_at: string | null;
+  deposit_due_at: string | null;
+  ai_report: (Report & { source?: string }) | null;
+  policy_flag: string | null;
+  interpret_status: string | null;
 };
 
 /* ── 라벨 ── */
@@ -29,40 +49,58 @@ const LABEL = {
     web: "웹 서비스",
     app: "모바일 앱",
     commerce: "온라인 판매",
-    offline: "오프라인",
+    offline: "오프라인·지역",
+    content: "콘텐츠·교육",
     unknown: "형태 미정",
   } as Record<string, string>,
   audience: {
     b2c: "소비자",
     b2b: "회사·사장님",
     both: "둘 다/모름",
+    unknown: "미정",
   } as Record<string, string>,
   revenue: {
     once: "단건 결제",
     subscription: "구독",
+    fee: "광고·수수료",
+    undecided: "미정",
     unknown: "미정",
   } as Record<string, string>,
-  stage: {
-    idea: "아이디어",
-    planning: "기획 중",
-    builder: "만드는 중",
-    built: "이미 만듦",
+  build: {
+    self: "직접 제작 가능",
+    need: "제작 필요",
+    built: "이미 있음",
   } as Record<string, string>,
-  fear: {
-    demand: "수요",
-    unit: "수익 구조",
-    cac: "광고비",
-    all: "전부 다",
-    priority: "순서",
+  price: {
+    under10k: "1만 미만",
+    "10kto50k": "1~5만",
+    "50kto100k": "5~10만",
+    over100k: "10만 이상",
+    unknown: "미정",
+  } as Record<string, string>,
+  alternative: {
+    competitor: "유사 서비스",
+    manual: "수작업·엑셀",
+    none: "그냥 감수",
+    unknown: "모름",
+  } as Record<string, string>,
+  tier: {
+    engine: "엔진 29만",
+    quick: "Quick 50만",
+    deep: "Deep 130만",
   } as Record<string, string>,
 };
 const L = (m: Record<string, string>, k: string | null) =>
   k ? (m[k] ?? k) : "-";
 
-function planFor(fear: string | null) {
-  if (fear === "all" || fear === "unit" || fear === "cac")
-    return "Quick→Deep";
-  return "Quick";
+/** 입금 기한 D-day */
+function dDay(iso: string | null): { text: string; urgent: boolean } | null {
+  if (!iso) return null;
+  const ms = new Date(iso).getTime() - Date.now();
+  const days = Math.ceil(ms / 86400000);
+  if (days < 0) return { text: `기한 ${-days}일 지남`, urgent: true };
+  if (days === 0) return { text: "오늘까지", urgent: true };
+  return { text: `D-${days}`, urgent: days <= 1 };
 }
 
 function fmtKST(iso: string) {
@@ -90,11 +128,30 @@ const STATUS: { key: string; label: string; dot: string }[] = [
 const ST = (k: string | null) =>
   STATUS.find((s) => s.key === (k ?? "new")) ?? STATUS[0];
 
-const VIEWS: { key: string; label: string; statuses: string[] | null }[] = [
-  { key: "inbox", label: "신규·상담", statuses: ["new", "contacted", "consulted"] },
-  { key: "active", label: "진행 고객", statuses: ["paid", "build", "live", "verdict"] },
-  { key: "closed", label: "완료·종료", statuses: ["won", "lost"] },
-  { key: "all", label: "전체", statuses: null },
+const PAID_ONWARD = ["paid", "build", "live", "verdict", "won", "lost"];
+const VIEWS: { key: string; label: string; test: (l: Lead) => boolean }[] = [
+  {
+    key: "inbox",
+    label: "신규",
+    test: (l) =>
+      !l.brief_confirmed_at &&
+      l.policy_flag !== "prohibited" &&
+      ["new", "contacted", "consulted"].includes(l.status ?? "new"),
+  },
+  {
+    key: "deposit",
+    label: "입금대기",
+    test: (l) =>
+      !!l.brief_confirmed_at && !PAID_ONWARD.includes(l.status ?? "new"),
+  },
+  {
+    key: "active",
+    label: "진행 고객",
+    test: (l) => ["paid", "build", "live", "verdict"].includes(l.status ?? "new"),
+  },
+  { key: "closed", label: "완료·종료", test: (l) => ["won", "lost"].includes(l.status ?? "new") },
+  { key: "blocked", label: "정책차단", test: (l) => l.policy_flag === "prohibited" },
+  { key: "all", label: "전체", test: () => true },
 ];
 
 export default function LeadBoard({ leads: initial }: { leads: Lead[] }) {
@@ -107,15 +164,15 @@ export default function LeadBoard({ leads: initial }: { leads: Lead[] }) {
   useEffect(() => setLeads(initial), [initial]);
 
   const countFor = (v: (typeof VIEWS)[number]) =>
-    v.statuses
-      ? leads.filter((l) => v.statuses!.includes(l.status ?? "new")).length
-      : leads.length;
+    leads.filter(v.test).length;
 
   const visible = useMemo(() => {
     const v = VIEWS.find((x) => x.key === tab);
-    if (!v?.statuses) return leads;
-    return leads.filter((l) => v.statuses!.includes(l.status ?? "new"));
+    if (!v) return leads;
+    return leads.filter(v.test);
   }, [leads, tab]);
+
+  const depositCount = leads.filter(VIEWS[1].test).length;
 
   const fromYoutube = leads.filter((l) => l.utm_source === "youtube").length;
 
@@ -151,8 +208,8 @@ export default function LeadBoard({ leads: initial }: { leads: Lead[] }) {
       {/* 요약 통계 */}
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat label="전체 리드" value={leads.length} />
-        <Stat label="신규·상담" value={countFor(VIEWS[0])} />
-        <Stat label="진행 고객" value={countFor(VIEWS[1])} />
+        <Stat label="입금 대기" value={depositCount} highlight={depositCount > 0} />
+        <Stat label="진행 고객" value={countFor(VIEWS[2])} />
         <Stat label="유튜브 유입" value={fromYoutube} />
       </div>
 
@@ -198,7 +255,7 @@ export default function LeadBoard({ leads: initial }: { leads: Lead[] }) {
                 <th className="px-4 py-3">이름</th>
                 <th className="px-4 py-3">연락처</th>
                 <th className="px-4 py-3">아이디어</th>
-                <th className="px-4 py-3">추천</th>
+                <th className="px-4 py-3">플랜</th>
                 <th className="px-4 py-3">상태</th>
               </tr>
             </thead>
@@ -254,20 +311,43 @@ export default function LeadBoard({ leads: initial }: { leads: Lead[] }) {
                         </span>
                       )}
                     </td>
-                    <td className="max-w-[320px] truncate px-4 py-3.5 text-text-secondary">
+                    <td className="max-w-[300px] truncate px-4 py-3.5 text-text-secondary">
                       {l.idea}
                     </td>
                     <td className="whitespace-nowrap px-4 py-3.5 text-xs font-bold text-text-secondary">
-                      {planFor(l.fear)}
+                      {l.policy_flag === "prohibited"
+                        ? "—"
+                        : L(LABEL.tier, l.tier)}
                     </td>
                     <td className="whitespace-nowrap px-4 py-3.5">
-                      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-text">
-                        <span
-                          className="h-2 w-2 rounded-full"
-                          style={{ background: st.dot }}
-                        />
-                        {st.label}
-                      </span>
+                      {l.policy_flag === "prohibited" ? (
+                        <span className="rounded bg-red-500/10 px-2 py-0.5 text-xs font-bold text-red-500">
+                          정책차단
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-text">
+                          <span
+                            className="h-2 w-2 rounded-full"
+                            style={{ background: st.dot }}
+                          />
+                          {st.label}
+                          {VIEWS[1].test(l) &&
+                            (() => {
+                              const d = dDay(l.deposit_due_at);
+                              return d ? (
+                                <span
+                                  className={`ml-1 rounded px-1.5 py-0.5 text-[10px] ${
+                                    d.urgent
+                                      ? "bg-red-500/10 text-red-500"
+                                      : "bg-accent/10 text-accent"
+                                  }`}
+                                >
+                                  입금 {d.text}
+                                </span>
+                              ) : null;
+                            })()}
+                        </span>
+                      )}
                     </td>
                   </tr>
                 );
@@ -323,10 +403,22 @@ function Modal({
     ["형태", L(LABEL.service, lead.service_type)],
     ["대상", L(LABEL.audience, lead.audience)],
     ["수익", L(LABEL.revenue, lead.revenue_model)],
-    ["단계", L(LABEL.stage, lead.stage)],
-    ["최우선", L(LABEL.fear, lead.fear)],
-    ["추천", planFor(lead.fear)],
+    ["가격대", L(LABEL.price, lead.price_band)],
+    ["대안", L(LABEL.alternative, lead.alternative)],
+    ["제작상황", L(LABEL.build, lead.build_status)],
   ];
+  const report = lead.ai_report;
+  const brief = lead.brief?.confirmed;
+  const due = dDay(lead.deposit_due_at);
+  const tierInfo =
+    lead.tier === "engine" || lead.tier === "quick"
+      ? TIER_INFO[lead.tier]
+      : null;
+  const prohibited = lead.policy_flag === "prohibited";
+
+  function copyCode() {
+    if (lead.access_code) navigator.clipboard?.writeText(lead.access_code);
+  }
 
   return (
     <div
@@ -365,23 +457,66 @@ function Modal({
 
         {/* 본문 — 여기만 스크롤 */}
         <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5">
-          {/* 연락처 */}
-          <div className="flex flex-wrap gap-2 text-sm">
-            <a
-              href={`mailto:${lead.email}`}
-              className="rounded-lg border border-border bg-bg px-3 py-2 font-medium text-text transition hover:border-accent"
-            >
-              ✉ {lead.email}
-            </a>
+          {/* 연락처 + 접근 코드 */}
+          <div className="flex flex-wrap items-center gap-2 text-sm">
             {lead.phone && (
               <a
                 href={`tel:${lead.phone}`}
-                className="rounded-lg border border-border bg-bg px-3 py-2 font-medium text-accent transition hover:border-accent"
+                className="rounded-lg border border-border bg-bg px-3 py-2 font-semibold text-accent transition hover:border-accent"
               >
                 ☎ {lead.phone}
               </a>
             )}
+            {lead.access_code && (
+              <>
+                <button
+                  onClick={copyCode}
+                  className="rounded-lg border border-border bg-bg px-3 py-2 font-mono font-bold text-text transition hover:border-accent"
+                  title="코드 복사"
+                >
+                  🔑 {lead.access_code}
+                </button>
+                <a
+                  href={`/d/${lead.access_code}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-lg border border-border bg-bg px-3 py-2 text-xs font-medium text-text-secondary transition hover:border-accent"
+                >
+                  고객 화면 ↗
+                </a>
+              </>
+            )}
           </div>
+
+          {prohibited && (
+            <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-3">
+              <p className="text-sm font-bold text-red-600">
+                정책 차단 리드 (설계서·결제 없음)
+              </p>
+              <p className="mt-1 text-xs text-red-500">
+                광고 정책상 검증 불가 업종으로 분류됨. 카톡 문의가 오면 도구형
+                서비스인지 확인 후 수동 진행 판단.
+              </p>
+            </div>
+          )}
+
+          {/* 입금 대기 카드 — brief 확정 + 미입금 */}
+          {lead.brief_confirmed_at && !PAID_ONWARD.includes(lead.status) && (
+            <div className="rounded-lg border border-accent/40 bg-accent/5 p-4">
+              <p className="text-xs font-bold uppercase tracking-wide text-accent">
+                입금 대기 중
+              </p>
+              <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+                <Row k="플랜·금액" v={tierInfo ? `${tierInfo.label} ${tierInfo.priceLabel}` : L(LABEL.tier, lead.tier)} strong />
+                <Row k="입금자명" v={lead.name} strong />
+                <Row k="계좌" v={`${BANK_INFO.bank} ${BANK_INFO.account}`} />
+                <Row k="기한" v={due ? due.text : "-"} strong={due?.urgent} />
+              </div>
+              <p className="mt-2.5 text-xs text-text-tertiary">
+                통장에서 입금자명 대조 후, 아래 상태를 <b className="text-accent">결제완료(paid)</b>로 바꾸면 고객 화면이 자동으로 다음 단계로 넘어갑니다.
+              </p>
+            </div>
+          )}
 
           {/* 퀴즈 응답 */}
           <div className="grid grid-cols-3 gap-2">
@@ -395,7 +530,7 @@ function Modal({
             ))}
           </div>
 
-          {/* 아이디어 전문 */}
+          {/* 아이디어 + 좁힌 해석 */}
           <div>
             <p className="text-xs font-bold uppercase tracking-wide text-text-tertiary">
               아이디어
@@ -403,12 +538,79 @@ function Modal({
             <p className="mt-2 whitespace-pre-wrap rounded-lg border border-border bg-bg p-4 text-sm leading-relaxed text-text">
               {lead.idea}
             </p>
+            {lead.idea_refined && (
+              <p className="mt-1.5 rounded-lg bg-bg-alt px-3 py-2 text-xs text-text-secondary">
+                좁힌 해석: {lead.idea_refined}
+              </p>
+            )}
+            {lead.location && (
+              <p className="mt-1 text-xs text-text-tertiary">
+                지역: {lead.location}
+              </p>
+            )}
+            {lead.page_url && (
+              <p className="mt-1 text-xs text-text-tertiary">
+                기존 페이지: {lead.page_url}{" "}
+                {lead.page_measurable === false && (
+                  <span className="font-bold text-red-500">
+                    (측정 불가 플랫폼 — 엔진 불가)
+                  </span>
+                )}
+              </p>
+            )}
           </div>
+
+          {/* 확정 브리프 — 제작 작업대 */}
+          {brief && (
+            <div className="rounded-lg border border-accent/30 bg-accent/5 p-4">
+              <p className="text-xs font-bold uppercase tracking-wide text-accent">
+                확정 브리프 (제작 기준)
+              </p>
+              <div className="mt-2.5 space-y-1.5 text-sm">
+                <Row k="핵심 메시지" v={brief.offer} strong />
+                <Row k="표시 가격" v={`${brief.price_value.toLocaleString()}원`} strong />
+                <Row k="가칭" v={brief.name} strong />
+                <Row k="타깃" v={brief.target_line} />
+                <Row k="문제" v={brief.problem_line} />
+                {brief.pass_bar && <Row k="합격선" v={brief.pass_bar} />}
+                {brief.min_sample && <Row k="최소 표본" v={brief.min_sample} />}
+              </div>
+              {brief.selling_points?.length > 0 && (
+                <div className="mt-2.5">
+                  <p className="text-[11px] font-bold text-text-tertiary">소구점 (광고 문구 재료)</p>
+                  <ul className="mt-1 list-disc space-y-0.5 pl-4 text-xs text-text-secondary">
+                    {brief.selling_points.map((s) => <li key={s}>{s}</li>)}
+                  </ul>
+                </div>
+              )}
+              {brief.excluded?.length > 0 && (
+                <p className="mt-2 text-xs text-text-tertiary">
+                  제외: {brief.excluded.join(" / ")}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* AI 설계서 (확정 전 참고) */}
+          {report && (
+            <details className="rounded-lg border border-border bg-bg p-4">
+              <summary className="cursor-pointer text-xs font-bold uppercase tracking-wide text-text-tertiary">
+                AI 설계서 {report.source === "fallback" && "(규칙 기반 폴백)"}
+              </summary>
+              <div className="mt-2.5 space-y-2 text-sm">
+                <Row k="이해" v={report.understanding_line} />
+                <Row k="추천 채널" v={report.channel} />
+                <Row k="합격선" v={report.pass_bar} />
+                <Row k="핵심 리스크" v={report.top_risk} />
+                <Row k="한계" v={report.blind_spot} />
+              </div>
+            </details>
+          )}
 
           {/* 상태 */}
           <div>
             <p className="text-xs font-bold uppercase tracking-wide text-text-tertiary">
-              상태
+              상태 변경
             </p>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {STATUS.map((s) => (
@@ -429,6 +631,9 @@ function Modal({
                 </button>
               ))}
             </div>
+            <p className="mt-1.5 text-[11px] text-text-tertiary">
+              결제완료·제작·광고·판정으로 바꾸면 고객 화면(/d)의 단계도 함께 바뀝니다.
+            </p>
           </div>
 
           {/* 메모 */}
@@ -474,13 +679,46 @@ function Modal({
   );
 }
 
-function Stat({ label, value }: { label: string; value: number }) {
+function Stat({
+  label,
+  value,
+  highlight,
+}: {
+  label: string;
+  value: number;
+  highlight?: boolean;
+}) {
   return (
-    <div className="rounded-lg border border-border bg-surface p-4">
+    <div
+      className={`rounded-lg border p-4 ${
+        highlight
+          ? "border-accent/50 bg-accent/5"
+          : "border-border bg-surface"
+      }`}
+    >
       <p className="text-xs font-bold uppercase tracking-wide text-text-tertiary">
         {label}
       </p>
-      <p className="mt-1 text-3xl font-bold tracking-tight">{value}</p>
+      <p
+        className={`mt-1 text-3xl font-bold tracking-tight ${
+          highlight ? "text-accent" : ""
+        }`}
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function Row({ k, v, strong }: { k: string; v: string; strong?: boolean }) {
+  return (
+    <div className="flex items-start justify-between gap-3">
+      <span className="flex-shrink-0 text-text-tertiary">{k}</span>
+      <span
+        className={`text-right ${strong ? "font-bold text-text" : "text-text-secondary"}`}
+      >
+        {v}
+      </span>
     </div>
   );
 }
