@@ -20,14 +20,27 @@ type Phase = "idea" | "interpret" | "quiz" | "contact" | "generating" | "done";
 
 type QuizKey = keyof Pick<
   QuizAnswers,
-  "service" | "build" | "audience" | "revenue" | "price" | "alternative" | "region"
+  | "service"
+  | "build"
+  | "audience"
+  | "revenue"
+  | "price"
+  | "alternative"
+  | "region"
+  | "location"
+  | "pageUrl"
 >;
 
 interface Question {
   id: QuizKey;
   title: string;
   sub?: string;
-  options: { value: string; label: string; hint?: string }[];
+  /** kind 생략 = 객관식 탭. "text" = 한 줄 입력 청크 */
+  kind?: "text";
+  placeholder?: string;
+  /** 텍스트 청크에서 비워두고 넘어가는 버튼 문구 */
+  skipLabel?: string;
+  options?: { value: string; label: string; hint?: string }[];
   /** 답변 상태에 따라 노출 여부 결정 (업종별 분기) */
   when?: (a: Partial<Record<QuizKey, string>>) => boolean;
 }
@@ -86,6 +99,24 @@ const QUESTIONS: Question[] = [
       { value: "city", label: "도시 전체" },
       { value: "nationwide", label: "전국", hint: "배송이나 예약으로 전국 대상" },
     ],
+  },
+  {
+    id: "location",
+    title: "어느 지역인가요?",
+    sub: "지역타겟 광고 반경의 중심이 됩니다. 시/구/동까지면 충분합니다.",
+    kind: "text",
+    placeholder: "예: 서울 강남구 역삼동",
+    skipLabel: "아직 안 정했어요",
+    when: (a) => a.service === "offline",
+  },
+  {
+    id: "pageUrl",
+    title: "만들어 둔 페이지 주소를 알려주세요.",
+    sub: "측정 장치를 설치할 수 있는 페이지인지 미리 확인해 드립니다.",
+    kind: "text",
+    placeholder: "예: https://my-service.com",
+    skipLabel: "지금은 못 알려드려요",
+    when: (a) => a.build === "built",
   },
   {
     id: "revenue",
@@ -316,6 +347,8 @@ export default function LeadForm() {
       alternative: (answers.alternative ??
         "unknown") as QuizAnswers["alternative"],
       region: (answers.region as QuizAnswers["region"]) ?? null,
+      location: answers.location?.trim() || null,
+      pageUrl: answers.pageUrl?.trim() || null,
     };
 
     const controller = new AbortController();
@@ -608,8 +641,17 @@ export default function LeadForm() {
             <p className="mt-1 text-sm text-text-secondary">{q.sub}</p>
           )}
         </div>
+        {q.kind === "text" ? (
+          <TextChunk
+            key={q.id}
+            placeholder={q.placeholder}
+            skipLabel={q.skipLabel}
+            initial={answers[q.id] ?? ""}
+            onSubmit={(v) => pick(q.id, v)}
+          />
+        ) : (
         <div className="space-y-2.5">
-          {q.options.map((o) => {
+          {(q.options ?? []).map((o) => {
             const selected = answers[q.id] === o.value;
             return (
               <button
@@ -634,6 +676,7 @@ export default function LeadForm() {
             );
           })}
         </div>
+        )}
         <div className="flex items-center justify-between">
           <BackButton onClick={goBackFromQuiz} />
           <p className="text-xs text-text-tertiary">
@@ -897,6 +940,53 @@ function PathCta({ path }: { path: RecommendedPath }) {
           ? "제작까지 맡기고 싶으시면 Quick 50만원, 단가와 손익까지 보려면 Deep 130만원도 있습니다."
           : "수요 확인 후 단가와 손익까지 보려면 Deep 130만원으로 이어집니다."}
       </p>
+    </div>
+  );
+}
+
+/* 텍스트 한 줄 청크 — 객관식과 같은 리듬으로 입력 후 다음 */
+function TextChunk({
+  placeholder,
+  skipLabel,
+  initial,
+  onSubmit,
+}: {
+  placeholder?: string;
+  skipLabel?: string;
+  initial: string;
+  onSubmit: (value: string) => void;
+}) {
+  const [value, setValue] = useState(initial);
+  return (
+    <div className="space-y-2.5">
+      <input
+        autoFocus
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && value.trim()) onSubmit(value.trim());
+        }}
+        className={inputBase}
+        placeholder={placeholder}
+        maxLength={200}
+      />
+      <button
+        type="button"
+        disabled={!value.trim()}
+        onClick={() => onSubmit(value.trim())}
+        className="w-full rounded-md bg-accent px-6 py-3.5 text-base font-bold text-white transition hover:bg-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-40"
+      >
+        다음
+      </button>
+      {skipLabel && (
+        <button
+          type="button"
+          onClick={() => onSubmit("")}
+          className="w-full rounded-md border border-dashed border-border px-4 py-3 text-sm font-semibold text-text-secondary transition hover:border-accent/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        >
+          {skipLabel}
+        </button>
+      )}
     </div>
   );
 }

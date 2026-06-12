@@ -33,6 +33,10 @@ export interface QuizAnswers {
   price: PriceBand;
   alternative: Alternative;
   region?: Region | null;
+  /** 오프라인 한정 — 지역타겟 광고 반경의 중심 (시/구/동) */
+  location?: string | null;
+  /** build=built 한정 — 기존 페이지 주소 */
+  pageUrl?: string | null;
 }
 
 export interface InterpretResult {

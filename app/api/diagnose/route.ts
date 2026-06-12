@@ -197,6 +197,8 @@ async function generateReport(a: QuizAnswers): Promise<Report | null> {
     `가격대 감: ${LABELS.price[a.price]}`,
     `현재 대안: ${LABELS.alternative[a.alternative]}`,
     a.region ? `주 고객 범위: ${LABELS.region[a.region]}` : null,
+    a.location ? `지역: ${a.location}` : null,
+    a.pageUrl ? `기존 페이지: ${a.pageUrl}` : null,
   ]
     .filter(Boolean)
     .join("\n");
@@ -297,6 +299,8 @@ export async function POST(request: Request) {
         build_status: answers.build,
         price_band: answers.price,
         alternative: answers.alternative,
+        location: answers.location?.slice(0, 200) ?? null,
+        page_url: answers.pageUrl?.slice(0, 500) ?? null,
         user_agent: body.userAgent?.slice(0, 500) ?? null,
       })
       .select("id")
