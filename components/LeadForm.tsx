@@ -537,8 +537,8 @@ export default function LeadForm() {
             마지막입니다. 설계서를 어디로 보내드릴까요?
           </p>
           <p className="mt-1 text-sm text-text-secondary">
-            제출하면 검증 설계서를 바로 화면에서 보여드리고, 24시간 안에 사람이
-            직접 검토 후 회신드립니다.
+            제출하면 검증 설계서를 그 자리에서 바로 보여드립니다. 회신을
+            기다리실 필요가 없습니다.
           </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -574,7 +574,7 @@ export default function LeadForm() {
           <label className="mb-2 block text-sm font-semibold text-text-secondary">
             휴대폰 번호{" "}
             <span className="font-normal text-text-tertiary">
-              (선택 · 빠른 상담을 원하시면)
+              (선택 · 진행 알림을 문자로 받고 싶으시면)
             </span>
           </label>
           <input
@@ -602,7 +602,7 @@ export default function LeadForm() {
           {submitting ? "보내는 중..." : "무료 검증 설계서 받기"}
         </button>
         <p className="text-center text-xs text-text-tertiary">
-          폼 작성이 번거로우시면{" "}
+          작성 중 막히는 부분이 있으면{" "}
           <a
             href={KAKAO_CHAT_URL}
             target="_blank"
@@ -610,9 +610,9 @@ export default function LeadForm() {
             onClick={() => sendGAEvent("event", "kakao_open", { from: "form" })}
             className="font-bold text-text underline underline-offset-2"
           >
-            카카오톡으로 바로 문의
+            카카오톡 채널
           </a>
-          하셔도 됩니다.
+          로 알려주세요.
         </p>
         <div className="flex items-center justify-between">
           <BackButton
@@ -724,7 +724,7 @@ function ReportView({
         <div>
           <p className="text-xl font-bold text-text">검증 설계서가 나왔습니다</p>
           <p className="text-sm text-text-secondary">
-            24시간 안에 사람이 직접 검토하고 회신드립니다.
+            이 설계서 그대로, 통화 없이 바로 진행하실 수 있습니다.
           </p>
         </div>
       </div>
@@ -826,8 +826,8 @@ function ReportView({
       <PathCta path={path} />
 
       <p className="mt-3 text-center text-xs text-text-tertiary">
-        가장 빠른 답변은 카톡입니다. 메일/전화로도 24시간 안에 회신드립니다 ·
-        비밀유지 약속
+        설계서와 진행 안내는 화면에서 즉시 확인됩니다 · 궁금한 점은 카톡
+        채널로 · 비밀유지 약속
       </p>
     </div>
   );
@@ -838,11 +838,11 @@ function NextSteps({ path }: { path: RecommendedPath }) {
   const steps: { who: "비즈필터" | "함께"; text: string }[] = [
     {
       who: "비즈필터",
-      text: "24시간 안에 사람이 이 설계서를 직접 검토하고, 보완할 부분까지 짚어서 회신드립니다.",
+      text: "이 설계서를 바탕으로 오퍼 문장, 표시 가격, 소구점, 합격선이 담긴 브리프 초안을 잡아 보내드립니다.",
     },
     {
       who: "함께",
-      text: "킥오프 30분 통화: 아이디어를 한 문장으로 자르고, 합격선 숫자를 서면으로 합의합니다.",
+      text: "브리프 확정: 항목별로 확인하고 승인하거나 수정 의견만 주시면 됩니다. 통화 없이 서면으로 끝납니다.",
     },
     {
       who: "비즈필터",
@@ -878,7 +878,7 @@ function NextSteps({ path }: { path: RecommendedPath }) {
                     : "bg-bg-alt text-text-tertiary"
                 }`}
               >
-                {s.who === "함께" ? "함께 30분" : "비즈필터가 함"}
+                {s.who === "함께" ? "함께 진행" : "비즈필터가 함"}
               </span>
               <span className="text-sm leading-relaxed text-text">
                 {s.text}
@@ -888,8 +888,8 @@ function NextSteps({ path }: { path: RecommendedPath }) {
         ))}
       </ol>
       <p className="mt-4 text-sm font-bold text-text">
-        고객님이 하실 일은 통화 두 번이 전부입니다. 나머지는 전부 저희가
-        합니다.
+        고객님이 하실 일은 브리프를 확인하고 승인하는 것뿐입니다. 나머지는
+        전부 저희가 합니다.
       </p>
     </div>
   );
