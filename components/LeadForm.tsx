@@ -121,6 +121,8 @@ const QUESTIONS: Question[] = [
   },
 ];
 
+const STORAGE_KEY = "bizfilter_quiz_v2";
+
 const GENERATING_MESSAGES = [
   "아이디어 구조를 분해하고 있습니다",
   "타깃과 첫 결제 장면을 좁히고 있습니다",
@@ -149,6 +151,53 @@ export default function LeadForm() {
   const [genMsgIdx, setGenMsgIdx] = useState(0);
 
   const skippedInterpret = useRef(false);
+  const restored = useRef(false);
+
+  /* 이탈 후 복귀 — 진행 상태를 로컬에 저장하고, 재방문 시 이어서 진행 */
+  useEffect(() => {
+    if (restored.current) return;
+    restored.current = true;
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const s = JSON.parse(raw);
+      if (!s || typeof s !== "object") return;
+      if (typeof s.idea === "string") setIdea(s.idea);
+      if (typeof s.ideaRefined === "string") setIdeaRefined(s.ideaRefined);
+      if (s.answers && typeof s.answers === "object") setAnswers(s.answers);
+      if (typeof s.name === "string") setName(s.name);
+      if (typeof s.contact === "string") setContact(s.contact);
+      if (typeof s.phone === "string") setPhone(s.phone);
+      if (s.phase === "quiz" || s.phase === "contact") {
+        setPhase(s.phase);
+        setQIndex(Math.max(0, Math.min(s.qIndex ?? 0, QUESTIONS.length - 1)));
+      }
+    } catch {
+      /* 손상된 저장값 무시 */
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!restored.current || phase === "generating" || phase === "done") return;
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          // interpret 단계는 후보를 저장하지 않으므로 아이디어 입력으로 복귀
+          phase: phase === "interpret" ? "idea" : phase,
+          qIndex,
+          idea,
+          ideaRefined,
+          answers,
+          name,
+          contact,
+          phone,
+        }),
+      );
+    } catch {
+      /* 저장 불가 환경 무시 */
+    }
+  }, [phase, qIndex, idea, ideaRefined, answers, name, contact, phone]);
 
   /* 노출되는 질문만 (업종별 분기) */
   const visibleQuestions = QUESTIONS.filter((q) => !q.when || q.when(answers));
@@ -300,6 +349,11 @@ export default function LeadForm() {
       setReport(data.report as Report);
       setPath((data.path as RecommendedPath) ?? "quick");
       setPhase("done");
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        /* ignore */
+      }
     } catch (err) {
       console.error("[lead submit error]", err);
       setErrorMsg(
@@ -722,12 +776,77 @@ function ReportView({
         </p>
       </div>
 
+      {/* 신청 후 진행 절차 — 다음에 무슨 일이 일어나는지 */}
+      <NextSteps path={path} />
+
       {/* 경로별 CTA */}
       <PathCta path={path} />
 
       <p className="mt-3 text-center text-xs text-text-tertiary">
         가장 빠른 답변은 카톡입니다. 메일/전화로도 24시간 안에 회신드립니다 ·
         비밀유지 약속
+      </p>
+    </div>
+  );
+}
+
+function NextSteps({ path }: { path: RecommendedPath }) {
+  const isEngine = path === "engine";
+  const steps: { who: "비즈필터" | "함께"; text: string }[] = [
+    {
+      who: "비즈필터",
+      text: "24시간 안에 사람이 이 설계서를 직접 검토하고, 보완할 부분까지 짚어서 회신드립니다.",
+    },
+    {
+      who: "함께",
+      text: "킥오프 30분 통화: 아이디어를 한 문장으로 자르고, 합격선 숫자를 서면으로 합의합니다.",
+    },
+    {
+      who: "비즈필터",
+      text: isEngine
+        ? "48시간 안에 준비 완료: 만드신 페이지를 진단하고 측정 이벤트를 세팅합니다."
+        : "48시간 안에 준비 완료: 실서비스처럼 보이는 검증용 사이트를 제작합니다.",
+    },
+    {
+      who: "비즈필터",
+      text: "7일 광고 집행: 라이브 대시보드를 상시 공개하고 기간 내 최적화합니다.",
+    },
+    {
+      who: "함께",
+      text: "판정 미팅 30분: 합격선 대비 Go/No-Go와 다음 액션을 정리해 드립니다.",
+    },
+  ];
+  return (
+    <div className="mt-4 rounded-lg border border-border bg-surface-light p-5">
+      <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
+        신청하면 이렇게 진행됩니다
+      </p>
+      <ol className="mt-3 space-y-3">
+        {steps.map((s, i) => (
+          <li key={s.text} className="flex items-start gap-3">
+            <span className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border border-accent/40 bg-accent/10 text-xs font-bold text-accent">
+              {i + 1}
+            </span>
+            <div>
+              <span
+                className={`mr-2 inline-block rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                  s.who === "함께"
+                    ? "bg-accent/10 text-accent"
+                    : "bg-bg-alt text-text-tertiary"
+                }`}
+              >
+                {s.who === "함께" ? "함께 30분" : "비즈필터가 함"}
+              </span>
+              <span className="text-sm leading-relaxed text-text">
+                {s.text}
+              </span>
+            </div>
+          </li>
+        ))}
+      </ol>
+      <p className="mt-4 text-sm font-bold text-text">
+        고객님이 하실 일은 통화 두 번이 전부입니다. 나머지는 전부 저희가
+        합니다.
       </p>
     </div>
   );
