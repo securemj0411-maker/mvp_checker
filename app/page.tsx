@@ -1,5 +1,6 @@
 import ScrollReveal from "@/components/ScrollReveal";
 import { ArrowRight, Check } from "lucide-react";
+import { BrandMark, Wordmark } from "@/components/Brand";
 
 /* 판정 컬러 시스템 — GO/NO-GO/PIVOT */
 const verdict = {
@@ -44,44 +45,6 @@ export default function Home({
 /* ── 작은 블루 라벨 (토스의 '홈·소비' 스타일) ── */
 function Label({ children }: { children: React.ReactNode }) {
   return <p className="text-[17px] font-bold text-accent">{children}</p>;
-}
-
-/* 벤 다이어그램 마크 — 비즈(먹) + 필터(블루) 두 원, 교집합 렌즈에 흰 체크 */
-function BrandMark({ size = 30 }: { size?: number }) {
-  return (
-    <svg
-      viewBox="0 0 100 100"
-      width={size}
-      height={size}
-      aria-hidden
-      style={{ display: "block", flex: "none" }}
-    >
-      <circle cx="37" cy="50" r="31" fill="#16233A" />
-      <circle cx="63" cy="50" r="31" fill="#3182F6" />
-      <path
-        d="M50 21.9 A31 31 0 0 1 50 78.1 A31 31 0 0 1 50 21.9 Z"
-        fill="#11328A"
-      />
-      <path
-        d="M41 51 L49 60 L64 39"
-        fill="none"
-        stroke="#ffffff"
-        strokeWidth="8.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-/* 워드마크 — 비즈(먹) 필터(블루) 투톤 */
-function Wordmark({ className = "" }: { className?: string }) {
-  return (
-    <span className={`font-extrabold tracking-[-0.04em] ${className}`}>
-      <span style={{ color: "var(--ink)" }}>비즈</span>
-      <span style={{ color: "var(--accent)" }}>필터</span>
-    </span>
-  );
 }
 
 /* ─────────────────────────  NAV  ───────────────────────── */
@@ -201,7 +164,7 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
           </p>
           <div className="mt-7 flex flex-col gap-3">{ctas}</div>
           <p className="mt-6 text-xs font-medium text-white/55">
-            광고비는 비즈필터가 부담 · 실제 결제는 없음 · 판정 보장
+            광고비는 비즈필터가 부담 · 신청은 결제가 아닙니다 · 판정 보장
           </p>
         </div>
       </div>
@@ -218,7 +181,7 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
           </p>
           <div className="mt-9 flex flex-wrap items-center gap-3">{ctas}</div>
           <p className="mt-7 text-sm font-medium text-text-tertiary">
-            광고비는 비즈필터가 부담 · 실제 결제는 없음 · Go/No-Go 판정 보장
+            광고비는 비즈필터가 부담 · 신청은 결제가 아닙니다 · Go/No-Go 판정 보장
           </p>
         </div>
         <div className="reveal relative flex items-end justify-center self-stretch">

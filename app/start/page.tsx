@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import LeadForm from "@/components/LeadForm";
-import { SITE_NAME } from "@/lib/site";
+import { BrandMark, Wordmark } from "@/components/Brand";
 
 export const metadata: Metadata = {
   title: "내 아이디어 검증 신청 | 비즈필터",
@@ -15,17 +15,12 @@ export default function StartPage() {
       {/* 전용 헤더 — 메뉴 없음(이탈구 차단), 로고만 홈 링크 */}
       <header className="sticky top-0 z-20 border-b border-border bg-bg/90 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-2xl items-center justify-between px-4 sm:px-6">
-          <a
-            href="/"
-            className="flex items-center gap-2 font-extrabold text-text"
-          >
-            <span className="grid h-7 w-7 place-items-center rounded-md bg-accent text-sm text-white">
-              B
-            </span>
-            {SITE_NAME}
+          <a href="/" className="flex items-center gap-2">
+            <BrandMark size={26} />
+            <Wordmark className="text-lg" />
           </a>
           <span className="text-[11px] font-semibold text-text-tertiary sm:text-xs">
-            광고비 비즈필터 부담 · 실제 결제 없음
+            광고비 비즈필터 부담 · 신청은 결제가 아닙니다
           </span>
         </div>
       </header>

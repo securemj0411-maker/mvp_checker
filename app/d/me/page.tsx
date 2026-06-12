@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { getSupabaseServer } from "@/lib/supabaseServer";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
-import { SITE_NAME } from "@/lib/site";
+import { BrandMark, Wordmark } from "@/components/Brand";
 import MyLeads, { type MyLead } from "./MyLeads";
 
 export const dynamic = "force-dynamic";
@@ -57,11 +57,9 @@ export default async function MyPage() {
     <main className="min-h-screen bg-bg px-4 py-10 sm:px-6">
       <div className="mx-auto max-w-2xl space-y-5">
         <div className="flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2 font-extrabold text-text">
-            <span className="grid h-7 w-7 place-items-center rounded-md bg-accent text-sm text-white">
-              B
-            </span>
-            {SITE_NAME}
+          <a href="/" className="flex items-center gap-2">
+            <BrandMark size={24} />
+            <Wordmark className="text-base" />
           </a>
           <form action="/api/auth/logout" method="post">
             <button className="text-xs font-semibold text-text-tertiary transition hover:text-text">
