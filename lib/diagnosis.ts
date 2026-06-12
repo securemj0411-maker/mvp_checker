@@ -241,12 +241,13 @@ export interface ConfirmedBrief {
   target_line: string;
   problem_line: string;
   price_value: number;
-  selling_points: string[];
+  selling_points: string[]; // 내부용 (고객 미노출)
   name: string;
-  excluded: string[];
-  pass_bar: string;
-  min_sample: string;
-  shortfall_choice: "ratio" | "extend";
+  excluded: string[]; // 내부용 (고객 미노출)
+  // 아래 3개는 서버(코드)가 결정 — 고객에게 떠넘기지 않음
+  pass_bar?: string;
+  min_sample?: string;
+  shortfall_choice?: "ratio" | "extend";
 }
 
 const SERVICE_LABEL: Record<ServiceType, string> = {

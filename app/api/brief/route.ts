@@ -127,28 +127,29 @@ const BRIEF_SCHEMA = {
     price_value: {
       type: "integer",
       description:
-        "검증 사이트에 표시할 가격 숫자 하나 (원 단위). 고객이 답한 가격대 구간 안에서, 유사 서비스 시세를 고려한 자연스러운 숫자 (예: 29000)",
+        "고객 제품을 검증 페이지에 표시할 가격 숫자 하나 (원 단위). 고객이 답한 가격대 구간 안에서, 고객의 결제 방식에 맞는 자연스러운 숫자. 구독이면 월 요금, 단건이면 1회 가격, 수수료/광고형이면 대표 객단가. 고객 제품의 가격이지 비즈필터 검증 서비스 가격이 아니다.",
     },
     price_rationale: {
       type: "string",
-      description: "그 가격을 제안하는 근거 한 문장",
+      description:
+        "그 가격을 제안하는 근거 한 문장. 고객 제품과 시장 시세 관점으로만. 비즈필터(검증 서비스) 관점의 문장 금지.",
     },
     selling_points: {
       type: "array",
       description:
-        "핵심 소구점 정확히 3개. 현재 대안의 약점에서 역산 (더 싸다/빠르다/간편하다 중 해당되는 것). 광고 문구와 사이트 섹션이 된다.",
+        "고객 제품을 사는 이유 정확히 3개 (내부 광고 제작용, 고객에게 노출 안 됨). 현재 대안의 약점에서 역산. 비즈필터 검증 서비스의 장점(노코드, 광고 세팅 대행, 단건 비용 등)을 절대 적지 말 것. 오직 고객 제품 자체의 구매 이유.",
       items: { type: "string" },
     },
     name_candidates: {
       type: "array",
       description:
-        "검증용 가칭 2~3개. 한글, 발음 쉬움, 서비스 내용이 연상되는 이름. 기존 유명 브랜드와 겹치지 않게.",
+        "고객 제품의 검증용 가칭 2~3개. 한글, 발음 쉬움, 고객 제품 내용이 연상되는 이름. '비즈필터', '검증', '팔릴까' 같은 메타 단어 금지. 기존 유명 브랜드와 겹치지 않게.",
       items: { type: "string" },
     },
     excluded: {
       type: "array",
       description:
-        "이번 검증에서 다루지 않는 기능/타깃/메시지 1~3개. 아이디어에 있었지만 한 문장에 안 들어간 것들. 빈 배열 금지.",
+        "고객 제품 아이디어 중 이번 7일에 빼는 기능/타깃 1~3개 (내부 스코프 기록용, 고객에게 노출 안 됨). 반드시 고객 제품의 범위에 대한 것. '광고 채널 자동 집행', '연동 기능' 같은 비즈필터 검증 작업 관련 용어 절대 금지. 빈 배열 금지.",
       items: { type: "string" },
     },
   },
@@ -196,14 +197,18 @@ async function generateBrief(
     output_config: { format: { type: "json_schema", schema: BRIEF_SCHEMA } },
     system: [
       "당신은 사업 아이디어 검증 회사 '비즈필터'의 검증 설계자입니다.",
-      "창업자의 무료 설계서를 바탕으로 '검증 브리프' 초안을 작성합니다. 이 브리프가 그대로 검증용 사이트의 헤드라인, 가격 표시, 광고 문구가 됩니다.",
+      "고객(창업자)이 만들려는 '고객의 제품'을 광고로 검증하기 위한 브리프 초안을 작성합니다.",
       "",
-      "규칙:",
-      "- 오퍼 한 문장 공식: [타깃]이 [문제]를 겪을 때 [현재 대안] 대신 [오퍼]를 쓰게 한다. 단 헤드라인 자체는 고객에게 말 거는 약속 문장으로 쓴다.",
-      "- 2안은 서로 다른 각도여야 한다 (예: 문제 해결 소구 vs 가격/간편 소구).",
-      "- 가격은 고객이 답한 구간을 벗어나지 않는다. 9,900원 같은 시장 관행 숫자를 쓴다.",
+      "가장 중요한 원칙 (위반 시 전부 무효):",
+      "- 검증 대상은 언제나 '고객의 제품 아이디어'입니다. 비즈필터(이 검증 서비스) 자체를 검증 대상으로 삼지 마세요.",
+      "- 고객 아이디어가 모호하거나 '검증 서비스' 비슷하게 들려도, 비즈필터의 타깃(예비 창업자)/오퍼(만들기 전에 검증)/장점(노코드, 광고 대행, 단건 비용)을 결과에 넣지 마세요. 그건 우리 서비스이지 고객 제품이 아닙니다.",
+      "- 모든 필드(오퍼, 타깃, 가격, 소구점, 가칭)는 고객이 팔려는 그 제품에 대한 것이어야 합니다.",
+      "",
+      "작성 규칙:",
+      "- 오퍼 한 문장 공식: [타깃]이 [문제]를 겪을 때 [현재 대안] 대신 [오퍼]를 쓰게 한다. 헤드라인 자체는 고객 제품을 사려는 사람에게 말 거는 약속 문장으로 씁니다.",
+      "- 2안은 서로 다른 각도여야 합니다 (예: 문제 해결 소구 vs 가격·간편 소구).",
+      "- 가격은 고객이 답한 구간을 벗어나지 않고, 고객의 결제 방식(구독/단건/수수료)에 맞는 숫자로.",
       "- 모든 문장 경어체. 줄표(—) 금지. 과장 금지. '국내 최초', '최고' 같은 검증 안 된 수식어 금지.",
-      "- excluded에는 아이디어에 있었지만 이번 7일 검증에서 빼는 것을 적는다. 이번에 통하면 다음에 시험한다는 뉘앙스.",
     ].join("\n"),
     messages: [{ role: "user", content: facts }],
   });
@@ -271,15 +276,11 @@ export async function POST(request: Request) {
     }
   }
 
-  /* 브리프 확정 + 합격선 동의 — 통화 없는 킥오프의 완성 지점 */
+  /* 브리프 확정 — 버튼 클릭이 곧 동의 (타이핑 마찰 제거). 기록은 백엔드에서 */
   if (body.action === "confirm") {
-    const { confirmed, tier, agreement } = body;
+    const { confirmed, tier } = body;
     if (!confirmed || (tier !== "engine" && tier !== "quick")) {
       return Response.json({ error: "missing fields" }, { status: 400 });
-    }
-    // 합격선 동의는 체크박스가 아니라 직접 타이핑 — 증거력과 각인
-    if (agreement?.trim() !== "동의합니다") {
-      return Response.json({ error: "agreement required" }, { status: 400 });
     }
     if (lead.brief_confirmed_at) {
       return Response.json({ lead: publicLead(lead) }); // 이미 확정됨 (중복 클릭)
@@ -288,32 +289,36 @@ export async function POST(request: Request) {
     const now = new Date();
     const due = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000); // 입금 기한 3일
     const existing = lead.brief as { draft?: BriefDraft } | null;
+    const answers = leadAnswers(lead);
+    const pb = decidePassBar(answers); // 합격선은 코드가 결정, 고객에게 안 떠넘김
 
     const ip =
       request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
     const ua = request.headers.get("user-agent")?.slice(0, 500) ?? null;
 
-    // 그 순간 화면에 표시된 합의 내용 전문 스냅샷 — 분쟁 방어의 원본
+    // 그 순간 화면에 표시된 합의 내용 전문 스냅샷 — 분쟁 방어의 원본 (고객은 안 봐도 기록은 남김)
     const snapshot = [
       `오퍼: ${confirmed.offer}`,
       `타깃: ${confirmed.target_line}`,
-      `문제: ${confirmed.problem_line}`,
       `표시 가격: ${confirmed.price_value.toLocaleString()}원`,
-      `소구점: ${confirmed.selling_points.join(" / ")}`,
       `가칭: ${confirmed.name}`,
-      `제외할 것: ${confirmed.excluded.join(" / ")}`,
-      `합격선: ${confirmed.pass_bar}`,
-      `최소 표본: ${confirmed.min_sample}`,
-      `표본 미달 시: ${confirmed.shortfall_choice === "ratio" ? "비율 환산 판정" : "1~2일 연장"}`,
+      `판정 기준(합격선): ${pb.bar} (최소 표본 ${pb.minSample}, 미달 시 비율 환산 또는 1~2일 연장)`,
       `플랜: ${TIER_INFO[tier].label} ${TIER_INFO[tier].priceLabel}`,
       `환불 규정: ${REFUND_POLICY.join(" | ")}`,
-      `동의 입력: ${agreement.trim()}`,
+      `확정 방식: '이 브리프로 확정하고 진행하기' 버튼 클릭`,
     ].join("\n");
+
+    const fullConfirmed: ConfirmedBrief = {
+      ...confirmed,
+      pass_bar: pb.bar,
+      min_sample: pb.minSample,
+      shortfall_choice: confirmed.shortfall_choice ?? "ratio",
+    };
 
     const { error: updateError } = await admin
       .from("o2o_leads")
       .update({
-        brief: { ...(existing ?? {}), confirmed },
+        brief: { ...(existing ?? {}), confirmed: fullConfirmed },
         tier,
         brief_confirmed_at: now.toISOString(),
         pass_bar_agreed_at: now.toISOString(),
@@ -330,13 +335,6 @@ export async function POST(request: Request) {
         lead_id: lead.id as string,
         event_type: "brief_confirmed",
         content: snapshot,
-        ip,
-        user_agent: ua,
-      },
-      {
-        lead_id: lead.id as string,
-        event_type: "pass_bar_agreed",
-        content: `합격선: ${confirmed.pass_bar} / 최소 표본: ${confirmed.min_sample} / 미달 시: ${confirmed.shortfall_choice} / 입력: ${agreement.trim()}`,
         ip,
         user_agent: ua,
       },

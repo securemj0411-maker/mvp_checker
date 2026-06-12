@@ -110,6 +110,9 @@ function Nav() {
           <a href="/blog" className="transition hover:text-text">
             블로그
           </a>
+          <a href="/d" className="transition hover:text-text">
+            내 검증 현황
+          </a>
         </nav>
         <a
           href="#cta"

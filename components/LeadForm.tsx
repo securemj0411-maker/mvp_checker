@@ -146,7 +146,7 @@ const QUESTIONS: Question[] = [
     options: [
       { value: "competitor", label: "비슷한 서비스를 쓰고 있어요" },
       { value: "manual", label: "수작업 · 엑셀 같은 임시방편으로 버텨요" },
-      { value: "none", label: "마땅한 방법 없이 그냥 참고 있어요" },
+      { value: "none", label: "마땅한 방법이 없어 불편을 감수하고 있어요" },
       { value: "unknown", label: "잘 모르겠어요" },
     ],
   },
@@ -172,8 +172,9 @@ export default function LeadForm() {
   const [interp, setInterp] = useState<InterpretResult | null>(null);
 
   const [name, setName] = useState("");
-  const [contact, setContact] = useState("");
-  const [phone, setPhone] = useState("");
+  const [contact, setContact] = useState(""); // 전화번호
+  const [customMode, setCustomMode] = useState(false);
+  const [customRefine, setCustomRefine] = useState("");
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -201,7 +202,6 @@ export default function LeadForm() {
       if (s.answers && typeof s.answers === "object") setAnswers(s.answers);
       if (typeof s.name === "string") setName(s.name);
       if (typeof s.contact === "string") setContact(s.contact);
-      if (typeof s.phone === "string") setPhone(s.phone);
       if (s.phase === "quiz" || s.phase === "contact") {
         setPhase(s.phase);
         setQIndex(Math.max(0, Math.min(s.qIndex ?? 0, QUESTIONS.length - 1)));
@@ -225,13 +225,12 @@ export default function LeadForm() {
           answers,
           name,
           contact,
-          phone,
         }),
       );
     } catch {
       /* 저장 불가 환경 무시 */
     }
-  }, [phase, qIndex, idea, ideaRefined, answers, name, contact, phone]);
+  }, [phase, qIndex, idea, ideaRefined, answers, name, contact]);
 
   /* 노출되는 질문만 (업종별 분기) */
   const visibleQuestions = QUESTIONS.filter((q) => !q.when || q.when(answers));
@@ -367,7 +366,7 @@ export default function LeadForm() {
           answers: quizAnswers,
           name: name.trim(),
           contact: contact.trim(),
-          phone: phone.trim() || undefined,
+          phone: contact.trim() || undefined,
           utm: getUtm(),
           interpretStatus: interpretStatus.current,
           userAgent:
@@ -485,13 +484,16 @@ export default function LeadForm() {
         <Progress current={chunkIndex} total={totalChunks} />
         {!interp ? (
           <div className="flex flex-col items-center py-10 text-center">
-            <div className="h-10 w-10 animate-spin rounded-full border-2 border-border border-t-accent" />
+            <div className="h-12 w-12 animate-spin rounded-full border-[3px] border-border border-t-accent" />
             <p className="mt-5 text-base font-bold text-text">
-              아이디어를 읽고 있습니다
+              AI가 아이디어를 분석하고 있습니다
             </p>
             <p className="mt-1 text-sm text-text-secondary">
               검증 가능한 형태로 좁혀볼게요. 몇 초면 됩니다.
             </p>
+            <div className="mt-5 h-1.5 w-48 overflow-hidden rounded-full bg-bg-alt">
+              <div className="loading-sweep h-full rounded-full bg-accent" />
+            </div>
           </div>
         ) : (
           <div className="quiz-step-in space-y-5">
@@ -503,34 +505,68 @@ export default function LeadForm() {
                 {interp.summary}
               </p>
             </div>
-            <div className="space-y-2.5">
-              {interp.candidates.map((c) => (
+            {customMode ? (
+              <div className="space-y-2.5">
+                <p className="text-sm font-semibold text-text-secondary">
+                  한 문장으로 직접 정리해주세요
+                </p>
+                <textarea
+                  autoFocus
+                  value={customRefine}
+                  onChange={(e) => setCustomRefine(e.target.value)}
+                  className={`${inputBase} min-h-[80px] resize-y leading-relaxed`}
+                  placeholder="예: 1인 미용실 원장이 노쇼 손님 때문에 매출이 비는 문제를 예약금으로 막아주는 서비스"
+                  maxLength={300}
+                />
                 <button
-                  key={c.label}
                   type="button"
-                  onClick={() => pickInterpretation(c.detail)}
-                  className="w-full rounded-md border border-border bg-surface-light px-4 py-3.5 text-left transition hover:border-accent/60 hover:bg-bg-alt focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  disabled={customRefine.trim().length < 5}
+                  onClick={() => pickInterpretation(customRefine.trim())}
+                  className="w-full rounded-md bg-accent px-6 py-3.5 text-base font-bold text-white transition hover:bg-accent-hover disabled:opacity-40"
                 >
-                  <span className="block text-[15px] font-semibold text-text">
-                    {c.label}
-                  </span>
-                  <span className="mt-0.5 block text-xs leading-relaxed text-text-tertiary">
-                    {c.detail}
-                  </span>
+                  이 내용으로 진행
                 </button>
-              ))}
-              <button
-                type="button"
-                onClick={() => pickInterpretation(null)}
-                className="w-full rounded-md border border-dashed border-border px-4 py-3.5 text-left text-[15px] font-semibold text-text-secondary transition hover:border-accent/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-              >
-                제 설명 그대로 진행할게요
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={() => setCustomMode(false)}
+                  className="w-full text-center text-sm font-medium text-text-tertiary transition hover:text-text"
+                >
+                  ← 추천 해석에서 고를게요
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {interp.candidates.map((c) => (
+                  <button
+                    key={c.label}
+                    type="button"
+                    onClick={() => pickInterpretation(c.detail)}
+                    className="w-full rounded-md border border-border bg-surface-light px-4 py-3.5 text-left transition hover:border-accent/60 hover:bg-bg-alt focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  >
+                    <span className="block text-[15px] font-semibold text-text">
+                      {c.label}
+                    </span>
+                    <span className="mt-0.5 block text-xs leading-relaxed text-text-tertiary">
+                      {c.detail}
+                    </span>
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomRefine(ideaRefined || idea);
+                    setCustomMode(true);
+                  }}
+                  className="w-full rounded-md border border-dashed border-border px-4 py-3.5 text-left text-[15px] font-semibold text-text-secondary transition hover:border-accent/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                >
+                  다 아니에요. 제가 직접 쓸게요
+                </button>
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <BackButton onClick={() => setPhase("idea")} />
               <p className="text-xs text-text-tertiary">
-                고른 해석 기준으로 설계서가 만들어집니다
+                고른 내용 기준으로 설계서가 만들어집니다
               </p>
             </div>
           </div>
@@ -549,54 +585,36 @@ export default function LeadForm() {
         <Progress current={chunkIndex} total={totalChunks} />
         <div>
           <p className="text-xl font-bold text-text">
-            마지막입니다. 설계서를 어디로 보내드릴까요?
+            거의 다 됐어요. 연락받을 곳만 남겨주세요.
           </p>
           <p className="mt-1 text-sm text-text-secondary">
-            제출하면 검증 설계서를 그 자리에서 바로 보여드립니다. 회신을
-            기다리실 필요가 없습니다.
+            검증 설계서는 바로 다음 화면에 뜹니다. 연락처는 진행 상황을
+            알려드릴 때만 씁니다.
           </p>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-text-secondary">
-              이름
-            </label>
-            <input
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className={inputBase}
-              placeholder="홍길동"
-              maxLength={100}
-            />
-          </div>
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-text-secondary">
-              이메일 또는 카톡 ID
-            </label>
-            <input
-              required
-              minLength={3}
-              value={contact}
-              onChange={(e) => setContact(e.target.value)}
-              className={inputBase}
-              placeholder="이메일 주소 또는 카톡 ID"
-              maxLength={254}
-            />
-          </div>
         </div>
         <div>
           <label className="mb-2 block text-sm font-semibold text-text-secondary">
-            휴대폰 번호{" "}
-            <span className="font-normal text-text-tertiary">
-              (선택 · 진행 알림을 문자로 받고 싶으시면)
-            </span>
+            이름
           </label>
           <input
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className={inputBase}
+            placeholder="홍길동"
+            maxLength={100}
+          />
+        </div>
+        <div>
+          <label className="mb-2 block text-sm font-semibold text-text-secondary">
+            휴대폰 번호
+          </label>
+          <input
+            required
             type="tel"
             inputMode="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            value={contact}
+            onChange={(e) => setContact(e.target.value)}
             className={inputBase}
             placeholder="010-1234-5678"
             maxLength={20}

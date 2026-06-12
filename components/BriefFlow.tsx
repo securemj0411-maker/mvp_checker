@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { sendGAEvent } from "@next/third-parties/google";
 import { BANK_INFO, type BriefDraft, type ConfirmedBrief } from "@/lib/diagnosis";
+import { KAKAO_CHAT_URL, SITE_NAME } from "@/lib/site";
 
 /* ─────────────────────────────────────────────────────────────
    고객 대시보드 + 브리프 확정 — 킥오프 통화의 무통화 대체물.
@@ -91,6 +92,22 @@ export default function BriefFlow({ code }: { code: string }) {
 
   return (
     <div className="space-y-5">
+      {/* 로고 헤더 — 길을 잃지 않게 */}
+      <div className="flex items-center justify-between">
+        <a href="/" className="flex items-center gap-2 font-extrabold text-text">
+          <span className="grid h-7 w-7 place-items-center rounded-md bg-accent text-sm text-white">
+            B
+          </span>
+          {SITE_NAME}
+        </a>
+        <a
+          href="/"
+          className="text-xs font-semibold text-text-tertiary transition hover:text-text"
+        >
+          홈으로
+        </a>
+      </div>
+
       <header className="cold-panel rounded-lg p-6">
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -98,7 +115,8 @@ export default function BriefFlow({ code }: { code: string }) {
               {lead.name}님의 검증 현황
             </p>
             <p className="mt-0.5 text-xs text-text-tertiary">
-              진행 코드 {code} · 이 페이지 주소를 보관하세요
+              진행 코드 <b className="font-mono text-text-secondary">{code}</b>{" "}
+              · 이 페이지를 즐겨찾기 해두시면 언제든 다시 보실 수 있습니다
             </p>
           </div>
         </div>
@@ -143,28 +161,30 @@ function StagePipeline({ stage }: { stage: Stage }) {
 /* ───────── 대표 인사 영상 (플레이스홀더 — 실제 영상으로 교체 예정) ───────── */
 
 function FounderVideo() {
+  // 화면을 가리지 않게 기본 접힘. 펼치면 90초 인사 영상.
   return (
-    <div className="cold-panel overflow-hidden rounded-lg">
-      <div className="relative flex aspect-video items-center justify-center bg-bg-alt">
-        <div className="flex flex-col items-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full border border-accent/40 bg-accent/10">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="var(--accent)" aria-hidden>
-              <path d="M8 5v14l11-7z" />
-            </svg>
-          </div>
-          <p className="mt-3 text-sm font-bold text-text">
-            대표가 직접 설명드립니다 (90초)
-          </p>
-          <p className="mt-1 text-xs text-text-tertiary">영상 준비 중입니다</p>
+    <details className="cold-panel overflow-hidden rounded-lg">
+      <summary className="flex cursor-pointer items-center gap-3 px-5 py-4">
+        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-accent/40 bg-accent/10">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--accent)" aria-hidden>
+            <path d="M8 5v14l11-7z" />
+          </svg>
+        </span>
+        <span className="text-sm font-bold text-text">
+          대표 인사 영상 보기 (90초)
+        </span>
+        <span className="ml-auto text-xs text-text-tertiary">열기</span>
+      </summary>
+      <div className="border-t border-border">
+        <div className="flex aspect-video items-center justify-center bg-bg-alt">
+          <p className="text-xs text-text-tertiary">영상 준비 중입니다</p>
         </div>
-      </div>
-      <div className="px-5 py-4">
-        <p className="text-sm leading-relaxed text-text-secondary">
-          통화 대신 이 화면에서 같은 합의를 합니다. 브리프와 광고 문구, 판정
-          리포트까지 대표가 직접 검토합니다.
+        <p className="px-5 py-4 text-sm leading-relaxed text-text-secondary">
+          통화 대신 이 화면에서 같은 내용을 확인하고 시작합니다. 검증용 사이트,
+          광고 문구, 판정 리포트까지 대표가 직접 검토합니다.
         </p>
       </div>
-    </div>
+    </details>
   );
 }
 
@@ -185,18 +205,14 @@ function BriefStep({
   const [drafting, setDrafting] = useState(false);
   const [draftError, setDraftError] = useState(false);
 
-  // 확정 폼 상태 — AI 초안으로 프리필, 고객은 수정만
+  // 확정 폼 상태 — 고객이 확인/수정하는 건 핵심 3개(오퍼·가격·가칭)뿐.
+  // 타깃·문제·소구점·제외는 전문가가 정한 내부 자료로 보관만 한다.
   const [offer, setOffer] = useState("");
-  const [target, setTarget] = useState("");
-  const [problem, setProblem] = useState("");
   const [price, setPrice] = useState<number>(0);
-  const [points, setPoints] = useState<string[]>([]);
   const [name, setName] = useState("");
-  const [shortfall, setShortfall] = useState<"ratio" | "extend">("ratio");
   const [tier, setTier] = useState<"engine" | "quick">(
     lead.tier === "engine" ? "engine" : "quick",
   );
-  const [agreement, setAgreement] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -223,14 +239,11 @@ function BriefStep({
     if (!draft) fetchDraft();
   }, [draft, fetchDraft]);
 
-  // 초안 도착 시 프리필
+  // 초안 도착 시 프리필 (고객 편집 대상 3개만)
   useEffect(() => {
     if (!draft) return;
     setOffer((v) => v || draft.offer_options[0]?.headline || "");
-    setTarget((v) => v || draft.target_line);
-    setProblem((v) => v || draft.problem_line);
     setPrice((v) => v || draft.price_value);
-    setPoints((v) => (v.length ? v : draft.selling_points.slice(0, 3)));
     setName((v) => v || draft.name_candidates[0] || "");
   }, [draft]);
 
@@ -255,11 +268,11 @@ function BriefStep({
       <div className="cold-panel flex flex-col items-center rounded-lg p-10">
         <div className="h-10 w-10 animate-spin rounded-full border-2 border-border border-t-accent" />
         <p className="mt-4 text-base font-bold text-text">
-          브리프 초안을 만들고 있습니다
+          검증 준비안을 짜고 있습니다
         </p>
         <p className="mt-1 text-sm text-text-secondary">
-          설계서를 바탕으로 오퍼 문장, 가격, 소구점, 가칭을 정리합니다. 10~20초
-          정도 걸립니다.
+          설계서를 바탕으로 광고에 쓸 헤드라인과 가격, 페이지 구성을
+          준비합니다. 10~20초 정도 걸립니다.
         </p>
       </div>
     );
@@ -283,41 +296,28 @@ function BriefStep({
   }
 
   async function submit() {
-    if (!offer.trim() || !target.trim() || !price || !name.trim()) {
-      setSubmitError("비어 있는 항목이 있습니다. 모든 카드를 확인해주세요.");
-      return;
-    }
-    if (agreement.trim() !== "동의합니다") {
-      setSubmitError(
-        '합격선 동의 칸에 "동의합니다"를 직접 입력해주세요. 광고 시작 후에는 기준을 바꿀 수 없기 때문에 확실한 동의가 필요합니다.',
-      );
+    if (!offer.trim() || !price || !name.trim()) {
+      setSubmitError("오퍼, 가격, 가칭을 확인해주세요.");
       return;
     }
     setSubmitting(true);
     setSubmitError(null);
+    // 타깃·문제·소구점·제외는 전문가(AI 초안)가 정한 그대로 내부 보관
     const confirmed: ConfirmedBrief = {
       offer: offer.trim(),
-      target_line: target.trim(),
-      problem_line: problem.trim(),
+      target_line: draft!.target_line,
+      problem_line: draft!.problem_line,
       price_value: price,
-      selling_points: points.map((p) => p.trim()).filter(Boolean),
+      selling_points: draft!.selling_points,
       name: name.trim(),
       excluded: draft!.excluded,
-      pass_bar: lead.passBar.bar,
-      min_sample: lead.passBar.minSample,
-      shortfall_choice: shortfall,
+      // pass_bar / min_sample / shortfall_choice 는 서버(코드)가 채운다
     };
     try {
       const res = await fetch("/api/brief", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "confirm",
-          code,
-          tier,
-          confirmed,
-          agreement: agreement.trim(),
-        }),
+        body: JSON.stringify({ action: "confirm", code, tier, confirmed }),
       });
       if (!res.ok) throw new Error(String(res.status));
       sendGAEvent("event", "brief_confirmed", { tier });
@@ -336,16 +336,17 @@ function BriefStep({
 
       <div className="cold-panel rounded-lg p-6">
         <p className="text-lg font-bold text-text">
-          검증 브리프를 확정해주세요
+          이렇게 검증을 시작하면 될까요?
         </p>
         <p className="mt-1 text-sm leading-relaxed text-text-secondary">
-          답변을 바탕으로 만든 초안입니다. 항목마다 확인하고, 다르면 그 자리에서
-          고치세요. 여기서 확정한 내용 그대로 사이트와 광고가 만들어집니다.
+          답변을 바탕으로 저희가 준비안을 잡아왔습니다. 광고 문구와 페이지
+          디자인, 측정 설정은 저희가 알아서 합니다. 고객님은 아래 세 가지만
+          확인해주시면 됩니다. 마음에 안 들면 그 자리에서 고치셔도 됩니다.
         </p>
       </div>
 
-      {/* 오퍼 한 문장 — 2안 택1 + 수정 */}
-      <Card label="오퍼 한 문장 (사이트 헤드라인)" required>
+      {/* 1. 오퍼 헤드라인 — 2안 택1 + 수정 */}
+      <Card label="검증 페이지의 핵심 메시지" required>
         <div className="space-y-2">
           {draft.offer_options.map((o) => (
             <button
@@ -376,25 +377,8 @@ function BriefStep({
         />
       </Card>
 
-      <Card label="타깃 한 줄" required>
-        <input
-          value={target}
-          onChange={(e) => setTarget(e.target.value)}
-          maxLength={80}
-          className={inputBase}
-        />
-      </Card>
-
-      <Card label="해결하는 문제">
-        <input
-          value={problem}
-          onChange={(e) => setProblem(e.target.value)}
-          maxLength={100}
-          className={inputBase}
-        />
-      </Card>
-
-      <Card label="사이트에 표시할 가격" required>
+      {/* 2. 표시 가격 */}
+      <Card label="검증 페이지에 표시할 가격" required>
         <p className="mb-2 text-xs leading-relaxed text-text-tertiary">
           {draft.price_rationale}
         </p>
@@ -403,7 +387,7 @@ function BriefStep({
             type="number"
             value={price || ""}
             onChange={(e) => setPrice(Number(e.target.value))}
-            min={1000}
+            min={100}
             step={100}
             className={`${inputBase} mt-0 text-right font-mono`}
           />
@@ -411,23 +395,8 @@ function BriefStep({
         </div>
       </Card>
 
-      <Card label="핵심 소구점 3개 (광고 문구가 됩니다)">
-        <div className="space-y-2">
-          {points.map((p, i) => (
-            <input
-              key={i}
-              value={p}
-              onChange={(e) =>
-                setPoints((prev) => prev.map((v, j) => (j === i ? e.target.value : v)))
-              }
-              maxLength={60}
-              className={`${inputBase} mt-0`}
-            />
-          ))}
-        </div>
-      </Card>
-
-      <Card label="검증용 가칭" required>
+      {/* 3. 가칭 */}
+      <Card label="검증용 서비스 이름 (가칭)" required>
         <div className="flex flex-wrap gap-2">
           {draft.name_candidates.map((n) => (
             <button
@@ -453,23 +422,8 @@ function BriefStep({
         />
       </Card>
 
-      <Card label="이번 검증에서 빼는 것">
-        <ul className="space-y-1.5">
-          {draft.excluded.map((x) => (
-            <li key={x} className="flex items-start gap-2 text-sm text-text-secondary">
-              <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-border" />
-              {x}
-            </li>
-          ))}
-        </ul>
-        <p className="mt-2 text-xs text-text-tertiary">
-          이번 7일은 위 한 문장만 시험합니다. 이게 통하면 다음 것도 시험할 수
-          있습니다.
-        </p>
-      </Card>
-
       {/* 플랜 선택 */}
-      <Card label="플랜 선택" required>
+      <Card label="플랜" required>
         <div className="grid gap-2 sm:grid-cols-2">
           {(["engine", "quick"] as const).map((t) => {
             const info = lead.tiers[t];
@@ -491,7 +445,7 @@ function BriefStep({
                 </span>
                 <span className="mt-0.5 block text-xs leading-relaxed text-text-tertiary">
                   {disabled
-                    ? "입력하신 페이지는 측정 스크립트 설치가 안 되는 플랫폼이라 엔진 진행이 어렵습니다"
+                    ? "입력하신 페이지는 측정 설치가 안 되는 플랫폼이라 엔진 진행이 어렵습니다. Quick으로 진행해주세요"
                     : info.desc}
                 </span>
               </button>
@@ -500,66 +454,41 @@ function BriefStep({
         </div>
       </Card>
 
-      {/* 합격선 — 동의는 타이핑으로 */}
-      <Card label="합격선 (판정 기준)" required>
-        <div className="rounded-md border border-accent/30 bg-accent/5 px-4 py-3">
-          <p className="text-base font-bold text-text">{lead.passBar.bar}</p>
-          <p className="mt-1 text-xs leading-relaxed text-text-secondary">
-            {lead.passBar.reason} 최소 표본은 {lead.passBar.minSample}입니다.
+      {/* 판정 기준 — 정보로만 (고객 의사결정 없음) */}
+      <details className="cold-panel rounded-lg p-5">
+        <summary className="cursor-pointer text-sm font-bold text-text-secondary">
+          판정은 어떻게 하나요?
+        </summary>
+        <div className="mt-3 space-y-2 text-sm leading-relaxed text-text-secondary">
+          <p>
+            <b className="text-text">{lead.passBar.bar}</b>을 기준으로
+            객관적으로 판정합니다. {lead.passBar.reason} 표본이 부족하면 비율로
+            환산하거나 1~2일 연장해서 채운 뒤 판정합니다.
+          </p>
+          <p>
+            이 기준은 광고를 시작하기 전에 고정되고, 데이터를 본 뒤에는 저희도
+            바꾸지 않습니다. 그래야 판정이 공정하기 때문입니다.
           </p>
         </div>
-        <p className="mt-3 text-xs font-bold text-text-secondary">
-          7일 안에 최소 표본({lead.passBar.minSample})이 안 모이면:
-        </p>
-        <div className="mt-2 grid gap-2 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => setShortfall("ratio")}
-            className={`rounded-md border px-3 py-2.5 text-left text-sm transition ${
-              shortfall === "ratio"
-                ? "border-accent bg-accent/10 text-text"
-                : "border-border bg-surface-light text-text-secondary"
-            }`}
-          >
-            모인 표본 기준으로 비율 환산 판정
-          </button>
-          <button
-            type="button"
-            onClick={() => setShortfall("extend")}
-            className={`rounded-md border px-3 py-2.5 text-left text-sm transition ${
-              shortfall === "extend"
-                ? "border-accent bg-accent/10 text-text"
-                : "border-border bg-surface-light text-text-secondary"
-            }`}
-          >
-            1~2일 연장해서 표본 채우기
-          </button>
-        </div>
-        <p className="mt-4 text-sm leading-relaxed text-text">
-          합격선은 광고 시작 전에 확정되고, 데이터를 본 뒤에는{" "}
-          <b>어느 쪽도 바꿀 수 없습니다.</b> 동의하시면 아래에{" "}
-          <b>&quot;동의합니다&quot;</b>를 직접 입력해주세요.
-        </p>
-        <input
-          value={agreement}
-          onChange={(e) => setAgreement(e.target.value)}
-          maxLength={10}
-          className={inputBase}
-          placeholder="동의합니다"
-        />
-      </Card>
+      </details>
 
-      {/* 환불 규정 */}
-      <Card label="환불 규정">
-        <ul className="space-y-1.5">
+      {/* 환불 규정 — 정보로만 */}
+      <details className="cold-panel rounded-lg p-5">
+        <summary className="cursor-pointer text-sm font-bold text-text-secondary">
+          환불 규정
+        </summary>
+        <ul className="mt-3 space-y-1.5">
           {lead.refundPolicy.map((r) => (
-            <li key={r} className="flex items-start gap-2 text-sm leading-relaxed text-text-secondary">
+            <li
+              key={r}
+              className="flex items-start gap-2 text-sm leading-relaxed text-text-secondary"
+            >
               <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-accent" />
               {r}
             </li>
           ))}
         </ul>
-      </Card>
+      </details>
 
       {submitError && (
         <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
@@ -573,11 +502,22 @@ function BriefStep({
         onClick={submit}
         className="w-full rounded-md bg-accent px-6 py-4 text-base font-bold text-white transition hover:bg-accent-hover disabled:opacity-50"
       >
-        {submitting ? "확정 중..." : "이 브리프로 확정하고 진행하기"}
+        {submitting ? "확정 중..." : "이대로 검증 시작하기"}
       </button>
       <p className="text-center text-xs text-text-tertiary">
-        확정 내용은 그대로 기록되어 판정의 기준이 됩니다 · 결제는 다음 화면에서
-        안내드립니다
+        다음 화면에서 결제(입금)를 안내드립니다 · 입금 전까지는 전액 환불됩니다
+      </p>
+      <p className="text-center text-xs text-text-tertiary">
+        궁금한 점은{" "}
+        <a
+          href={KAKAO_CHAT_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-bold text-text underline underline-offset-2"
+        >
+          카카오톡 채널
+        </a>
+        로 물어보세요.
       </p>
     </div>
   );
@@ -638,31 +578,42 @@ function DepositStep({ lead }: { lead: PublicLead }) {
       {confirmed && (
         <div className="cold-panel rounded-lg p-6">
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
-            확정된 브리프
+            확정 내용
           </p>
           <div className="mt-3 space-y-2 text-sm">
-            <Row k="오퍼" v={confirmed.offer} />
-            <Row k="타깃" v={confirmed.target_line} />
-            <Row k="가격" v={`${confirmed.price_value.toLocaleString()}원`} />
+            <Row k="핵심 메시지" v={confirmed.offer} />
+            <Row k="표시 가격" v={`${confirmed.price_value.toLocaleString()}원`} />
             <Row k="가칭" v={confirmed.name} />
-            <Row k="합격선" v={confirmed.pass_bar} />
           </div>
         </div>
       )}
 
-      <div className="cold-panel rounded-lg p-6">
-        <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
+      <details className="cold-panel rounded-lg p-5">
+        <summary className="cursor-pointer text-sm font-bold text-text-secondary">
           환불 규정
-        </p>
+        </summary>
         <ul className="mt-3 space-y-1.5">
           {lead.refundPolicy.map((r) => (
-            <li key={r} className="flex items-start gap-2 text-sm leading-relaxed text-text-secondary">
+            <li
+              key={r}
+              className="flex items-start gap-2 text-sm leading-relaxed text-text-secondary"
+            >
               <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-accent" />
               {r}
             </li>
           ))}
         </ul>
-      </div>
+      </details>
+
+      <a
+        href={KAKAO_CHAT_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center justify-center gap-2 rounded-lg px-6 py-3.5 text-sm font-bold transition hover:brightness-95"
+        style={{ background: "#FEE500", color: "#191600" }}
+      >
+        입금 관련 문의 (카카오톡)
+      </a>
     </div>
   );
 }
@@ -706,18 +657,25 @@ function ProgressStep({ lead }: { lead: PublicLead }) {
       {confirmed && (
         <div className="cold-panel rounded-lg p-6">
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
-            이번 검증의 기준 (확정 브리프)
+            이번 검증의 내용
           </p>
           <div className="mt-3 space-y-2 text-sm">
-            <Row k="오퍼" v={confirmed.offer} />
-            <Row k="타깃" v={confirmed.target_line} />
-            <Row k="가격" v={`${confirmed.price_value.toLocaleString()}원`} />
+            <Row k="핵심 메시지" v={confirmed.offer} />
+            <Row k="표시 가격" v={`${confirmed.price_value.toLocaleString()}원`} />
             <Row k="가칭" v={confirmed.name} />
-            <Row k="합격선" v={confirmed.pass_bar} />
-            <Row k="최소 표본" v={confirmed.min_sample} />
+            {confirmed.pass_bar && <Row k="판정 기준" v={confirmed.pass_bar} />}
           </div>
         </div>
       )}
+      <a
+        href={KAKAO_CHAT_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center justify-center gap-2 rounded-lg px-6 py-3.5 text-sm font-bold transition hover:brightness-95"
+        style={{ background: "#FEE500", color: "#191600" }}
+      >
+        문의하기 (카카오톡)
+      </a>
     </div>
   );
 }
