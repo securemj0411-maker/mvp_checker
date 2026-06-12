@@ -28,7 +28,8 @@ export async function GET(request: NextRequest) {
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
   if (error || !data.user) {
     console.error("[auth callback]", error?.message);
-    return NextResponse.redirect(new URL("/d?login_error=server", url.origin));
+    const reason = encodeURIComponent((error?.message || "no_user").slice(0, 90));
+    return NextResponse.redirect(new URL(`/d?login_error=${reason}`, url.origin));
   }
 
   // 설계서 직후 들어온 경우, 그 신청을 이 계정(auth user)에 자동 연결

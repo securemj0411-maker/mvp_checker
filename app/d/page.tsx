@@ -20,15 +20,22 @@ function DashboardEntryInner() {
 
   async function kakao() {
     setBusy(true);
-    const supabase = getSupabaseBrowser();
-    const redirectTo = `${window.location.origin}/auth/callback?next=/d/me`;
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "kakao",
-      options: { redirectTo },
-    });
-    if (error) {
+    try {
+      const supabase = getSupabaseBrowser();
+      const redirectTo = `${window.location.origin}/auth/callback?next=/d/me`;
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "kakao",
+        options: { redirectTo },
+      });
+      // 성공 시 브라우저가 카카오로 이동하므로 busy 유지. 실패만 처리.
+      if (error) {
+        setBusy(false);
+        router.push(`/d?login_error=${encodeURIComponent(error.message.slice(0, 90))}`);
+      }
+    } catch (e) {
       setBusy(false);
-      router.push("/d?login_error=start");
+      const msg = e instanceof Error ? e.message : String(e);
+      router.push(`/d?login_error=${encodeURIComponent(msg.slice(0, 90))}`);
     }
   }
 
