@@ -332,7 +332,8 @@ function BriefStep({
 
   return (
     <div className="space-y-5">
-      <FounderVideo />
+      {/* 대표 인사 영상 — 영상 준비되면 되살리기 */}
+      {/* <FounderVideo /> */}
 
       <div className="cold-panel rounded-lg p-6">
         <p className="text-lg font-bold text-text">
