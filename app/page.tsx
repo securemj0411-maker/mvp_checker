@@ -124,63 +124,118 @@ function Nav() {
   );
 }
 
-/* ─────────────  HERO — 토스식 센터 타이포 + 대형 제품 샷  ───────────── */
+/* ─────────────  HERO — 좌 텍스트 + 우 창업자 인물 (모바일: 인물 배경)  ───────────── */
 function Hero({ variant = "a" }: { variant?: HeroVariant }) {
+  const headline =
+    variant === "a" ? (
+      <>
+        이 사업이 될지 안 될지,
+        <br />
+        진짜 사람들로 확인합니다
+      </>
+    ) : (
+      <>
+        지인 칭찬 말고,
+        <br />낯선 사람의 클릭으로
+      </>
+    );
+  const sub =
+    variant === "a"
+      ? "실제 서비스처럼 보이는 페이지에 진짜 광고비를 써서, 당신을 모르는 사람 수백 명을 보통 48시간 안에 불러옵니다. 클릭과 결제 버튼(실제 결제는 없습니다)을 숫자로 보여드립니다."
+      : "당신 아이디어로 진짜 광고를 돌려 모르는 사람 수백 명을 보통 48시간 안에 불러옵니다. 클릭률과 결제 의향(실제 결제는 없습니다)을 재서 답합니다.";
+
+  const ctas = (
+    <>
+      <a
+        href="/start"
+        className="inline-flex items-center gap-2 rounded-full bg-accent px-7 py-4 text-base font-bold text-white shadow-[0_10px_24px_-8px_var(--accent-glow)] transition hover:-translate-y-0.5 hover:bg-accent-hover"
+      >
+        내 아이디어 검증 신청
+        <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
+      </a>
+      <a
+        href="#process"
+        className="rounded-full border border-white/25 bg-white/5 px-7 py-4 text-base font-bold text-white transition hover:border-white/50 sm:border-border-hover sm:bg-surface sm:text-text sm:hover:border-accent sm:hover:text-accent"
+      >
+        7일 과정 보기
+      </a>
+    </>
+  );
+
   return (
     <section className="relative overflow-hidden">
-      <div className="mx-auto max-w-6xl px-6 pb-10 pt-20 text-center sm:pt-28">
-        <div className="reveal-stagger mx-auto max-w-3xl">
+      {/* ── 모바일: 어두운 배경 + 인물 풀블리드 + 텍스트 오버레이 ── */}
+      <div className="relative isolate overflow-hidden sm:hidden">
+        <div
+          aria-hidden
+          className="absolute inset-0 -z-20"
+          style={{
+            background:
+              "linear-gradient(160deg, #0a1730 0%, #122a4d 45%, #16233a 100%)",
+          }}
+        />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/team/founders.png"
+          alt=""
+          aria-hidden
+          className="pointer-events-none absolute -right-12 bottom-0 -z-10 h-[72%] w-auto object-contain opacity-90"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 -z-10"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(12,27,52,.2) 0%, rgba(12,27,52,.55) 55%, rgba(12,27,52,.9) 100%)",
+          }}
+        />
+        <div className="px-6 pb-12 pt-16">
+          <p className="text-sm font-bold" style={{ color: "#8FB6FF" }}>
+            사업 아이디어 검증
+          </p>
+          <h1 className="mt-4 text-[34px] font-extrabold leading-[1.2] tracking-[-0.03em] text-white">
+            {headline}
+          </h1>
+          <p className="mt-5 max-w-[20rem] text-[15px] leading-[1.65] text-white/80">
+            {sub}
+          </p>
+          <div className="mt-7 flex flex-col gap-3">{ctas}</div>
+          <p className="mt-6 text-xs font-medium text-white/55">
+            광고비는 비즈필터가 부담 · 실제 결제는 없음 · 판정 보장
+          </p>
+        </div>
+      </div>
+
+      {/* ── 데스크탑/태블릿: 밝은 2단, 좌 텍스트 우 인물 ── */}
+      <div className="mx-auto hidden max-w-6xl items-center gap-8 px-6 pb-8 pt-16 sm:grid sm:grid-cols-2 lg:gap-12 lg:pt-24">
+        <div className="reveal-stagger">
           <Label>사업 아이디어 검증</Label>
-          {variant === "a" ? (
-            <>
-              <h1 className="mt-5 text-[40px] font-extrabold leading-[1.18] tracking-[-0.035em] text-text sm:text-6xl">
-                이 사업이 될지 안 될지,
-                <br />
-                진짜 사람들로 확인합니다
-              </h1>
-              <p className="mx-auto mt-7 max-w-xl text-lg leading-[1.7] text-text-secondary sm:text-xl">
-                실제 서비스처럼 보이는 페이지에 진짜 광고비를 써서, 당신을
-                모르는 사람 수백 명을 보통 48시간 안에 불러옵니다. 그들이
-                클릭하고 결제 버튼까지 누르는지(실제 결제는 진행하지 않습니다)를
-                숫자로 보여드립니다.
-              </p>
-            </>
-          ) : (
-            <>
-              <h1 className="mt-5 text-[40px] font-extrabold leading-[1.18] tracking-[-0.035em] text-text sm:text-6xl">
-                지인 칭찬 말고,
-                <br />낯선 사람의 클릭으로
-              </h1>
-              <p className="mx-auto mt-7 max-w-xl text-lg leading-[1.7] text-text-secondary sm:text-xl">
-                당신 아이디어로 진짜 광고를 돌려, 모르는 사람 수백 명을 보통
-                48시간 안에 불러옵니다. 클릭률과 결제 의향(실제 결제는 없습니다)을
-                재서, 만들지 말지를 데이터로 답합니다.
-              </p>
-            </>
-          )}
-          <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-            <a
-              href="/start"
-              className="inline-flex items-center gap-2 rounded-full bg-accent px-7 py-4 text-base font-bold text-white shadow-[0_10px_24px_-8px_var(--accent-glow)] transition hover:-translate-y-0.5 hover:bg-accent-hover"
-            >
-              내 아이디어 검증 신청
-              <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
-            </a>
-            <a
-              href="#process"
-              className="rounded-full border border-border-hover bg-surface px-7 py-4 text-base font-bold text-text transition hover:border-accent hover:text-accent"
-            >
-              7일 과정 보기
-            </a>
-          </div>
+          <h1 className="mt-5 text-[44px] font-extrabold leading-[1.16] tracking-[-0.035em] text-text lg:text-[56px]">
+            {headline}
+          </h1>
+          <p className="mt-7 max-w-lg text-lg leading-[1.7] text-text-secondary">
+            {sub}
+          </p>
+          <div className="mt-9 flex flex-wrap items-center gap-3">{ctas}</div>
           <p className="mt-7 text-sm font-medium text-text-tertiary">
             광고비는 비즈필터가 부담 · 실제 결제는 없음 · Go/No-Go 판정 보장
           </p>
         </div>
-
-        {/* 대형 제품 샷 — 대시보드 + 판정서 */}
-        <div className="reveal relative mx-auto mt-16 max-w-4xl">
-          <HeroShot />
+        <div className="reveal relative flex items-end justify-center self-stretch">
+          <div
+            aria-hidden
+            className="absolute bottom-0 left-1/2 -z-10 h-[78%] w-[88%] -translate-x-1/2 rounded-full opacity-60 blur-3xl"
+            style={{
+              background:
+                "radial-gradient(closest-side, var(--accent-glow), transparent)",
+            }}
+          />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/team/founders.png"
+            alt="비즈필터 창업자"
+            className="relative max-h-[540px] w-auto object-contain"
+          />
         </div>
       </div>
     </section>
