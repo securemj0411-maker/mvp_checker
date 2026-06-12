@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import {
   buildFallbackReport,
+  classifyProhibited,
   decideChannel,
   decidePassBar,
   isPageMeasurable,
@@ -102,68 +103,55 @@ async function interpret(idea: string): Promise<InterpretResult | null> {
 const REPORT_SCHEMA = {
   type: "object",
   properties: {
-    one_liner: {
+    understanding_line: {
       type: "string",
       description:
-        "'[타깃]이 [문제]를 겪을 때 [현재 대안] 대신 [오퍼]를 [가격]에 쓰게 한다' 공식의 한 문장",
-    },
-    target: { type: "string", description: "딱 한 부류로 좁힌 타깃" },
-    problem: { type: "string", description: "그 타깃이 겪는 문제 한두 문장" },
-    current_alternative: {
-      type: "string",
-      description: "타깃이 지금 그 문제를 버티는 방식",
-    },
-    price_hypothesis: {
-      type: "string",
-      description: "검증에 쓸 가격 가설과 그 근거 한두 문장",
+        "'우리가 이해한 건 이겁니다' 톤의 한 문장. '[타깃]이 [현재 대안] 대신 [오퍼]를 쓰게 만드는 것' 형태로, 고객이 자기 아이디어를 거울로 보고 '맞다'고 끄덕이게. 가격 숫자는 넣지 않는다.",
     },
     channel: { type: "string", description: "추천 광고 채널 이름" },
-    channel_reason: { type: "string", description: "그 채널인 이유 한두 문장" },
+    channel_reason: { type: "string", description: "그 채널인 이유 한 문장" },
     pass_bar: { type: "string", description: "합격선 숫자" },
     pass_bar_reason: { type: "string", description: "합격선 근거 한 문장" },
-    risks: {
-      type: "array",
-      description: "이 아이디어 고유의 리스크 정확히 3개. 일반론 금지.",
-      items: { type: "string" },
+    top_risk: {
+      type: "string",
+      description:
+        "이 아이디어에서만 나오는 가장 날카로운 리스크 1개. ChatGPT도 말할 일반론('경쟁이 치열', '마케팅이 중요') 절대 금지. 이 제품/타깃/업종에 특정한 것 하나만. 전문가가 짚어주는 한 스푼이 되도록.",
     },
     blind_spot: {
       type: "string",
       description:
-        "이 분석이 알 수 없는 것에 대한 정직한 고백 한두 문장. 과장 금지.",
-    },
-    policy_flag: {
-      type: "string",
-      enum: ["none", "restricted", "prohibited"],
-      description:
-        "광고 정책 분류. prohibited=구글/메타 광고가 원천 금지되는 영역(무허가 의료·의약품, 사행성·도박, 성인, 무기, 마약, 불법 대부, 모조품). restricted=조건부 제한 영역(병의원 마케팅, 건강기능식품, 금융·투자, 암호화폐, 다이어트, 주류). none=해당 없음.",
-    },
-    policy_reason: {
-      type: "string",
-      description: "policy_flag가 none이 아닐 때 그 이유 한 문장. none이면 빈 문자열.",
+        "이 아이디어에서 7일 광고로는 답을 못 내는 구체적 변수 1개. 일반적 겸손('시장만 안다') 금지. 이 아이디어 종속적으로 (예: '재구매율은 7일로 안 보입니다').",
     },
   },
   required: [
-    "one_liner",
-    "target",
-    "problem",
-    "current_alternative",
-    "price_hypothesis",
+    "understanding_line",
     "channel",
     "channel_reason",
     "pass_bar",
     "pass_bar_reason",
-    "risks",
+    "top_risk",
     "blind_spot",
-    "policy_flag",
-    "policy_reason",
   ],
   additionalProperties: false,
 } as const;
 
-type ReportWithPolicy = Report & {
-  policy_flag?: "none" | "restricted" | "prohibited";
-  policy_reason?: string;
-};
+/* 정책 분류 — 설계서 생성 전 가벼운 판정. 코드 1차 + (애매하면) 모델 보조 */
+const POLICY_SCHEMA = {
+  type: "object",
+  properties: {
+    prohibited: {
+      type: "boolean",
+      description:
+        "광고하려는 것이 그 자체로 성인물·성인용품, 사행성·도박, 마약, 무기·총기, 불법 대부(사채), 모조품, 처방의약품 직접 판매인 경우만 true. 이런 업종을 '고객으로 둔' 관리·예약·정산·마케팅 도구나 SaaS는 도구이므로 false. 의료·금융·건강기능식품·주류·암호화폐는 조건부 가능이므로 false. 애매하면 false.",
+    },
+    label: {
+      type: "string",
+      description: "prohibited가 true일 때 분류명 한 단어. false면 빈 문자열.",
+    },
+  },
+  required: ["prohibited", "label"],
+  additionalProperties: false,
+} as const;
 
 const LABELS: Record<string, Record<string, string>> = {
   service: {
@@ -211,7 +199,44 @@ const LABELS: Record<string, Record<string, string>> = {
   },
 };
 
-async function generateReport(a: QuizAnswers): Promise<ReportWithPolicy | null> {
+/** 설계서 생성 전 가벼운 정책 분류 (코드 키워드 통과 시에만 모델 보조 호출) */
+async function classifyPolicy(
+  idea: string,
+  refined?: string | null,
+): Promise<{ prohibited: boolean; label: string | null }> {
+  // 1차: 코드 키워드. 명백히 금지면 바로 차단 (토큰 0)
+  const code = classifyProhibited(idea, refined);
+  if (code.prohibited) return code;
+
+  // 2차: 모델 보조 (코드가 못 잡는 우회 표현). 키 없으면 통과 기조
+  const client = getClient();
+  if (!client) return { prohibited: false, label: null };
+  try {
+    const response = await client.messages.create({
+      model: MODEL,
+      max_tokens: 400,
+      output_config: {
+        effort: "low",
+        format: { type: "json_schema", schema: POLICY_SCHEMA },
+      },
+      system:
+        "광고 가능 여부만 판정합니다. 광고하려는 것이 그 자체로 성인물·성인용품·화상채팅, 사행성·도박, 마약, 무기, 불법 대부(사채), 모조품, 처방의약품 직접 판매인 경우만 prohibited=true. 이런 업종을 '고객으로 둔' 관리·예약·정산·마케팅 도구나 SaaS, 중개·매칭 서비스는 도구이므로 false. 의료·금융·건강기능식품·주류·암호화폐는 조건부 가능이므로 false. 애매하면 false.",
+      messages: [{ role: "user", content: refined || idea }],
+    });
+    const text = response.content.find((b) => b.type === "text");
+    if (!text || text.type !== "text") return { prohibited: false, label: null };
+    const parsed = JSON.parse(text.text) as {
+      prohibited: boolean;
+      label: string;
+    };
+    return { prohibited: !!parsed.prohibited, label: parsed.label || null };
+  } catch (e) {
+    console.error("[classifyPolicy]", e);
+    return { prohibited: false, label: null }; // 실패 시 통과 기조
+  }
+}
+
+async function generateReport(a: QuizAnswers): Promise<Report | null> {
   const client = getClient();
   if (!client) return null;
 
@@ -222,46 +247,44 @@ async function generateReport(a: QuizAnswers): Promise<ReportWithPolicy | null> 
     `아이디어 원문: ${a.idea}`,
     a.ideaRefined ? `창업자가 고른 해석: ${a.ideaRefined}` : null,
     `형태: ${LABELS.service[a.service]}`,
-    `제작 상황: ${LABELS.build[a.build]}`,
     `돈 내는 사람: ${LABELS.audience[a.audience]}`,
     `결제 방식: ${LABELS.revenue[a.revenue]}`,
     `가격대 감: ${LABELS.price[a.price]}`,
     `현재 대안: ${LABELS.alternative[a.alternative]}`,
     a.region ? `주 고객 범위: ${LABELS.region[a.region]}` : null,
     a.location ? `지역: ${a.location}` : null,
-    a.pageUrl ? `기존 페이지: ${a.pageUrl}` : null,
   ]
     .filter(Boolean)
     .join("\n");
 
   const response = await client.messages.create({
     model: MODEL,
-    max_tokens: 4000,
+    max_tokens: 2500,
     thinking: { type: "adaptive" },
     output_config: {
       format: { type: "json_schema", schema: REPORT_SCHEMA },
     },
     system: [
       "당신은 사업 아이디어 검증 회사 '비즈필터'의 검증 설계자입니다.",
-      "창업자의 답변을 받아 '7일 광고 테스트 설계서'를 작성합니다. 사업성 점수나 시장 전망 예측이 아니라, 무엇을 어떻게 측정할지를 설계하는 문서입니다.",
+      "창업자가 막 아이디어를 입력했습니다. 당신의 역할은 긴 리포트를 쓰는 게 아니라, (1) 우리가 그 아이디어를 정확히 이해했음을 거울처럼 보여주고, (2) 전문가만 짚을 수 있는 관점 한 스푼을 주는 것입니다. ChatGPT도 뱉을 일반론은 신뢰를 깎습니다.",
       "",
-      "회사의 채널 결정 규칙 (반드시 이 결정을 따르되, 이유는 아이디어에 맞게 다시 쓰세요):",
+      "채널과 합격선은 회사가 이미 정했습니다 (반드시 이 값을 쓰되, 이유는 이 아이디어에 맞게 다시 쓰세요):",
       `- 추천 채널: ${ch.channel}`,
       `- 합격선: ${pb.bar}`,
       "",
       "작성 규칙:",
-      "- 모든 문장 경어체. 줄표(—) 금지. 과장 금지, 확정적 시장 전망 금지.",
-      "- '성공할 것', '유망함' 같은 판정 표현 금지. 설계와 측정만 말합니다.",
-      "- risks는 이 아이디어에서만 나올 수 있는 구체적 리스크 3개. '경쟁이 치열함' 같은 일반론은 쓰지 않습니다.",
-      "- 아이디어가 모호하면 가장 그럴듯한 가정을 채우되, 그 가정을 문장 안에 드러냅니다 (예: '직장인으로 가정하면').",
-      "- blind_spot은 정직하게: 이 설계서가 알 수 없는 것이 무엇인지 한두 문장.",
+      "- understanding_line: 고객이 읽고 '맞다'고 끄덕이게. 자기 입력의 단순 반복이 아니라 한 단계 정리된 한 문장.",
+      "- top_risk: 이 아이디어/타깃/업종에만 해당하는 가장 날카로운 리스크 1개. '경쟁이 치열', '마케팅 중요' 같은 일반론 절대 금지.",
+      "- blind_spot: 이 아이디어에서 7일 광고로 답 못 내는 구체적 변수 1개.",
+      "- 모든 문장 경어체. 줄표(—) 금지. 과장·판정 표현('성공', '유망') 금지.",
+      "- 아이디어가 모호하면 가장 그럴듯한 가정을 채우되 그 가정을 문장에 드러냅니다.",
     ].join("\n"),
     messages: [{ role: "user", content: facts }],
   });
 
   const text = response.content.find((b) => b.type === "text");
   if (!text || text.type !== "text") return null;
-  return JSON.parse(text.text) as ReportWithPolicy;
+  return JSON.parse(text.text) as Report;
 }
 
 /* ───────────────── 라우트 ───────────────── */
@@ -350,8 +373,26 @@ export async function POST(request: Request) {
       return Response.json({ error: "insert failed" }, { status: 500 });
     }
 
-    // 2) 설계서 생성 — 실패하면 규칙 기반 폴백
-    let report: ReportWithPolicy;
+    // 2) 정책 분류를 먼저 — 차단 업종이면 설계서 생성을 스킵(토큰 0)하고 짧게 거절
+    const policy = await classifyPolicy(answers.idea, answers.ideaRefined);
+    if (policy.prohibited) {
+      await admin
+        .from("o2o_leads")
+        .update({ policy_flag: "prohibited", tier: null })
+        .eq("id", lead.id);
+      return Response.json({
+        report: null,
+        path,
+        source: "blocked",
+        accessCode,
+        policyFlag: "prohibited",
+        policyLabel: policy.label,
+        pageMeasurable: measurable,
+      });
+    }
+
+    // 3) 설계서 생성 — 실패하면 규칙 기반 폴백
+    let report: Report;
     let source: "ai" | "fallback" = "ai";
     try {
       report = (await generateReport(answers)) ?? buildFallbackReport(answers);
@@ -365,13 +406,10 @@ export async function POST(request: Request) {
     report.channel = decideChannel(answers).channel;
     report.pass_bar = decidePassBar(answers).bar;
 
-    // 3) 설계서를 리드에 저장 (실패해도 응답은 내보낸다)
+    // 4) 설계서를 리드에 저장 (실패해도 응답은 내보낸다)
     const { error: updateError } = await admin
       .from("o2o_leads")
-      .update({
-        ai_report: { ...report, source },
-        policy_flag: report.policy_flag ?? "none",
-      })
+      .update({ ai_report: { ...report, source }, policy_flag: "none" })
       .eq("id", lead.id);
     if (updateError) console.error("[diagnose update]", updateError);
 
@@ -380,7 +418,7 @@ export async function POST(request: Request) {
       path,
       source,
       accessCode,
-      policyFlag: report.policy_flag ?? "none",
+      policyFlag: "none",
       pageMeasurable: measurable,
     });
   }

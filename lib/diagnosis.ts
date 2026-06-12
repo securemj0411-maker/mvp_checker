@@ -45,20 +45,58 @@ export interface InterpretResult {
 }
 
 export interface Report {
-  one_liner: string;
-  target: string;
-  problem: string;
-  current_alternative: string;
-  price_hypothesis: string;
+  /** "우리가 이해한 건 이겁니다" — 거울. [타깃]이 [대안] 대신 [오퍼]를 쓰게 만드는 것 */
+  understanding_line: string;
+  /** 추천 광고 채널 (코드가 결정) */
   channel: string;
   channel_reason: string;
+  /** 합격선 (코드가 결정) */
   pass_bar: string;
   pass_bar_reason: string;
-  risks: string[];
+  /** 이 아이디어에서만 나오는 가장 날카로운 리스크 1개 (GPT가 못 주는 관점) */
+  top_risk: string;
+  /** 이 아이디어 고유의, 7일 광고로 답 못 내는 변수 1개 */
   blind_spot: string;
 }
 
 export type RecommendedPath = "engine" | "quick" | "deep";
+
+/* ───────── 광고 정책 차단 — 진짜 원천 금지만 좁게 ───────── */
+
+/**
+ * 광고 플랫폼이 콘텐츠 자체로 거절하는 업종만 막는다.
+ * 핵심: "이런 업종을 고객으로 둔 도구/SaaS/관리/예약 서비스"는 통과시킨다.
+ * (예: 성인업소 예약관리 SaaS는 광고 가능 / 성인물 직접 판매는 불가)
+ * 애매하면 통과(false)가 기본 — 과잉 차단이 가장 비싼 누수다.
+ */
+const PROHIBITED_PATTERNS: { re: RegExp; label: string }[] = [
+  { re: /성인물|음란물|av판매|어덜트|성인용품|성기구|성인화상|화상채팅|폰팅|랜덤채팅|조건만남|애인대행/, label: "성인 콘텐츠" },
+  { re: /도박|카지노|바카라|슬롯|배팅|토토|사다리|불법.?스포츠|베팅사이트/, label: "사행성·도박" },
+  { re: /마약|대마|필로폰|향정신성|불법약물/, label: "마약" },
+  { re: /총기|무기.?판매|실탄|폭발물/, label: "무기" },
+  { re: /사채|일수|불법.?대부|미등록.?대부|급전.?대출/, label: "불법 대부" },
+  { re: /짝퉁|이미테이션|레플리카|가품.?판매|모조품/, label: "모조품" },
+  { re: /처방.?의약품|전문의약품|스테로이드.?판매/, label: "의약품 직접판매" },
+];
+
+/** 도구·서비스 신호 — 이게 있으면 "대상 업종"이 아니라 "도구"로 보고 통과 */
+const TOOL_SIGNAL =
+  /관리|예약|정산|매출|장부|crm|saas|솔루션|플랫폼|시스템|자동화|대행|마케팅|광고|툴|프로그램|앱서비스|중개|매칭|커뮤니티/i;
+
+export function classifyProhibited(
+  idea: string,
+  refined?: string | null,
+): { prohibited: boolean; label: string | null } {
+  const text = `${idea} ${refined ?? ""}`.toLowerCase().replace(/\s/g, "");
+  for (const { re, label } of PROHIBITED_PATTERNS) {
+    if (re.test(text)) {
+      // 금지 키워드가 있어도 도구/서비스 신호가 같이 있으면 "대상 업종용 도구"로 보고 통과
+      if (TOOL_SIGNAL.test(text)) return { prohibited: false, label: null };
+      return { prohibited: true, label };
+    }
+  }
+  return { prohibited: false, label: null };
+}
 
 /** 측정 스크립트 설치가 불가능한 플랫폼 — 엔진 경로 차단 */
 const UNMEASURABLE_HOSTS = [
@@ -300,32 +338,20 @@ export function buildFallbackReport(a: QuizAnswers): Report {
       ? "킥오프에서 유사 서비스 가격대 조사로 확정"
       : `${PRICE_LABEL[a.price]} 구간`;
 
+  void priceTxt;
   return {
-    one_liner: `${aud}${josa(aud, "이", "가")} 지금의 ${alt} 대신, "${idea.slice(0, 80)}"를 ${a.price === "unknown" ? "아직 정하지 않은 가격" : PRICE_LABEL[a.price]}에 쓰게 한다`,
-    target: AUDIENCE_LABEL[a.audience],
-    problem: `적어주신 내용 기준으로는 문제 정의가 아직 한 문장으로 좁혀지지 않았습니다. 킥오프 30분에서 "첫 결제 한 건이 일어나는 장면"으로 함께 자릅니다.`,
-    current_alternative: `${alt}${josa(alt, "으로", "로")} 버티는 상태로 보입니다.`,
-    price_hypothesis: `${priceTxt}. ${
-      a.revenue === "subscription"
-        ? "구독은 첫 달 가격을 보고도 신청 버튼을 누르는지가 신호입니다."
-        : "가격을 본 뒤에도 결제 버튼을 누르는지가 신호입니다."
-    }`,
+    understanding_line: `${aud}${josa(aud, "이", "가")} 지금의 ${alt} 대신, "${idea.slice(0, 80)}"를 쓰게 만드는 것, 이게 핵심이라고 봤습니다.`,
     channel: ch.channel,
     channel_reason: ch.reason,
     pass_bar: pb.bar,
     pass_bar_reason: pb.reason,
-    risks: [
+    top_risk:
       a.alternative === "none"
-        ? "대안 없이 참고 있다는 건 시장이 문제를 못 느낀다는 뜻일 수도 있습니다. 광고 클릭률이 첫 관문입니다."
-        : "기존 대안에서 갈아탈 만큼의 차이를 광고 문구 한 줄로 보여줘야 합니다.",
-      a.price === "unknown"
-        ? "가격이 비어 있으면 검증이 흐려집니다. 가격을 표시하지 않은 테스트는 수요가 아니라 호기심을 측정합니다."
-        : "이 가격대에서 클릭당 비용이 마진을 넘으면, 수요가 있어도 사업이 안 됩니다.",
-      a.service === "unknown"
-        ? "형태가 정해지지 않으면 채널 선택이 흔들립니다. 형태부터 한 장으로 고정해야 합니다."
-        : "7일 데이터는 신호이지 확신이 아닙니다. 특히 애매한 회색지대가 나오면 조건을 바꿔 재검증해야 합니다.",
-    ],
+        ? "대안 없이 참고 있다는 건 시장이 이 문제를 아직 돈 쓸 만큼 아프게 느끼지 않는다는 신호일 수 있습니다. 광고 클릭률이 첫 관문입니다."
+        : a.price === "unknown"
+          ? "가격을 표시하지 않으면 수요가 아니라 호기심을 측정하게 됩니다. 검증 전에 가격 숫자부터 못박아야 합니다."
+          : "기존 대안에서 갈아탈 만큼의 차이를 광고 문구 한 줄로 보여줘야 합니다. 그게 안 되면 클릭이 안 옵니다.",
     blind_spot:
-      "이 설계서는 적어주신 답변만으로 만든 1차 설계입니다. 진짜 고객이 돈을 낼지는 어떤 분석도 미리 알 수 없습니다.",
+      "7일 광고는 첫 결제 의향까지만 봅니다. 재구매율이나 입소문은 이 기간으로 답을 못 냅니다.",
   };
 }

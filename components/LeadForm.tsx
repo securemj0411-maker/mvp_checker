@@ -182,6 +182,7 @@ export default function LeadForm() {
   const [path, setPath] = useState<RecommendedPath>("quick");
   const [accessCode, setAccessCode] = useState<string | null>(null);
   const [policyFlag, setPolicyFlag] = useState<string>("none");
+  const [policyLabel, setPolicyLabel] = useState<string | null>(null);
   const [genMsgIdx, setGenMsgIdx] = useState(0);
 
   const skippedInterpret = useRef(false);
@@ -257,9 +258,11 @@ export default function LeadForm() {
   /* 설계서 생성 중 메시지 순환 */
   useEffect(() => {
     if (phase !== "generating") return;
+    setGenMsgIdx(0);
     const t = setInterval(
-      () => setGenMsgIdx((i) => (i + 1) % GENERATING_MESSAGES.length),
-      3200,
+      () =>
+        setGenMsgIdx((i) => Math.min(i + 1, GENERATING_MESSAGES.length - 1)),
+      4500,
     );
     return () => clearInterval(t);
   }, [phase]);
@@ -376,7 +379,9 @@ export default function LeadForm() {
       });
       if (!res.ok) throw new Error(`status ${res.status}`);
       const data = await res.json();
-      if (!data?.report) throw new Error("no report");
+      // prohibited면 report가 null로 와도 정상 (짧은 거절 화면). 그 외엔 report 필수.
+      const blocked = data?.policyFlag === "prohibited";
+      if (!data?.report && !blocked) throw new Error("no report");
 
       sendGAEvent("event", "generate_lead", {
         method: "quiz_v2",
@@ -384,10 +389,11 @@ export default function LeadForm() {
         build_status: quizAnswers.build,
         report_source: data.source ?? "unknown",
       });
-      setReport(data.report as Report);
+      setReport((data.report as Report) ?? null);
       setPath((data.path as RecommendedPath) ?? "quick");
       setAccessCode((data.accessCode as string) ?? null);
       setPolicyFlag((data.policyFlag as string) ?? "none");
+      setPolicyLabel((data.policyLabel as string) ?? null);
       setPhase("done");
       try {
         localStorage.removeItem(STORAGE_KEY);
@@ -408,33 +414,62 @@ export default function LeadForm() {
 
   /* ───────────────────── 화면 ───────────────────── */
 
-  if (phase === "done" && report) {
-    return (
-      <ReportView
-        report={report}
-        path={path}
-        accessCode={accessCode}
-        policyFlag={policyFlag}
-      />
-    );
+  if (phase === "done") {
+    if (policyFlag === "prohibited") {
+      return <RejectView policyLabel={policyLabel} />;
+    }
+    if (report) {
+      return (
+        <ReportView
+          report={report}
+          path={path}
+          build={(answers.build ?? "need") as QuizAnswers["build"]}
+          accessCode={accessCode}
+        />
+      );
+    }
   }
 
   if (phase === "generating") {
     return (
       <div className="cold-panel rounded-lg p-8 sm:p-10">
-        <div className="flex flex-col items-center py-10 text-center">
-          <div className="relative h-14 w-14">
-            <div className="absolute inset-0 animate-spin rounded-full border-2 border-border border-t-accent" />
+        <div className="flex flex-col items-center py-8 text-center">
+          <div className="relative h-12 w-12">
+            <div className="absolute inset-0 animate-spin rounded-full border-[3px] border-border border-t-accent" />
           </div>
           <p
             key={genMsgIdx}
-            className="quiz-step-in mt-7 text-lg font-bold text-text"
+            className="quiz-step-in mt-6 text-lg font-bold text-text"
           >
             {GENERATING_MESSAGES[genMsgIdx]}
           </p>
           <p className="mt-2 text-sm text-text-secondary">
-            검증 설계서를 만들고 있습니다. 10~30초 정도 걸립니다.
+            AI가 검증 준비안을 짜고 있습니다. 10~30초 정도 걸립니다.
           </p>
+          {/* 의사 진행률 바 — 24초에 걸쳐 90%까지, 완료 시 화면 전환 */}
+          <div className="mt-6 h-2 w-56 max-w-full overflow-hidden rounded-full bg-bg-alt">
+            <div className="gen-progress h-full rounded-full bg-accent" />
+          </div>
+          <ol className="mt-6 space-y-1.5 text-left text-sm text-text-tertiary">
+            {GENERATING_MESSAGES.map((m, i) => (
+              <li key={m} className="flex items-center gap-2">
+                <span
+                  className={`grid h-4 w-4 flex-shrink-0 place-items-center rounded-full text-[10px] ${
+                    i < genMsgIdx
+                      ? "bg-accent text-white"
+                      : i === genMsgIdx
+                        ? "border border-accent text-accent"
+                        : "border border-border"
+                  }`}
+                >
+                  {i < genMsgIdx ? "✓" : ""}
+                </span>
+                <span className={i <= genMsgIdx ? "text-text-secondary" : ""}>
+                  {m}
+                </span>
+              </li>
+            ))}
+          </ol>
         </div>
       </div>
     );
@@ -721,288 +756,246 @@ export default function LeadForm() {
   );
 }
 
-/* ───────────────── 설계서 결과 화면 ───────────────── */
+/* ───────────────── 정책 차단 — 짧은 거절 화면 ───────────────── */
+
+function RejectView({ policyLabel }: { policyLabel: string | null }) {
+  useEffect(() => {
+    sendGAEvent("event", "report_blocked", { label: policyLabel ?? "unknown" });
+  }, [policyLabel]);
+  return (
+    <div className="cold-panel rounded-lg p-6 sm:p-8">
+      <p className="text-lg font-bold text-text">
+        이 업종은 저희가 검증을 도와드리기 어렵습니다
+      </p>
+      <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+        {policyLabel ? `${policyLabel} 관련 사업은 ` : "이 사업은 "}구글과
+        메타의 광고 정책상 광고 집행 자체가 제한됩니다. 저희는 실제 광고로
+        수요를 측정하는 방식이라, 정직한 검증을 드릴 수 없어 신청을 받지
+        않습니다.
+      </p>
+      <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+        혹시 이 업종을 <b className="text-text">고객으로 둔 도구나 서비스</b>
+        (관리·예약·정산 같은)라면 광고가 가능합니다. 그런 경우거나 궁금한 점이
+        있으면 카카오톡으로 알려주세요.
+      </p>
+      <a
+        href={KAKAO_CHAT_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-5 flex items-center justify-center gap-2 rounded-lg px-6 py-3.5 text-sm font-bold transition hover:brightness-95"
+        style={{ background: "#FEE500", color: "#191600" }}
+      >
+        카카오톡으로 문의하기
+      </a>
+    </div>
+  );
+}
+
+/* ───────────────── 설계서 결과 화면 — 짧게, CTA 우선 ───────────────── */
 
 function ReportView({
   report,
   path,
+  build,
   accessCode,
-  policyFlag,
 }: {
   report: Report;
   path: RecommendedPath;
+  build: QuizAnswers["build"];
   accessCode: string | null;
-  policyFlag: string;
 }) {
   useEffect(() => {
     sendGAEvent("event", "report_view", { path });
   }, [path]);
 
+  const isEngine = path === "engine";
+  const priceLine = isEngine ? "엔진 29만원" : "Quick 50만원 · 7일";
+  const href = accessCode ? `/d/${accessCode}` : KAKAO_CHAT_URL;
+
+  function fireStart(position: string) {
+    sendGAEvent("event", "brief_start", {
+      tier: isEngine ? "engine" : "quick",
+      position,
+    });
+  }
+
   return (
-    <div className="cold-panel rounded-lg p-6 sm:p-8">
-      <div className="flex items-center gap-3">
-        <div
-          className="flex h-12 w-12 items-center justify-center rounded-full border border-accent/40 bg-accent/10 text-accent"
-          style={{ boxShadow: "0 0 24px var(--accent-glow)" }}
+    <div className="space-y-4">
+      {/* 1. 이해 확인 — 거울 */}
+      <div className="cold-panel rounded-lg p-6 sm:p-7">
+        <p className="text-xs font-bold uppercase tracking-[0.14em] text-accent">
+          저희가 이해한 건 이겁니다
+        </p>
+        <p className="mt-2 text-lg font-bold leading-relaxed text-text">
+          {report.understanding_line}
+        </p>
+        <p className="mt-2 text-sm text-text-secondary">
+          이 방향이 맞다면 바로 7일 검증으로 넘어갈 수 있습니다. 다른 부분이
+          있으면 다음 단계(브리프)에서 그대로 고칠 수 있습니다.
+        </p>
+
+        {/* 1차 CTA — 스크롤 전에 바로 전환 */}
+        <a
+          href={href}
+          onClick={() => fireStart("top")}
+          className="mt-5 flex items-center justify-center gap-2 rounded-lg bg-accent px-6 py-4 text-base font-bold text-white transition hover:bg-accent-hover hover:shadow-[0_12px_32px_var(--accent-glow)]"
         >
-          <svg
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M20 6 9 17l-5-5" />
-          </svg>
-        </div>
-        <div>
-          <p className="text-xl font-bold text-text">검증 설계서가 나왔습니다</p>
-          <p className="text-sm text-text-secondary">
-            이 설계서 그대로, 통화 없이 바로 진행하실 수 있습니다.
-          </p>
-        </div>
+          이 방향으로 7일 검증 시작하기 ({priceLine})
+        </a>
+        <a
+          href="#how-we-validate"
+          className="mt-2 block text-center text-sm font-medium text-text-tertiary transition hover:text-text"
+        >
+          저희가 어떻게 검증하는지 먼저 볼게요 ↓
+        </a>
       </div>
 
-      {/* 한 문장 정리 */}
-      <div className="mt-6 rounded-lg border border-accent/30 bg-accent/5 p-5">
+      {/* 2. 우리라면 이렇게 검증합니다 — GPT가 못 주는 관점 한 스푼 */}
+      <div
+        id="how-we-validate"
+        className="cold-panel rounded-lg p-6 sm:p-7 scroll-mt-4"
+      >
         <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
-          이번 검증이 시험할 한 문장
+          저희라면 이렇게 검증합니다
         </p>
-        <p className="mt-2 text-base font-bold leading-relaxed text-text">
-          {report.one_liner}
-        </p>
-      </div>
 
-      {/* 구조 분해 */}
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        {[
-          ["타깃", report.target],
-          ["문제", report.problem],
-          ["현재 대안", report.current_alternative],
-          ["가격 가설", report.price_hypothesis],
-        ].map(([k, v]) => (
-          <div
-            key={k}
-            className="rounded-lg border border-border bg-surface-light p-4"
-          >
-            <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
-              {k}
+        <div className="mt-4 space-y-3">
+          <div className="rounded-lg border border-border bg-surface-light p-4">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-sm font-bold text-text-secondary">
+                어디서
+              </span>
+              <span className="rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-sm font-bold text-accent">
+                {report.channel}
+              </span>
+            </div>
+            <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+              {report.channel_reason}
             </p>
-            <p className="mt-1.5 text-sm leading-relaxed text-text">{v}</p>
           </div>
-        ))}
-      </div>
 
-      {/* 채널 + 합격선 */}
-      <div className="mt-4 rounded-lg border border-border bg-surface-light p-5">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
-            추천 광고 채널
-          </p>
-          <span className="rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-sm font-bold text-accent">
-            {report.channel}
-          </span>
+          <div className="rounded-lg border border-border bg-surface-light p-4">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-sm font-bold text-text-secondary">
+                합격선
+              </span>
+              <span className="text-sm font-bold text-text">
+                {report.pass_bar}
+              </span>
+            </div>
+            <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+              {report.pass_bar_reason} 이 숫자는 광고를 켜기 전에 못박고,
+              데이터를 본 뒤에는 저희도 못 바꿉니다. 그래야 판정이 공정합니다.
+            </p>
+          </div>
+
+          <div className="rounded-lg border border-accent/30 bg-accent/5 p-4">
+            <span className="text-sm font-bold text-text-secondary">
+              저희가 보는 가장 큰 리스크
+            </span>
+            <p className="mt-2 text-sm leading-relaxed text-text">
+              {report.top_risk}
+            </p>
+          </div>
         </div>
-        <p className="mt-3 text-sm leading-relaxed text-text-secondary">
-          {report.channel_reason}
+
+        <p className="mt-4 text-xs leading-relaxed text-text-tertiary">
+          {report.blind_spot} 그래서 분석이 아니라 진짜 광고비로 확인하는
+          것입니다.
         </p>
       </div>
 
-      <div className="mt-4 rounded-lg border border-border bg-surface-light p-5">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
-            합격선
-          </p>
-          <span className="text-sm font-bold text-text">{report.pass_bar}</span>
-        </div>
-        <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-          {report.pass_bar_reason} 합격선은 광고를 시작하기 전에 함께 확정하고,
-          데이터를 본 뒤에는 어느 쪽도 바꾸지 못합니다.
-        </p>
-      </div>
+      {/* 3. 다음 절차 — 접힘 */}
+      <NextSteps path={path} build={build} />
 
-      {/* 리스크 */}
-      <div className="mt-4 rounded-lg border border-border bg-surface-light p-5">
-        <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
-          이 아이디어의 리스크
-        </p>
-        <ul className="mt-3 space-y-2.5">
-          {report.risks.map((r) => (
-            <li
-              key={r}
-              className="flex items-start gap-2 text-sm leading-relaxed text-text"
-            >
-              <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-accent" />
-              {r}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* 분석의 한계 — 정직 고백 */}
-      <div className="mt-4 rounded-lg border border-border bg-bg-alt p-5">
-        <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
-          이 설계서가 알 수 없는 것
-        </p>
-        <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-          {report.blind_spot}
-        </p>
-        <p className="mt-3 text-sm font-bold leading-relaxed text-text">
-          여기까지가 분석이 알 수 있는 전부입니다. 나머지는 시장만 압니다. 위
-          설계 그대로, 진짜 광고비를 써서 확인하는 것이 다음 단계입니다.
-        </p>
-      </div>
-
-      {/* 신청 후 진행 절차 — 다음에 무슨 일이 일어나는지 */}
-      <NextSteps path={path} />
-
-      {/* 경로별 CTA — 브리프 확정 화면으로 */}
-      {policyFlag === "prohibited" ? (
-        <div className="mt-6 rounded-lg border border-border bg-bg-alt p-5">
-          <p className="text-sm font-bold text-text">
-            광고 정책상 검증 설계가 어려운 영역입니다
+      {/* 4. 하단 CTA — 끝까지 읽은 사람 */}
+      <div className="cold-panel rounded-lg p-6">
+        <div className="rounded-lg border border-accent/40 bg-accent/5 p-4">
+          <p className="text-sm font-bold text-accent">
+            추천 경로: {priceLine}
           </p>
           <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-            구글과 메타의 광고 정책상 이 업종은 광고 집행이 제한되어, 저희
-            방식으로는 정직한 검증을 드릴 수 없습니다. 그래서 결제를 받지
-            않습니다. 궁금한 점은 카카오톡 채널로 문의해주세요.
+            {isEngine
+              ? "페이지를 직접 준비하시는 분께는 제작을 뺀 검증 엔진만. 광고 세팅과 7일 집행(광고비 5만원 포함), 측정, 판정까지. 재검증 30% 할인."
+              : "검증용 사이트 제작부터 광고 7일 집행, 측정, Go/No-Go 판정까지 전부. 분명한 판정을 못 드리면 전액 환불."}
           </p>
         </div>
-      ) : (
-        <PathCta path={path} accessCode={accessCode} />
-      )}
+        <a
+          href={href}
+          onClick={() => fireStart("bottom")}
+          className="mt-3 flex items-center justify-center gap-2 rounded-lg bg-accent px-6 py-4 text-base font-bold text-white transition hover:bg-accent-hover"
+        >
+          이 방향으로 7일 검증 시작하기
+        </a>
+        {accessCode && (
+          <p className="mt-3 text-center text-xs text-text-tertiary">
+            내 진행 코드 <b className="font-mono text-text">{accessCode}</b> ·
+            이 코드로 bizfilter.kr/d 에서 언제든 다시 볼 수 있습니다
+          </p>
+        )}
+        <p className="mt-1 text-center text-xs text-text-tertiary">
+          지금은 결제가 아닙니다. 다음 화면에서 브리프를 확인하고 동의하면 그때
+          입금을 안내합니다.
+        </p>
+      </div>
 
-      <p className="mt-3 text-center text-xs text-text-tertiary">
-        설계서와 진행 안내는 화면에서 즉시 확인됩니다 · 궁금한 점은 카톡
-        채널로 · 비밀유지 약속
-      </p>
+      {/* 모바일 sticky CTA — 항상 보임 */}
+      <div className="sticky bottom-3 z-10 sm:hidden">
+        <a
+          href={href}
+          onClick={() => fireStart("sticky")}
+          className="flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 text-base font-bold text-white shadow-[0_12px_32px_var(--accent-glow)]"
+        >
+          7일 검증 시작하기 ({priceLine})
+        </a>
+      </div>
     </div>
   );
 }
 
-function NextSteps({ path }: { path: RecommendedPath }) {
-  const isEngine = path === "engine";
-  const steps: { who: "비즈필터" | "함께"; text: string }[] = [
-    {
-      who: "비즈필터",
-      text: "이 설계서를 바탕으로 오퍼 문장, 표시 가격, 소구점, 합격선이 담긴 브리프 초안을 잡아 보내드립니다.",
-    },
-    {
-      who: "함께",
-      text: "브리프 확정: 항목별로 확인하고 승인하거나 수정 의견만 주시면 됩니다. 통화 없이 서면으로 끝납니다.",
-    },
-    {
-      who: "비즈필터",
-      text: isEngine
-        ? "48시간 안에 준비 완료: 만드신 페이지를 진단하고 측정 이벤트를 세팅합니다."
-        : "48시간 안에 준비 완료: 실서비스처럼 보이는 검증용 사이트를 제작합니다.",
-    },
-    {
-      who: "비즈필터",
-      text: "7일 광고 집행: 라이브 대시보드를 상시 공개하고 기간 내 최적화합니다.",
-    },
-    {
-      who: "비즈필터",
-      text: "판정 리포트: 합격선 대비 Go/No-Go와 다음 액션을 정리해 대시보드로 보내드립니다. 질문은 일주일간 채팅으로 답합니다.",
-    },
+function NextSteps({
+  path,
+  build,
+}: {
+  path: RecommendedPath;
+  build: QuizAnswers["build"];
+}) {
+  // 3단계는 path가 아니라 build로 분기 (self=아직 페이지 없음)
+  const prepStep =
+    build === "built"
+      ? "48시간 안에 준비 완료: 만드신 페이지에 측정을 붙이고 진단합니다."
+      : build === "self"
+        ? "48시간 안에 준비 완료: 직접 만드실 페이지 가이드와 측정 설치 스펙을 드립니다."
+        : "48시간 안에 준비 완료: 실서비스처럼 보이는 검증용 사이트를 제작합니다.";
+  const steps = [
+    "이 방향으로 브리프 초안(핵심 메시지, 가격, 가칭)을 잡아 드립니다.",
+    "브리프 확정: 화면에서 확인하고 승인만 하면 됩니다. 통화 없습니다.",
+    prepStep,
+    "7일 광고 집행: 진행 대시보드를 상시 공개합니다.",
+    "판정 리포트: Go/No-Go와 다음 액션을 대시보드로 보내드립니다.",
   ];
+  void path;
   return (
-    <div className="mt-4 rounded-lg border border-border bg-surface-light p-5">
-      <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
-        신청하면 이렇게 진행됩니다
-      </p>
-      <ol className="mt-3 space-y-3">
+    <details className="cold-panel rounded-lg p-5">
+      <summary className="cursor-pointer text-sm font-bold text-text-secondary">
+        신청하면 이렇게 진행됩니다 (고객님은 승인만)
+      </summary>
+      <ol className="mt-3 space-y-2.5">
         {steps.map((s, i) => (
-          <li key={s.text} className="flex items-start gap-3">
-            <span className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border border-accent/40 bg-accent/10 text-xs font-bold text-accent">
+          <li key={s} className="flex items-start gap-3">
+            <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-accent/40 bg-accent/10 text-[11px] font-bold text-accent">
               {i + 1}
             </span>
-            <div>
-              <span
-                className={`mr-2 inline-block rounded-full px-2 py-0.5 text-[11px] font-bold ${
-                  s.who === "함께"
-                    ? "bg-accent/10 text-accent"
-                    : "bg-bg-alt text-text-tertiary"
-                }`}
-              >
-                {s.who === "함께" ? "함께 진행" : "비즈필터가 함"}
-              </span>
-              <span className="text-sm leading-relaxed text-text">
-                {s.text}
-              </span>
-            </div>
+            <span className="text-sm leading-relaxed text-text-secondary">
+              {s}
+            </span>
           </li>
         ))}
       </ol>
-      <p className="mt-4 text-sm font-bold text-text">
-        고객님이 하실 일은 브리프를 확인하고 승인하는 것뿐입니다. 나머지는
-        전부 저희가 합니다.
+      <p className="mt-3 text-sm font-bold text-text">
+        고객님이 하실 일은 브리프를 확인하고 승인하는 것뿐입니다.
       </p>
-    </div>
-  );
-}
-
-function PathCta({
-  path,
-  accessCode,
-}: {
-  path: RecommendedPath;
-  accessCode: string | null;
-}) {
-  const isEngine = path === "engine";
-  return (
-    <div className="mt-6 space-y-3">
-      <div className="rounded-lg border border-accent/40 bg-accent/5 p-5">
-        <p className="text-sm font-bold text-accent">
-          {isEngine ? "추천 경로: 엔진 29만원" : "추천 경로: Quick 50만원 · 7일"}
-        </p>
-        <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-          {isEngine
-            ? "페이지를 직접 준비하시는 분께는 제작을 뺀 검증 엔진만 드립니다. 광고 세팅과 7일 집행(광고비 5만원 포함), 측정, 합격선 판정까지. 재검증은 30% 할인됩니다."
-            : "실서비스처럼 보이는 검증용 사이트 제작부터 광고 7일 집행, 측정, Go/No-Go 판정까지 전부 포함입니다. 분명한 판정을 못 드리면 전액 환불합니다."}
-        </p>
-      </div>
-      {accessCode ? (
-        <>
-          <a
-            href={`/d/${accessCode}`}
-            onClick={() =>
-              sendGAEvent("event", "brief_start", {
-                tier: isEngine ? "engine" : "quick",
-              })
-            }
-            className="flex items-center justify-center gap-2 rounded-lg bg-accent px-6 py-4 text-base font-bold text-white transition hover:bg-accent-hover hover:shadow-[0_12px_32px_var(--accent-glow)]"
-          >
-            이 설계 그대로 브리프 확정하고 시작하기
-          </a>
-          <p className="text-center text-xs text-text-tertiary">
-            내 진행 코드: <b className="font-mono text-text">{accessCode}</b> ·
-            이 코드로 언제든 bizfilter.kr/d 에서 진행 현황을 볼 수 있습니다
-          </p>
-        </>
-      ) : (
-        <a
-          href={KAKAO_CHAT_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() =>
-            sendGAEvent("event", "kakao_open", { from: "report" })
-          }
-          className="flex items-center justify-center gap-2 rounded-lg px-6 py-4 text-base font-bold transition hover:brightness-95"
-          style={{ background: "#FEE500", color: "#191600" }}
-        >
-          카카오톡으로 시작하기
-        </a>
-      )}
-      <p className="text-center text-xs text-text-tertiary">
-        {isEngine
-          ? "제작까지 맡기고 싶으시면 Quick 50만원, 단가와 손익까지 보려면 Deep 130만원도 있습니다."
-          : "수요 확인 후 단가와 손익까지 보려면 Deep 130만원으로 이어집니다."}
-      </p>
-    </div>
+    </details>
   );
 }
 

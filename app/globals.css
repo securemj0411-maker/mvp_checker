@@ -213,6 +213,16 @@ html.js .reveal-stagger:not(.in) > * {
   animation: loadingSweep 1.1s ease-in-out infinite;
 }
 
+/* 의사 진행률 — 24초에 걸쳐 0→90%까지 차오름 (완료 시 화면 전환) */
+@keyframes genProgress {
+  0%   { width: 4%; }
+  100% { width: 90%; }
+}
+.gen-progress {
+  width: 4%;
+  animation: genProgress 24s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
 /* ─────────  Marquee (horizontal infinite scroll)  ───────── */
 @keyframes marqueeScroll {
   from { transform: translateX(0); }
