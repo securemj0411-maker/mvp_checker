@@ -1,45 +1,90 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { sendGAEvent } from "@next/third-parties/google";
-import { getSupabase } from "@/lib/supabase";
 import { KAKAO_CHAT_URL } from "@/lib/site";
+import type {
+  InterpretResult,
+  QuizAnswers,
+  RecommendedPath,
+  Report,
+} from "@/lib/diagnosis";
 
-type StepId = "service" | "audience" | "revenue" | "stage" | "fear";
-type Answers = Partial<Record<StepId, string>>;
-type Status = "idle" | "submitting" | "done" | "error";
+/* ─────────────────────────────────────────────────────────────
+   토스식 인앱 퀴즈 — 한 화면에 질문 하나.
+   아이디어 입력 → AI 되물음(해석 후보 선택) → 객관식 청크 →
+   연락처 → 무료 AI 검증 설계서.
+   ───────────────────────────────────────────────────────────── */
 
-const QUESTIONS: {
-  id: StepId;
+type Phase = "idea" | "interpret" | "quiz" | "contact" | "generating" | "done";
+
+type QuizKey = keyof Pick<
+  QuizAnswers,
+  "service" | "build" | "audience" | "revenue" | "price" | "alternative" | "region"
+>;
+
+interface Question {
+  id: QuizKey;
   title: string;
+  sub?: string;
   options: { value: string; label: string; hint?: string }[];
-}[] = [
+  /** 답변 상태에 따라 노출 여부 결정 (업종별 분기) */
+  when?: (a: Partial<Record<QuizKey, string>>) => boolean;
+}
+
+const QUESTIONS: Question[] = [
   {
     id: "service",
     title: "어떤 형태의 서비스인가요?",
     options: [
-      {
-        value: "web",
-        label: "웹 서비스",
-        hint: "브라우저로 쓰는 사이트·서비스",
-      },
+      { value: "web", label: "웹 서비스", hint: "브라우저로 쓰는 사이트 · 서비스" },
       { value: "app", label: "모바일 앱" },
-      {
-        value: "commerce",
-        label: "온라인 판매",
-        hint: "쇼핑몰 · 스마트스토어 · 브랜드",
-      },
+      { value: "commerce", label: "온라인 판매", hint: "쇼핑몰 · 스마트스토어 · 브랜드" },
       { value: "offline", label: "오프라인 매장 · 지역 서비스" },
+      { value: "content", label: "콘텐츠 · 교육 · 클래스" },
       { value: "unknown", label: "아직 형태를 못 정했어요" },
     ],
   },
   {
+    id: "build",
+    title: "검증용 페이지는 어떻게 준비할까요?",
+    sub: "답에 따라 가장 싼 경로를 추천해 드립니다.",
+    options: [
+      {
+        value: "self",
+        label: "제가 직접 만들 수 있어요",
+        hint: "바이브코딩 · 노코드로 랜딩페이지를 직접 만들 수 있는 경우",
+      },
+      {
+        value: "need",
+        label: "테스트용 사이트가 필요해요",
+        hint: "실서비스처럼 보이는 검증용 사이트를 저희가 만듭니다",
+      },
+      {
+        value: "built",
+        label: "이미 만들어져 있어요",
+        hint: "서비스나 페이지가 이미 개발돼 있는 경우",
+      },
+    ],
+  },
+  {
     id: "audience",
-    title: "누구에게 파는 서비스인가요?",
+    title: "돈은 누가 내나요?",
+    sub: "여러 종류라면, 첫 결제를 낼 한 부류만 골라주세요.",
     options: [
       { value: "b2c", label: "일반 소비자" },
       { value: "b2b", label: "회사 · 사장님" },
       { value: "both", label: "둘 다, 또는 아직 모르겠어요" },
+    ],
+  },
+  {
+    id: "region",
+    title: "주 고객은 어디서 오나요?",
+    when: (a) => a.service === "offline",
+    options: [
+      { value: "local", label: "동네 상권", hint: "반경 3~5km 안에서 오는 손님" },
+      { value: "city", label: "도시 전체" },
+      { value: "nationwide", label: "전국", hint: "배송이나 예약으로 전국 대상" },
     ],
   },
   {
@@ -53,300 +98,360 @@ const QUESTIONS: {
     ],
   },
   {
-    id: "stage",
-    title: "지금 어디까지 와 있나요?",
+    id: "price",
+    title: "한 사람이 내는 금액, 어느 정도로 생각하세요?",
+    sub: "감으로 골라주셔도 됩니다. 합격선 계산에 쓰입니다.",
     options: [
-      { value: "idea", label: "아이디어만 있어요" },
-      { value: "planning", label: "기획 · 디자인 중이에요" },
-      { value: "builder", label: "개발 중이거나, 직접 만들 수 있어요" },
-      { value: "built", label: "이미 만들었는데 손님이 없어요" },
+      { value: "under10k", label: "1만원 미만" },
+      { value: "10kto50k", label: "1~5만원" },
+      { value: "50kto100k", label: "5~10만원" },
+      { value: "over100k", label: "10만원 이상" },
+      { value: "unknown", label: "아직 모르겠어요" },
     ],
   },
   {
-    id: "fear",
-    title: "가장 확인하고 싶은 것은 무엇인가요?",
+    id: "alternative",
+    title: "고객은 지금 이 문제를 어떻게 해결하고 있나요?",
     options: [
-      { value: "demand", label: "수요: 원하는 사람이 진짜 있는지" },
-      { value: "unit", label: "수익 구조: 팔수록 남는 게 맞는지" },
-      {
-        value: "cac",
-        label: "광고비: 고객 1명 데려오는 데 얼마 드는지",
-      },
-      {
-        value: "all",
-        label: "전부 다 (수요·수익 구조·광고비)",
-        hint: "세 가지 모두 한 경로로 확인합니다",
-      },
-      { value: "priority", label: "순서: 뭐부터 해야 할지 모르겠어요" },
+      { value: "competitor", label: "비슷한 서비스를 쓰고 있어요" },
+      { value: "manual", label: "수작업 · 엑셀 같은 임시방편으로 버텨요" },
+      { value: "none", label: "마땅한 방법 없이 그냥 참고 있어요" },
+      { value: "unknown", label: "잘 모르겠어요" },
     ],
   },
 ];
 
-const TOTAL_STEPS = QUESTIONS.length + 1; // +1 = 연락처 단계
-
-/* 답변 기반 즉시 진단 — 규칙 기반, 과장 없이 */
-function diagnose(a: Answers) {
-  const fit =
-    a.service === "offline"
-      ? {
-          level: "설계 상담",
-          note: "오프라인·지역 기반 사업은 검증 설계가 달라집니다. 지역 타겟 광고와 사전 예약 측정으로 진행합니다. 가능한 설계인지 24시간 안에 먼저 답드립니다.",
-        }
-      : a.service === "unknown"
-        ? {
-            level: "중간",
-            note: "형태가 정해지면 검증 정확도가 올라갑니다. 검증 설계 단계(Day 1)에서 형태부터 같이 잡습니다.",
-          }
-        : {
-            level: "높음",
-            note: "광고 검증으로 신호가 잘 잡히는 유형입니다.",
-          };
-
-  const plan =
-    a.fear === "all"
-      ? {
-          name: "Quick → Deep",
-          note: "수요는 Quick 7일에서 먼저 확인하고, 수익 구조·광고비 정밀 측정은 Deep에서, 전부 한 경로로 확인합니다.",
-        }
-      : a.fear === "unit" || a.fear === "cac"
-        ? {
-            name: "Quick → Deep",
-            note: "수요 신호는 Quick에서, 단가·손익 정밀 측정은 Deep에서 잡는 경로를 권합니다.",
-          }
-        : {
-            name: "Quick",
-            note: "7일 수요 검증부터 시작하는 경로를 권합니다.",
-          };
-
-  const signals: string[] = [];
-  if (a.stage === "built") {
-    signals.push(
-      "이미 만드신 경우, 수요 문제인지 유입·전환 문제인지부터 가립니다",
-    );
-  }
-  signals.push(
-    a.audience === "b2b"
-      ? "검색 광고에서 '문제 해결 의도' 키워드로 클릭이 오는지"
-      : "광고를 본, 당신을 모르는 사람이 클릭하는지",
-  );
-  signals.push(
-    a.revenue === "subscription"
-      ? "구독 가격을 보고도 신청 버튼을 누르는지"
-      : "가격을 본 뒤에도 결제 버튼을 누르는지",
-  );
-  signals.push("고객 1명 데려오는 데 드는 비용(CAC)이 얼마인지");
-
-  return { fit, plan, signals: signals.slice(0, 3) };
-}
+const GENERATING_MESSAGES = [
+  "아이디어 구조를 분해하고 있습니다",
+  "타깃과 첫 결제 장면을 좁히고 있습니다",
+  "광고 채널을 결정하고 있습니다",
+  "합격선 숫자를 계산하고 있습니다",
+  "리스크를 점검하고 있습니다",
+];
 
 export default function LeadForm() {
-  const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<Answers>({});
-  const [status, setStatus] = useState<Status>("idle");
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [phase, setPhase] = useState<Phase>("idea");
+  const [qIndex, setQIndex] = useState(0);
+  const [answers, setAnswers] = useState<Partial<Record<QuizKey, string>>>({});
+
+  const [idea, setIdea] = useState("");
+  const [ideaRefined, setIdeaRefined] = useState<string | null>(null);
+  const [interp, setInterp] = useState<InterpretResult | null>(null);
+
   const [name, setName] = useState("");
   const [contact, setContact] = useState("");
   const [phone, setPhone] = useState("");
-  const [idea, setIdea] = useState("");
 
-  const isDetailStep = step === QUESTIONS.length;
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [report, setReport] = useState<Report | null>(null);
+  const [path, setPath] = useState<RecommendedPath>("quick");
+  const [genMsgIdx, setGenMsgIdx] = useState(0);
 
-  // 유입 채널 캡처 — /yt 등에서 붙은 utm_source를 세션에 보관 (페이지 이동에도 유지)
+  const skippedInterpret = useRef(false);
+
+  /* 노출되는 질문만 (업종별 분기) */
+  const visibleQuestions = QUESTIONS.filter((q) => !q.when || q.when(answers));
+  const totalChunks = 2 + visibleQuestions.length + 1; // 아이디어 + 되물음 + 질문 + 연락처
+  const chunkIndex =
+    phase === "idea"
+      ? 0
+      : phase === "interpret"
+        ? 1
+        : phase === "quiz"
+          ? 2 + qIndex
+          : totalChunks - 1;
+
+  /* 유입 채널 캡처 — /yt 등에서 붙은 utm_source 를 세션에 보관 */
   useEffect(() => {
     try {
-      const utm = new URLSearchParams(window.location.search).get(
-        "utm_source",
-      );
+      const utm = new URLSearchParams(window.location.search).get("utm_source");
       if (utm) sessionStorage.setItem("o2o_utm", utm.slice(0, 50));
     } catch {
       /* sessionStorage 비활성 환경 무시 */
     }
   }, []);
 
-  function pick(id: StepId, value: string) {
-    if (Object.keys(answers).length === 0) {
-      sendGAEvent("event", "quiz_start", { first_answer: value });
+  /* 설계서 생성 중 메시지 순환 */
+  useEffect(() => {
+    if (phase !== "generating") return;
+    const t = setInterval(
+      () => setGenMsgIdx((i) => (i + 1) % GENERATING_MESSAGES.length),
+      3200,
+    );
+    return () => clearInterval(t);
+  }, [phase]);
+
+  function getUtm(): string | null {
+    try {
+      return sessionStorage.getItem("o2o_utm");
+    } catch {
+      return null;
     }
-    setAnswers((prev) => ({ ...prev, [id]: value }));
-    // 탭 직후 짧은 지연 후 자동 진행 — 게임처럼 끊김 없이
-    setTimeout(() => setStep((s) => Math.min(s + 1, QUESTIONS.length)), 170);
   }
 
+  /* ── 1단계: 아이디어 제출 → AI 되물음 요청 ── */
+  async function submitIdea() {
+    if (idea.trim().length < 5) return;
+    sendGAEvent("event", "quiz_start", { method: "idea_first" });
+    setPhase("interpret");
+    skippedInterpret.current = false;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000);
+    try {
+      const res = await fetch("/api/diagnose", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "interpret", idea: idea.trim() }),
+        signal: controller.signal,
+      });
+      const data = await res.json();
+      if (data?.result?.candidates?.length) {
+        setInterp(data.result as InterpretResult);
+      } else {
+        skipInterpret();
+      }
+    } catch {
+      skipInterpret();
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  function skipInterpret() {
+    skippedInterpret.current = true;
+    setInterp(null);
+    setPhase("quiz");
+  }
+
+  function pickInterpretation(detail: string | null) {
+    setIdeaRefined(detail);
+    sendGAEvent("event", "quiz_interpret_pick", {
+      picked: detail ? "candidate" : "original",
+    });
+    setPhase("quiz");
+  }
+
+  /* ── 객관식: 탭 한 번이면 다음 청크 ── */
+  function pick(id: QuizKey, value: string) {
+    const next = { ...answers, [id]: value };
+    setAnswers(next);
+    const visible = QUESTIONS.filter((q) => !q.when || q.when(next));
+    setTimeout(() => {
+      if (qIndex + 1 < visible.length) setQIndex((i) => i + 1);
+      else setPhase("contact");
+    }, 170);
+  }
+
+  function goBackFromQuiz() {
+    if (qIndex > 0) setQIndex((i) => i - 1);
+    else setPhase("idea");
+  }
+
+  /* ── 제출 → 설계서 생성 ── */
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setStatus("submitting");
+    setSubmitting(true);
     setErrorMsg(null);
+    setPhase("generating");
 
-    let utm: string | null = null;
-    try {
-      utm = sessionStorage.getItem("o2o_utm");
-    } catch {
-      /* ignore */
-    }
-
-    const { error } = await getSupabase().from("o2o_leads").insert({
-      name: name.trim(),
-      email: contact.trim(),
-      phone: phone.trim() || null,
+    const quizAnswers: QuizAnswers = {
       idea: idea.trim(),
-      source: "landing-quiz",
-      utm_source: utm,
-      service_type: answers.service ?? null,
-      audience: answers.audience ?? null,
-      revenue_model: answers.revenue ?? null,
-      stage: answers.stage ?? null,
-      fear: answers.fear ?? null,
-      user_agent:
-        typeof navigator !== "undefined" ? navigator.userAgent : null,
-    });
+      ideaRefined,
+      service: (answers.service ?? "unknown") as QuizAnswers["service"],
+      build: (answers.build ?? "need") as QuizAnswers["build"],
+      audience: (answers.audience ?? "unknown") as QuizAnswers["audience"],
+      revenue: (answers.revenue ?? "undecided") as QuizAnswers["revenue"],
+      price: (answers.price ?? "unknown") as QuizAnswers["price"],
+      alternative: (answers.alternative ??
+        "unknown") as QuizAnswers["alternative"],
+      region: (answers.region as QuizAnswers["region"]) ?? null,
+    };
 
-    if (error) {
-      console.error("[lead submit error]", error);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 55000);
+    try {
+      const res = await fetch("/api/diagnose", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "report",
+          answers: quizAnswers,
+          name: name.trim(),
+          contact: contact.trim(),
+          phone: phone.trim() || undefined,
+          utm: getUtm(),
+          userAgent:
+            typeof navigator !== "undefined" ? navigator.userAgent : null,
+        }),
+        signal: controller.signal,
+      });
+      if (!res.ok) throw new Error(`status ${res.status}`);
+      const data = await res.json();
+      if (!data?.report) throw new Error("no report");
+
+      sendGAEvent("event", "generate_lead", {
+        method: "quiz_v2",
+        utm_source: getUtm() ?? "direct",
+        build_status: quizAnswers.build,
+        report_source: data.source ?? "unknown",
+      });
+      setReport(data.report as Report);
+      setPath((data.path as RecommendedPath) ?? "quick");
+      setPhase("done");
+    } catch (err) {
+      console.error("[lead submit error]", err);
       setErrorMsg(
-        "제출 중 문제가 생겼습니다. 잠시 후 다시 시도해주세요. 계속 문제가 생기면 카톡 채널로 문의해주세요.",
+        "설계서 생성 중 문제가 생겼습니다. 잠시 후 다시 시도해주세요. 계속 문제가 생기면 카톡 채널로 문의해주세요.",
       );
-      setStatus("error");
-      return;
+      setPhase("contact");
+    } finally {
+      clearTimeout(timeout);
+      setSubmitting(false);
     }
-    sendGAEvent("event", "generate_lead", {
-      method: "quiz",
-      utm_source: utm ?? "direct",
-      stage: answers.stage ?? "unknown",
-      fear: answers.fear ?? "unknown",
-    });
-    setStatus("done");
   }
 
-  /* ───────── 결과 화면 — 제출 즉시 진단 (마음이 식기 전에 보상) ───────── */
-  if (status === "done") {
-    const d = diagnose(answers);
+  /* ───────────────────── 화면 ───────────────────── */
+
+  if (phase === "done" && report) {
+    return <ReportView report={report} path={path} />;
+  }
+
+  if (phase === "generating") {
     return (
-      <div className="cold-panel rounded-lg p-6 sm:p-8">
-        <div className="flex items-center gap-3">
-          <div
-            className="flex h-12 w-12 items-center justify-center rounded-full border border-accent/40 bg-accent/10 text-accent"
-            style={{ boxShadow: "0 0 24px var(--accent-glow)" }}
+      <div className="cold-panel rounded-lg p-8 sm:p-10">
+        <div className="flex flex-col items-center py-10 text-center">
+          <div className="relative h-14 w-14">
+            <div className="absolute inset-0 animate-spin rounded-full border-2 border-border border-t-accent" />
+          </div>
+          <p
+            key={genMsgIdx}
+            className="quiz-step-in mt-7 text-lg font-bold text-text"
           >
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M20 6 9 17l-5-5" />
-            </svg>
-          </div>
-          <div>
-            <p className="text-xl font-bold text-text">접수됐습니다.</p>
-            <p className="text-sm text-text-secondary">
-              답변 기준 1차 진단입니다. 24시간 안에 직접 확인 후 회신드립니다.
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-6 rounded-lg border border-border bg-surface-light p-5">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
-              광고 검증 적합도
-            </p>
-            <span className="rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-sm font-bold text-accent">
-              {d.fit.level}
-            </span>
-          </div>
-          <p className="mt-3 text-sm leading-relaxed text-text-secondary">
-            {d.fit.note}
+            {GENERATING_MESSAGES[genMsgIdx]}
+          </p>
+          <p className="mt-2 text-sm text-text-secondary">
+            검증 설계서를 만들고 있습니다. 10~30초 정도 걸립니다.
           </p>
         </div>
+      </div>
+    );
+  }
 
-        <div className="mt-4 rounded-lg border border-border bg-surface-light p-5">
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
-            저희가 측정하게 될 신호
+  /* 아이디어 입력 — 첫 청크 */
+  if (phase === "idea") {
+    return (
+      <div className="cold-panel space-y-5 rounded-lg p-6 sm:p-8">
+        <Progress current={chunkIndex} total={totalChunks} />
+        <div>
+          <p className="text-xl font-bold text-text">
+            어떤 아이디어인가요? 한 줄이면 됩니다.
           </p>
-          <ul className="mt-3 space-y-2">
-            {d.signals.map((s) => (
-              <li
-                key={s}
-                className="flex items-start gap-2 text-sm leading-relaxed text-text"
-              >
-                <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-accent" />
-                {s}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="mt-4 rounded-lg border border-border bg-surface-light p-5">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
-              추천 경로
-            </p>
-            <span className="text-sm font-bold text-text">{d.plan.name}</span>
-          </div>
-          <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-            {d.plan.note}
+          <p className="mt-1 text-sm text-text-secondary">
+            끝까지 답하면 광고 채널과 합격선이 담긴 검증 설계서를 무료로
+            드립니다.
           </p>
         </div>
-
-        <a
-          href={KAKAO_CHAT_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => sendGAEvent("event", "kakao_open", { from: "result" })}
-          className="mt-6 flex items-center justify-center gap-2 rounded-lg px-6 py-4 text-base font-bold transition hover:brightness-95"
-          style={{ background: "#FEE500", color: "#191600" }}
+        <textarea
+          value={idea}
+          onChange={(e) => setIdea(e.target.value)}
+          className={`${inputBase} min-h-[96px] resize-y leading-relaxed`}
+          rows={3}
+          placeholder={"예: 직장인 점심 단체주문을 자동화하는 서비스"}
+          maxLength={2000}
+        />
+        <button
+          type="button"
+          disabled={idea.trim().length < 5}
+          onClick={submitIdea}
+          className="w-full rounded-md bg-accent px-6 py-4 text-base font-bold text-white transition hover:bg-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-40"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-            <path d="M12 3C6.5 3 2 6.5 2 10.8c0 2.8 1.9 5.2 4.7 6.6-.2.7-.7 2.6-.8 3-.1.5.2.5.4.4.2-.1 2.6-1.8 3.7-2.5.6.1 1.3.1 2 .1 5.5 0 10-3.5 10-7.8C22 6.5 17.5 3 12 3z" />
-          </svg>
-          지금 바로 카톡으로 상담 시작하기
-        </a>
-        <p className="mt-3 text-center text-xs text-text-tertiary">
-          가장 빠른 답변은 카톡입니다. 메일/전화로도 24시간 안에
-          회신드립니다 · 비밀유지 약속
+          다음
+        </button>
+        <p className="text-center text-xs text-text-tertiary">
+          신청은 결제가 아닙니다 · 비밀유지 약속
         </p>
       </div>
     );
   }
 
-  /* ───────── 마지막 단계 — 연락처 ───────── */
-  if (isDetailStep) {
+  /* AI 되물음 — 해석 후보 선택 */
+  if (phase === "interpret") {
+    return (
+      <div className="cold-panel space-y-5 rounded-lg p-6 sm:p-8">
+        <Progress current={chunkIndex} total={totalChunks} />
+        {!interp ? (
+          <div className="flex flex-col items-center py-10 text-center">
+            <div className="h-10 w-10 animate-spin rounded-full border-2 border-border border-t-accent" />
+            <p className="mt-5 text-base font-bold text-text">
+              아이디어를 읽고 있습니다
+            </p>
+            <p className="mt-1 text-sm text-text-secondary">
+              검증 가능한 형태로 좁혀볼게요. 몇 초면 됩니다.
+            </p>
+          </div>
+        ) : (
+          <div className="quiz-step-in space-y-5">
+            <div>
+              <p className="text-xl font-bold text-text">
+                이런 뜻으로 이해했는데, 맞나요?
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-text-secondary">
+                {interp.summary}
+              </p>
+            </div>
+            <div className="space-y-2.5">
+              {interp.candidates.map((c) => (
+                <button
+                  key={c.label}
+                  type="button"
+                  onClick={() => pickInterpretation(c.detail)}
+                  className="w-full rounded-md border border-border bg-surface-light px-4 py-3.5 text-left transition hover:border-accent/60 hover:bg-bg-alt focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                >
+                  <span className="block text-[15px] font-semibold text-text">
+                    {c.label}
+                  </span>
+                  <span className="mt-0.5 block text-xs leading-relaxed text-text-tertiary">
+                    {c.detail}
+                  </span>
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => pickInterpretation(null)}
+                className="w-full rounded-md border border-dashed border-border px-4 py-3.5 text-left text-[15px] font-semibold text-text-secondary transition hover:border-accent/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              >
+                제 설명 그대로 진행할게요
+              </button>
+            </div>
+            <div className="flex items-center justify-between">
+              <BackButton onClick={() => setPhase("idea")} />
+              <p className="text-xs text-text-tertiary">
+                고른 해석 기준으로 설계서가 만들어집니다
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  /* 연락처 — 마지막 청크 */
+  if (phase === "contact") {
     return (
       <form
         onSubmit={handleSubmit}
         className="cold-panel space-y-5 rounded-lg p-6 sm:p-8"
       >
-        <Progress step={step} />
+        <Progress current={chunkIndex} total={totalChunks} />
         <div>
           <p className="text-xl font-bold text-text">
-            마지막입니다. 어떤 아이디어인가요?
+            마지막입니다. 설계서를 어디로 보내드릴까요?
           </p>
           <p className="mt-1 text-sm text-text-secondary">
-            제출하면 답변 기준 검증 적합도를 바로 보여드립니다.
-          </p>
-        </div>
-        <div>
-          <label className="mb-2 block text-sm font-semibold text-text-secondary">
-            아이디어 설명
-          </label>
-          <textarea
-            required
-            value={idea}
-            onChange={(e) => setIdea(e.target.value)}
-            className={`${inputBase} min-h-[110px] resize-y leading-relaxed`}
-            rows={4}
-            placeholder={
-              "예: 직장인 점심 단체주문을 자동화하는 서비스.\n누가 쓰는지, 어떤 문제를 푸는지, 어떻게 돈을 벌 계획인지 — 떠오르는 만큼 적어주세요."
-            }
-            maxLength={2000}
-          />
-          <p className="mt-2 text-xs text-text-tertiary">
-            한 줄도 괜찮고, 자세히 적으셔도 좋습니다. 적어주신 만큼 상담이
-            빨라집니다. 나머지는 상담(카카오톡 또는 전화)에서 함께
-            정리합니다.
+            제출하면 검증 설계서를 바로 화면에서 보여드리고, 24시간 안에 사람이
+            직접 검토 후 회신드립니다.
           </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -404,12 +509,10 @@ export default function LeadForm() {
 
         <button
           type="submit"
-          disabled={status === "submitting"}
+          disabled={submitting}
           className="w-full rounded-md bg-accent px-6 py-4 text-base font-bold text-white transition hover:bg-accent-hover hover:shadow-[0_12px_32px_var(--accent-glow)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-50"
         >
-          {status === "submitting"
-            ? "보내는 중..."
-            : "제출하고 검증 적합도 바로 보기"}
+          {submitting ? "보내는 중..." : "무료 검증 설계서 받기"}
         </button>
         <p className="text-center text-xs text-text-tertiary">
           폼 작성이 번거로우시면{" "}
@@ -425,7 +528,12 @@ export default function LeadForm() {
           하셔도 됩니다.
         </p>
         <div className="flex items-center justify-between">
-          <BackButton onClick={() => setStep((s) => s - 1)} />
+          <BackButton
+            onClick={() => {
+              setPhase("quiz");
+              setQIndex(visibleQuestions.length - 1);
+            }}
+          />
           <p className="text-xs text-text-tertiary">
             신청은 결제가 아닙니다 · 비밀유지 약속
           </p>
@@ -434,13 +542,18 @@ export default function LeadForm() {
     );
   }
 
-  /* ───────── 질문 단계 — 탭 한 번이면 다음으로 ───────── */
-  const q = QUESTIONS[step];
+  /* 객관식 청크 */
+  const q = visibleQuestions[Math.min(qIndex, visibleQuestions.length - 1)];
   return (
     <div className="cold-panel space-y-5 rounded-lg p-6 sm:p-8">
-      <Progress step={step} />
+      <Progress current={chunkIndex} total={totalChunks} />
       <div key={q.id} className="quiz-step-in space-y-5">
-        <p className="text-xl font-bold text-text">{q.title}</p>
+        <div>
+          <p className="text-xl font-bold text-text">{q.title}</p>
+          {q.sub && (
+            <p className="mt-1 text-sm text-text-secondary">{q.sub}</p>
+          )}
+        </div>
         <div className="space-y-2.5">
           {q.options.map((o) => {
             const selected = answers[q.id] === o.value;
@@ -468,13 +581,9 @@ export default function LeadForm() {
           })}
         </div>
         <div className="flex items-center justify-between">
-          {step > 0 ? (
-            <BackButton onClick={() => setStep((s) => s - 1)} />
-          ) : (
-            <span />
-          )}
+          <BackButton onClick={goBackFromQuiz} />
           <p className="text-xs text-text-tertiary">
-            끝에서 검증 적합도를 바로 보여드립니다
+            끝에서 검증 설계서를 무료로 드립니다
           </p>
         </div>
       </div>
@@ -482,18 +591,209 @@ export default function LeadForm() {
   );
 }
 
+/* ───────────────── 설계서 결과 화면 ───────────────── */
+
+function ReportView({
+  report,
+  path,
+}: {
+  report: Report;
+  path: RecommendedPath;
+}) {
+  useEffect(() => {
+    sendGAEvent("event", "report_view", { path });
+  }, [path]);
+
+  return (
+    <div className="cold-panel rounded-lg p-6 sm:p-8">
+      <div className="flex items-center gap-3">
+        <div
+          className="flex h-12 w-12 items-center justify-center rounded-full border border-accent/40 bg-accent/10 text-accent"
+          style={{ boxShadow: "0 0 24px var(--accent-glow)" }}
+        >
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M20 6 9 17l-5-5" />
+          </svg>
+        </div>
+        <div>
+          <p className="text-xl font-bold text-text">검증 설계서가 나왔습니다</p>
+          <p className="text-sm text-text-secondary">
+            24시간 안에 사람이 직접 검토하고 회신드립니다.
+          </p>
+        </div>
+      </div>
+
+      {/* 한 문장 정리 */}
+      <div className="mt-6 rounded-lg border border-accent/30 bg-accent/5 p-5">
+        <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
+          이번 검증이 시험할 한 문장
+        </p>
+        <p className="mt-2 text-base font-bold leading-relaxed text-text">
+          {report.one_liner}
+        </p>
+      </div>
+
+      {/* 구조 분해 */}
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        {[
+          ["타깃", report.target],
+          ["문제", report.problem],
+          ["현재 대안", report.current_alternative],
+          ["가격 가설", report.price_hypothesis],
+        ].map(([k, v]) => (
+          <div
+            key={k}
+            className="rounded-lg border border-border bg-surface-light p-4"
+          >
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
+              {k}
+            </p>
+            <p className="mt-1.5 text-sm leading-relaxed text-text">{v}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* 채널 + 합격선 */}
+      <div className="mt-4 rounded-lg border border-border bg-surface-light p-5">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
+            추천 광고 채널
+          </p>
+          <span className="rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-sm font-bold text-accent">
+            {report.channel}
+          </span>
+        </div>
+        <p className="mt-3 text-sm leading-relaxed text-text-secondary">
+          {report.channel_reason}
+        </p>
+      </div>
+
+      <div className="mt-4 rounded-lg border border-border bg-surface-light p-5">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
+            합격선
+          </p>
+          <span className="text-sm font-bold text-text">{report.pass_bar}</span>
+        </div>
+        <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+          {report.pass_bar_reason} 합격선은 광고를 시작하기 전에 함께 확정하고,
+          데이터를 본 뒤에는 어느 쪽도 바꾸지 못합니다.
+        </p>
+      </div>
+
+      {/* 리스크 */}
+      <div className="mt-4 rounded-lg border border-border bg-surface-light p-5">
+        <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
+          이 아이디어의 리스크
+        </p>
+        <ul className="mt-3 space-y-2.5">
+          {report.risks.map((r) => (
+            <li
+              key={r}
+              className="flex items-start gap-2 text-sm leading-relaxed text-text"
+            >
+              <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-accent" />
+              {r}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* 분석의 한계 — 정직 고백 */}
+      <div className="mt-4 rounded-lg border border-border bg-bg-alt p-5">
+        <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
+          이 설계서가 알 수 없는 것
+        </p>
+        <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+          {report.blind_spot}
+        </p>
+        <p className="mt-3 text-sm font-bold leading-relaxed text-text">
+          여기까지가 분석이 알 수 있는 전부입니다. 나머지는 시장만 압니다. 위
+          설계 그대로, 진짜 광고비를 써서 확인하는 것이 다음 단계입니다.
+        </p>
+      </div>
+
+      {/* 경로별 CTA */}
+      <PathCta path={path} />
+
+      <p className="mt-3 text-center text-xs text-text-tertiary">
+        가장 빠른 답변은 카톡입니다. 메일/전화로도 24시간 안에 회신드립니다 ·
+        비밀유지 약속
+      </p>
+    </div>
+  );
+}
+
+function PathCta({ path }: { path: RecommendedPath }) {
+  const isEngine = path === "engine";
+  return (
+    <div className="mt-6 space-y-3">
+      <div className="rounded-lg border border-accent/40 bg-accent/5 p-5">
+        <p className="text-sm font-bold text-accent">
+          {isEngine ? "추천 경로: 엔진 29만원" : "추천 경로: Quick 50만원 · 7일"}
+        </p>
+        <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+          {isEngine
+            ? "페이지를 직접 준비하시는 분께는 제작을 뺀 검증 엔진만 드립니다. 광고 세팅과 7일 집행(광고비 5만원 포함), 측정, 합격선 판정까지. 재검증은 30% 할인됩니다."
+            : "실서비스처럼 보이는 검증용 사이트 제작부터 광고 7일 집행, 측정, Go/No-Go 판정까지 전부 포함입니다. 분명한 판정을 못 드리면 전액 환불합니다."}
+        </p>
+      </div>
+      <a
+        href={KAKAO_CHAT_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={() =>
+          sendGAEvent("event", "kakao_open", {
+            from: "report",
+            tier: isEngine ? "engine" : "quick",
+          })
+        }
+        className="flex items-center justify-center gap-2 rounded-lg px-6 py-4 text-base font-bold transition hover:brightness-95"
+        style={{ background: "#FEE500", color: "#191600" }}
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          aria-hidden
+        >
+          <path d="M12 3C6.5 3 2 6.5 2 10.8c0 2.8 1.9 5.2 4.7 6.6-.2.7-.7 2.6-.8 3-.1.5.2.5.4.4.2-.1 2.6-1.8 3.7-2.5.6.1 1.3.1 2 .1 5.5 0 10-3.5 10-7.8C22 6.5 17.5 3 12 3z" />
+        </svg>
+        {isEngine
+          ? "이 설계 그대로 엔진으로 시작하기"
+          : "이 설계 그대로 Quick으로 시작하기"}
+      </a>
+      <p className="text-center text-xs text-text-tertiary">
+        {isEngine
+          ? "제작까지 맡기고 싶으시면 Quick 50만원, 단가와 손익까지 보려면 Deep 130만원도 있습니다."
+          : "수요 확인 후 단가와 손익까지 보려면 Deep 130만원으로 이어집니다."}
+      </p>
+    </div>
+  );
+}
+
+/* ───────────────── 공용 ───────────────── */
+
 const inputBase =
   "w-full rounded-md border border-border bg-surface-light px-4 py-3 text-text placeholder:text-text-tertiary outline-none transition focus:border-accent focus:bg-bg-alt";
 
-function Progress({ step }: { step: number }) {
-  const pct = Math.round((step / TOTAL_STEPS) * 100);
+function Progress({ current, total }: { current: number; total: number }) {
+  const pct = Math.round((current / total) * 100);
   return (
     <div>
       <div className="flex items-center justify-between text-xs font-bold text-text-tertiary">
         <span>
-          {step < QUESTIONS.length
-            ? `질문 ${step + 1} / ${QUESTIONS.length}`
-            : "마지막 단계"}
+          {current + 1} / {total}
         </span>
         <span>{pct}%</span>
       </div>

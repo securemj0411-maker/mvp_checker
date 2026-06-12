@@ -968,6 +968,21 @@ function Cases() {
 function Pricing() {
   const tiers = [
     {
+      tag: "엔진",
+      price: "29만원",
+      period: "7일",
+      desc: "랜딩페이지를 직접 만들 수 있다면, 검증 엔진만 가져가세요.",
+      lines: [
+        "직접 만든 페이지 진단: 전환을 막는 요소 점검 + 측정 이벤트 세팅",
+        "광고 문구 2종 제작 + 구글 또는 메타 7일 집행 (광고비 5만원 포함)",
+        "합격선 사전 합의 + 라이브 대시보드 상시 공개",
+        "Go/No-Go 판정 리포트 + 다음 액션 제안",
+        "재검증 30% 할인: 조건 바꿔 다시 돌리면 회당 약 20만원",
+      ],
+      cta: "엔진으로 시작",
+      highlight: false,
+    },
+    {
       tag: "QUICK 검증",
       price: "50만원",
       period: "7일",
@@ -1012,8 +1027,8 @@ function Pricing() {
             <br />늘 더 비쌌습니다
           </h2>
           <p className="mt-6 text-lg leading-[1.7] text-text-secondary">
-            Quick은 '원하는 사람이 있는가'에, Deep은 '팔수록 남는가'에
-            답합니다.
+            엔진은 '페이지가 이미 있는 분'을 위해, Quick은 '원하는 사람이
+            있는가'에, Deep은 '팔수록 남는가'에 답합니다.
           </p>
         </div>
 
@@ -1048,7 +1063,7 @@ function Pricing() {
         </div>
 
         {/* 플랜 카드 */}
-        <div className="reveal-stagger mt-8 grid gap-6 lg:grid-cols-2">
+        <div className="reveal-stagger mt-8 grid gap-6 lg:grid-cols-3">
           {tiers.map((t) => (
             <div
               key={t.tag}
