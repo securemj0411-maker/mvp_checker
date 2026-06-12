@@ -135,24 +135,27 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
           {variant === "a" ? (
             <>
               <h1 className="mt-5 text-[40px] font-extrabold leading-[1.18] tracking-[-0.035em] text-text sm:text-6xl">
-                그 아이디어가 먹힐지,
+                이 사업이 될지 안 될지,
                 <br />
-                만들기 전에 확인하세요
+                진짜 사람들로 확인합니다
               </h1>
               <p className="mx-auto mt-7 max-w-xl text-lg leading-[1.7] text-text-secondary sm:text-xl">
-                검증용 사이트 제작부터 광고 집행, 수요 분석까지.
-                <br className="hidden sm:block" />
-                7일 안에 사업 가능성을 데이터로 확인합니다.
+                실제 서비스처럼 보이는 페이지에 진짜 광고비를 써서, 당신을
+                모르는 사람 수백 명을 보통 48시간 안에 불러옵니다. 그들이
+                클릭하고 결제 버튼까지 누르는지(실제 결제는 진행하지 않습니다)를
+                숫자로 보여드립니다.
               </p>
             </>
           ) : (
             <>
               <h1 className="mt-5 text-[40px] font-extrabold leading-[1.18] tracking-[-0.035em] text-text sm:text-6xl">
-                만들기 전에,
-                <br />살 사람부터 확인하세요
+                지인 칭찬 말고,
+                <br />낯선 사람의 클릭으로
               </h1>
               <p className="mx-auto mt-7 max-w-xl text-lg leading-[1.7] text-text-secondary sm:text-xl">
-                그 아이디어, 7일이면 데이터로 답이 나옵니다.
+                당신 아이디어로 진짜 광고를 돌려, 모르는 사람 수백 명을 보통
+                48시간 안에 불러옵니다. 클릭률과 결제 의향(실제 결제는 없습니다)을
+                재서, 만들지 말지를 데이터로 답합니다.
               </p>
             </>
           )}
@@ -172,8 +175,7 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
             </a>
           </div>
           <p className="mt-7 text-sm font-medium text-text-tertiary">
-            신청은 결제가 아닙니다 · Go/No-Go 판정 보장 · 검증 과정 실시간
-            공개
+            광고비는 비즈필터가 부담 · 실제 결제는 없음 · Go/No-Go 판정 보장
           </p>
         </div>
 

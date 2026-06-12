@@ -444,7 +444,8 @@ export default function LeadForm() {
             {GENERATING_MESSAGES[genMsgIdx]}
           </p>
           <p className="mt-2 text-sm text-text-secondary">
-            AI가 검증 준비안을 짜고 있습니다. 10~30초 정도 걸립니다.
+            이 아이디어를 어디에 광고로 걸고, 보통 며칠 안에 몇 명을 불러와,
+            어떤 숫자가 나오면 합격인지 계산하고 있습니다. 10~30초 걸립니다.
           </p>
           {/* 의사 진행률 바 — 24초에 걸쳐 90%까지, 완료 시 화면 전환 */}
           <div className="mt-6 h-2 w-56 max-w-full overflow-hidden rounded-full bg-bg-alt">
@@ -485,8 +486,8 @@ export default function LeadForm() {
             어떤 아이디어인가요? 한 줄이면 됩니다.
           </p>
           <p className="mt-1 text-sm text-text-secondary">
-            끝까지 답하면 광고 채널과 합격선이 담긴 검증 설계서를 무료로
-            드립니다.
+            끝까지 답하면, 이 아이디어로 어디에 광고를 걸어 어떤 사람들을 수백
+            명 불러올지 담긴 검증 설계서를 무료로 드립니다.
           </p>
         </div>
         <textarea
@@ -524,7 +525,8 @@ export default function LeadForm() {
               AI가 아이디어를 분석하고 있습니다
             </p>
             <p className="mt-1 text-sm text-text-secondary">
-              검증 가능한 형태로 좁혀볼게요. 몇 초면 됩니다.
+              이 문장 그대로 광고 문구와 검증용 페이지가 만들어져 진짜 사람들이
+            보게 됩니다. 그래서 한 번 더 확인해요.
             </p>
             <div className="mt-5 h-1.5 w-48 overflow-hidden rounded-full bg-bg-alt">
               <div className="loading-sweep h-full rounded-full bg-accent" />
@@ -748,7 +750,7 @@ export default function LeadForm() {
         <div className="flex items-center justify-between">
           <BackButton onClick={goBackFromQuiz} />
           <p className="text-xs text-text-tertiary">
-            끝에서 검증 설계서를 무료로 드립니다
+            이 답으로 광고 채널과 합격선이 정해집니다 · 끝에서 설계서 무료
           </p>
         </div>
       </div>
@@ -834,13 +836,14 @@ function ReportView({
           있으면 다음 단계(브리프)에서 그대로 고칠 수 있습니다.
         </p>
 
-        {/* 1차 CTA — 스크롤 전에 바로 전환 */}
+        {/* 1차 CTA — 가격 빼고 가치로. 스크롤 전에 바로 전환 */}
         <a
           href={href}
           onClick={() => fireStart("top")}
-          className="mt-5 flex items-center justify-center gap-2 rounded-lg bg-accent px-6 py-4 text-base font-bold text-white transition hover:bg-accent-hover hover:shadow-[0_12px_32px_var(--accent-glow)]"
+          className="mt-5 flex items-center justify-center gap-2 rounded-lg bg-accent px-6 py-[18px] text-base font-bold text-white transition hover:bg-accent-hover hover:shadow-[0_12px_32px_var(--accent-glow)]"
         >
-          이 방향으로 7일 검증 시작하기 ({priceLine})
+          내 페이지에 진짜 사람들 불러와서 테스트하기
+          <ArrowRightMini />
         </a>
         <a
           href="#how-we-validate"
@@ -925,7 +928,8 @@ function ReportView({
           onClick={() => fireStart("bottom")}
           className="mt-3 flex items-center justify-center gap-2 rounded-lg bg-accent px-6 py-4 text-base font-bold text-white transition hover:bg-accent-hover"
         >
-          이 방향으로 7일 검증 시작하기
+          진짜 사람들로 이 아이디어 테스트 시작하기
+          <ArrowRightMini />
         </a>
         {accessCode && (
           <p className="mt-3 text-center text-xs text-text-tertiary">
@@ -946,7 +950,8 @@ function ReportView({
           onClick={() => fireStart("sticky")}
           className="flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 text-base font-bold text-white shadow-[0_12px_32px_var(--accent-glow)]"
         >
-          7일 검증 시작하기 ({priceLine})
+          진짜 사람들로 테스트 시작하기
+          <ArrowRightMini />
         </a>
       </div>
     </div>
@@ -1047,6 +1052,24 @@ function TextChunk({
 }
 
 /* ───────────────── 공용 ───────────────── */
+
+function ArrowRightMini() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M5 12h14M13 5l7 7-7 7" />
+    </svg>
+  );
+}
 
 const inputBase =
   "w-full rounded-md border border-border bg-surface-light px-4 py-3 text-text placeholder:text-text-tertiary outline-none transition focus:border-accent focus:bg-bg-alt";
