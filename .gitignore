@@ -51,3 +51,10 @@ next-env.d.ts
 /사업망하고우는남자.png
 /claude-code.svg
 /codex-logo.svg
+
+# 루트에 방치된 작업/리서치 이미지 (사이트 자산은 public/ 사용)
+/*.png
+/*.jpg
+/*.jpeg
+/*.webp
+/*.gif
