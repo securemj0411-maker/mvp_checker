@@ -373,22 +373,6 @@ export async function POST(request: Request) {
       return Response.json({ error: "insert failed" }, { status: 500 });
     }
 
-    // 1.5) 같은 전화번호로 가입한 계정이 있으면 자동 연결 (로그인 후 재신청 누적)
-    const phoneDigits = contact.trim().replace(/\D/g, "");
-    if (phoneDigits.length >= 9) {
-      const { data: acct } = await admin
-        .from("accounts")
-        .select("id")
-        .eq("phone", phoneDigits)
-        .maybeSingle();
-      if (acct?.id) {
-        await admin
-          .from("o2o_leads")
-          .update({ account_id: acct.id })
-          .eq("id", lead.id);
-      }
-    }
-
     // 2) 정책 분류를 먼저 — 차단 업종이면 설계서 생성을 스킵(토큰 0)하고 짧게 거절
     const policy = await classifyPolicy(answers.idea, answers.ideaRefined);
     if (policy.prohibited) {

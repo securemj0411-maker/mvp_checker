@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { sendGAEvent } from "@next/third-parties/google";
 import { KAKAO_CHAT_URL } from "@/lib/site";
+import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import type {
   InterpretResult,
   QuizAnswers,
@@ -947,19 +948,26 @@ function ReportView({
             카카오로 로그인하면 이 설계서와 진행 현황을 언제든 다시 보실 수
             있습니다. 로그인 없이는 아래 코드를 적어두셔야 합니다.
           </p>
-          <a
-            href={`/api/auth/kakao/login?link=${accessCode}`}
-            onClick={() =>
-              sendGAEvent("event", "kakao_login", { from: "report" })
-            }
-            className="mt-3 flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-sm font-bold transition hover:brightness-95"
+          <button
+            type="button"
+            onClick={async () => {
+              sendGAEvent("event", "kakao_login", { from: "report" });
+              const supabase = getSupabaseBrowser();
+              await supabase.auth.signInWithOAuth({
+                provider: "kakao",
+                options: {
+                  redirectTo: `${window.location.origin}/auth/callback?next=/d/me&link=${accessCode}`,
+                },
+              });
+            }}
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg px-6 py-3 text-sm font-bold transition hover:brightness-95"
             style={{ background: "#FEE500", color: "#191600" }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
               <path d="M12 3C6.5 3 2 6.5 2 10.8c0 2.8 1.9 5.2 4.7 6.6-.2.7-.7 2.6-.8 3-.1.5.2.5.4.4.2-.1 2.6-1.8 3.7-2.5.6.1 1.3.1 2 .1 5.5 0 10-3.5 10-7.8C22 6.5 17.5 3 12 3z" />
             </svg>
             카카오로 저장하기
-          </a>
+          </button>
           <p className="mt-2 text-center text-xs text-text-tertiary">
             내 진행 코드 <b className="font-mono text-text">{accessCode}</b>
           </p>

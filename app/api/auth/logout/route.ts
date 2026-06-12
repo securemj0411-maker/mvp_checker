@@ -1,8 +1,9 @@
-import { clearAccountSession } from "@/lib/accountSession";
+import { getSupabaseServer } from "@/lib/supabaseServer";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
-  await clearAccountSession();
+  const supabase = await getSupabaseServer();
+  await supabase.auth.signOut();
   return Response.redirect(new URL("/", request.url), 302);
 }

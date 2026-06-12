@@ -2,18 +2,34 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 
-/** 내 검증 현황 — 카카오 로그인 또는 진행 코드 */
+/** 내 검증 현황 — 카카오 로그인(Supabase) 또는 진행 코드 */
 function DashboardEntryInner() {
   const router = useRouter();
   const params = useSearchParams();
   const loginError = params.get("login_error");
   const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
 
   function go(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const normalized = code.trim().toUpperCase().replace(/\s/g, "");
     if (normalized.length >= 8) router.push(`/d/${normalized}`);
+  }
+
+  async function kakao() {
+    setBusy(true);
+    const supabase = getSupabaseBrowser();
+    const redirectTo = `${window.location.origin}/auth/callback?next=/d/me`;
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "kakao",
+      options: { redirectTo },
+    });
+    if (error) {
+      setBusy(false);
+      router.push("/d?login_error=start");
+    }
   }
 
   return (
@@ -30,17 +46,18 @@ function DashboardEntryInner() {
           </div>
         )}
 
-        {/* 카카오 로그인 */}
-        <a
-          href="/api/auth/kakao/login"
-          className="mt-5 flex items-center justify-center gap-2 rounded-md px-6 py-3.5 text-base font-bold transition hover:brightness-95"
+        <button
+          type="button"
+          onClick={kakao}
+          disabled={busy}
+          className="mt-5 flex w-full items-center justify-center gap-2 rounded-md px-6 py-3.5 text-base font-bold transition hover:brightness-95 disabled:opacity-60"
           style={{ background: "#FEE500", color: "#191600" }}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
             <path d="M12 3C6.5 3 2 6.5 2 10.8c0 2.8 1.9 5.2 4.7 6.6-.2.7-.7 2.6-.8 3-.1.5.2.5.4.4.2-.1 2.6-1.8 3.7-2.5.6.1 1.3.1 2 .1 5.5 0 10-3.5 10-7.8C22 6.5 17.5 3 12 3z" />
           </svg>
-          카카오로 로그인
-        </a>
+          {busy ? "이동 중..." : "카카오로 로그인"}
+        </button>
 
         <div className="my-5 flex items-center gap-3 text-xs text-text-tertiary">
           <span className="h-px flex-1 bg-border" />

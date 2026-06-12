@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { getAccountId } from "@/lib/accountSession";
+import { getSupabaseServer } from "@/lib/supabaseServer";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { SITE_NAME } from "@/lib/site";
 import MyLeads, { type MyLead } from "./MyLeads";
@@ -24,16 +24,18 @@ const STAGE_LABEL: Record<string, string> = {
 };
 
 export default async function MyPage() {
-  const accountId = await getAccountId();
-  if (!accountId) redirect("/d");
+  const supabase = await getSupabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/d");
+
+  const accountId = user.id;
+  const meta = user.user_metadata as { name?: string; nickname?: string } | null;
+  const displayName = meta?.name || meta?.nickname || null;
+  const hasPhone = !!user.phone;
 
   const admin = getSupabaseAdmin();
-  const { data: account } = await admin
-    .from("accounts")
-    .select("name, phone")
-    .eq("id", accountId)
-    .single();
-
   const { data: leadsRaw } = await admin
     .from("o2o_leads")
     .select(
@@ -70,17 +72,14 @@ export default async function MyPage() {
 
         <div className="cold-panel rounded-lg p-6">
           <p className="text-lg font-bold text-text">
-            {account?.name ? `${account.name}님의` : "내"} 검증 현황
+            {displayName ? `${displayName}님의` : "내"} 검증 현황
           </p>
           <p className="mt-1 text-sm text-text-secondary">
             카카오로 로그인되었습니다. 신청하신 검증을 한곳에서 보실 수 있습니다.
           </p>
         </div>
 
-        <MyLeads
-          leads={leads}
-          hasPhone={!!account?.phone}
-        />
+        <MyLeads leads={leads} hasPhone={hasPhone} />
 
         <a
           href="/start"
