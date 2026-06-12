@@ -1,4 +1,3 @@
-import LeadForm from "@/components/LeadForm";
 import ScrollReveal from "@/components/ScrollReveal";
 import { ArrowRight, Check } from "lucide-react";
 
@@ -115,7 +114,7 @@ function Nav() {
           </a>
         </nav>
         <a
-          href="#cta"
+          href="/start"
           className="rounded-full bg-accent px-[18px] py-[10px] text-sm font-bold text-white transition hover:bg-accent-hover"
         >
           검증 신청
@@ -161,7 +160,7 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
           )}
           <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
             <a
-              href="#cta"
+              href="/start"
               className="inline-flex items-center gap-2 rounded-full bg-accent px-7 py-4 text-base font-bold text-white shadow-[0_10px_24px_-8px_var(--accent-glow)] transition hover:-translate-y-0.5 hover:bg-accent-hover"
             >
               내 아이디어 검증 신청
@@ -1133,7 +1132,7 @@ function Pricing() {
                 ))}
               </ul>
               <a
-                href="#cta"
+                href="/start"
                 className={`mt-8 block rounded-full py-4 text-center text-[15px] font-bold transition ${
                   t.highlight
                     ? "bg-accent text-white hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-[0_14px_30px_-8px_var(--accent-glow)]"
@@ -1477,26 +1476,29 @@ function FinalCTA() {
                 "radial-gradient(50% 80% at 85% 10%, rgba(43,107,244,.35), transparent 60%)",
             }}
           />
-          <div className="relative grid items-center gap-12 lg:grid-cols-2">
-            <div className="reveal">
-              <p className="text-[15px] font-bold" style={{ color: "#8FB6FF" }}>
-                지금 시작
-              </p>
-              <h2 className="mt-4 text-[32px] font-extrabold leading-[1.2] tracking-[-0.03em] text-text sm:text-[40px]">
-                어차피 알게 될 답,
-                <br />
-                7일 만에 아세요
-              </h2>
-              <p className="mt-6 max-w-md text-lg leading-[1.7] text-text-secondary">
-                아이디어 한 줄이면 시작됩니다. 제출하면 광고 채널과 합격선이
-                담긴 검증 설계서를 그 자리에서 바로 보여드립니다. 회신을
-                기다리실 필요가 없습니다.
-                신청은 결제가 아닙니다.
-              </p>
-            </div>
-            <div className="reveal">
-              <LeadForm />
-            </div>
+          <div className="reveal relative mx-auto max-w-2xl text-center">
+            <p className="text-[15px] font-bold" style={{ color: "#8FB6FF" }}>
+              지금 시작
+            </p>
+            <h2 className="mt-4 text-[32px] font-extrabold leading-[1.2] tracking-[-0.03em] text-text sm:text-[40px]">
+              어차피 알게 될 답,
+              <br />
+              진짜 사람들로 확인하세요
+            </h2>
+            <p className="mx-auto mt-6 max-w-md text-lg leading-[1.7] text-text-secondary">
+              아이디어 한 줄이면 시작됩니다. 광고 채널과 합격선이 담긴 검증
+              설계서를 그 자리에서 무료로 받아보세요.
+            </p>
+            <a
+              href="/start"
+              className="mt-9 inline-flex items-center gap-2 rounded-full bg-accent px-8 py-4 text-base font-bold text-white shadow-[0_10px_24px_-8px_var(--accent-glow)] transition hover:-translate-y-0.5 hover:bg-accent-hover"
+            >
+              내 아이디어 검증 신청
+              <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
+            </a>
+            <p className="mt-5 text-sm font-medium text-text-tertiary">
+              신청은 결제가 아닙니다 · 설계서 무료 · 비밀유지 약속
+            </p>
           </div>
         </div>
       </div>
@@ -1564,7 +1566,7 @@ function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#cta" className="hover:text-accent">
+                <a href="/start" className="hover:text-accent">
                   검증 신청
                 </a>
               </li>
