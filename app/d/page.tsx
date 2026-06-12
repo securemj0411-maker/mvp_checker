@@ -23,15 +23,20 @@ function DashboardEntryInner() {
     try {
       const supabase = getSupabaseBrowser();
       const redirectTo = `${window.location.origin}/auth/callback?next=/d/me`;
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "kakao",
-        options: { redirectTo },
-      });
-      // 성공 시 브라우저가 카카오로 이동하므로 busy 유지. 실패만 처리.
-      if (error) {
-        setBusy(false);
-        router.push(`/d?login_error=${encodeURIComponent(error.message.slice(0, 90))}`);
-      }
+      // skipBrowserRedirect: URL만 받아 우리가 직접 이동(=제어 가능 + 타임아웃).
+      // signInWithOAuth 가 멈추면 8초 뒤 에러를 띄워 "이동 중..." 무한정지 방지.
+      const result = await Promise.race([
+        supabase.auth.signInWithOAuth({
+          provider: "kakao",
+          options: { redirectTo, skipBrowserRedirect: true },
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("login_timeout")), 8000),
+        ),
+      ]);
+      if (result.error) throw result.error;
+      if (!result.data?.url) throw new Error("no_oauth_url");
+      window.location.assign(result.data.url);
     } catch (e) {
       setBusy(false);
       const msg = e instanceof Error ? e.message : String(e);

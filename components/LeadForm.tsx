@@ -952,13 +952,27 @@ function ReportView({
             type="button"
             onClick={async () => {
               sendGAEvent("event", "kakao_login", { from: "report" });
-              const supabase = getSupabaseBrowser();
-              await supabase.auth.signInWithOAuth({
-                provider: "kakao",
-                options: {
-                  redirectTo: `${window.location.origin}/auth/callback?next=/d/me&link=${accessCode}`,
-                },
-              });
+              try {
+                const supabase = getSupabaseBrowser();
+                const redirectTo = `${window.location.origin}/auth/callback?next=/d/me&link=${accessCode}`;
+                const result = await Promise.race([
+                  supabase.auth.signInWithOAuth({
+                    provider: "kakao",
+                    options: { redirectTo, skipBrowserRedirect: true },
+                  }),
+                  new Promise<never>((_, reject) =>
+                    setTimeout(() => reject(new Error("login_timeout")), 8000),
+                  ),
+                ]);
+                if (result.error) throw result.error;
+                if (!result.data?.url) throw new Error("no_oauth_url");
+                window.location.assign(result.data.url);
+              } catch (e) {
+                const msg = e instanceof Error ? e.message : String(e);
+                window.location.assign(
+                  `/d?login_error=${encodeURIComponent(msg.slice(0, 90))}`,
+                );
+              }
             }}
             className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg px-6 py-3 text-sm font-bold transition hover:brightness-95"
             style={{ background: "#FEE500", color: "#191600" }}
