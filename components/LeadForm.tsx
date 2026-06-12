@@ -63,7 +63,7 @@ const QUESTIONS: Question[] = [
       {
         value: "built",
         label: "이미 만들어져 있어요",
-        hint: "서비스나 페이지가 이미 개발돼 있는 경우",
+        hint: "이 아이디어를 위한 페이지가 이미 있고, 직접 고칠 수 있는 경우",
       },
     ],
   },
@@ -100,7 +100,7 @@ const QUESTIONS: Question[] = [
   {
     id: "price",
     title: "한 사람이 내는 금액, 어느 정도로 생각하세요?",
-    sub: "감으로 골라주셔도 됩니다. 합격선 계산에 쓰입니다.",
+    sub: "감으로 골라주셔도 됩니다. 구독이라면 한 달 기준으로, 회사 대상이라면 회사 하나 기준으로 골라주세요.",
     options: [
       { value: "under10k", label: "1만원 미만" },
       { value: "10kto50k", label: "1~5만원" },
