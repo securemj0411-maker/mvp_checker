@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
-/** 내 검증 현황 — 접근 코드 입력 (로그인 없음) */
-export default function DashboardEntry() {
+/** 내 검증 현황 — 카카오 로그인 또는 진행 코드 */
+function DashboardEntryInner() {
   const router = useRouter();
+  const params = useSearchParams();
+  const loginError = params.get("login_error");
   const [code, setCode] = useState("");
 
   function go(e: React.FormEvent<HTMLFormElement>) {
@@ -17,13 +19,37 @@ export default function DashboardEntry() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-bg px-6">
       <div className="cold-panel w-full max-w-md rounded-lg p-8">
-        <h1 className="text-xl font-bold text-text">내 검증 현황 보기</h1>
+        <h1 className="text-xl font-bold text-text">내 검증 현황</h1>
         <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-          설계서를 받을 때 발급된 진행 코드를 입력하세요. 로그인은 없습니다.
+          로그인하면 신청하신 검증을 한곳에서 보실 수 있습니다.
         </p>
-        <form onSubmit={go} className="mt-5 space-y-3">
+
+        {loginError && (
+          <div className="mt-4 rounded-md border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+            로그인에 실패했습니다. 다시 시도해주세요. (코드: {loginError})
+          </div>
+        )}
+
+        {/* 카카오 로그인 */}
+        <a
+          href="/api/auth/kakao/login"
+          className="mt-5 flex items-center justify-center gap-2 rounded-md px-6 py-3.5 text-base font-bold transition hover:brightness-95"
+          style={{ background: "#FEE500", color: "#191600" }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+            <path d="M12 3C6.5 3 2 6.5 2 10.8c0 2.8 1.9 5.2 4.7 6.6-.2.7-.7 2.6-.8 3-.1.5.2.5.4.4.2-.1 2.6-1.8 3.7-2.5.6.1 1.3.1 2 .1 5.5 0 10-3.5 10-7.8C22 6.5 17.5 3 12 3z" />
+          </svg>
+          카카오로 로그인
+        </a>
+
+        <div className="my-5 flex items-center gap-3 text-xs text-text-tertiary">
+          <span className="h-px flex-1 bg-border" />
+          또는 진행 코드로 바로 보기
+          <span className="h-px flex-1 bg-border" />
+        </div>
+
+        <form onSubmit={go} className="space-y-3">
           <input
-            autoFocus
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase())}
             placeholder="예: A2K4-MN8P"
@@ -33,15 +59,20 @@ export default function DashboardEntry() {
           <button
             type="submit"
             disabled={code.trim().replace(/\s/g, "").length < 8}
-            className="w-full rounded-md bg-accent px-6 py-3.5 text-base font-bold text-white transition hover:bg-accent-hover disabled:opacity-40"
+            className="w-full rounded-md border border-border bg-surface-light px-6 py-3.5 text-base font-bold text-text transition hover:border-accent disabled:opacity-40"
           >
-            진행 현황 열기
+            코드로 열기
           </button>
         </form>
-        <p className="mt-4 text-center text-xs text-text-tertiary">
-          코드를 잃어버리셨다면 카카오톡 채널로 알려주세요.
-        </p>
       </div>
     </main>
+  );
+}
+
+export default function DashboardEntry() {
+  return (
+    <Suspense fallback={null}>
+      <DashboardEntryInner />
+    </Suspense>
   );
 }
