@@ -74,6 +74,24 @@ export async function GET(request: NextRequest) {
     }
 
     await setAccountSession(accountId);
+
+    // 설계서 직후 들어온 경우, 그 신청을 이 계정에 자동 연결
+    const linkCode = store.get("kakao_link_code")?.value;
+    store.delete("kakao_link_code");
+    if (linkCode) {
+      const { data: leadRow } = await admin
+        .from("o2o_leads")
+        .select("id, account_id")
+        .eq("access_code", linkCode)
+        .maybeSingle();
+      if (leadRow?.id && !leadRow.account_id) {
+        await admin
+          .from("o2o_leads")
+          .update({ account_id: accountId })
+          .eq("id", leadRow.id);
+      }
+    }
+
     return Response.redirect(new URL("/d/me", url.origin), 302);
   } catch (e) {
     console.error("[kakao callback]", e);

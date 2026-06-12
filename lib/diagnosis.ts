@@ -150,16 +150,16 @@ export const TIER_INFO: Record<
   { label: string; price: number; priceLabel: string; desc: string }
 > = {
   engine: {
-    label: "엔진",
+    label: "페이지는 내가",
     price: 290000,
     priceLabel: "29만원",
-    desc: "직접 만든 페이지에 광고 집행과 측정, 판정만 (광고비 5만원 포함)",
+    desc: "검증용 페이지가 이미 있으신 분. 그 페이지에 진짜 광고를 걸어 수백 명을 불러오고, 클릭과 결제율을 재서 Go/No-Go까지 판정합니다. 광고비 포함.",
   },
   quick: {
-    label: "Quick",
+    label: "처음부터 전부",
     price: 500000,
     priceLabel: "50만원",
-    desc: "검증용 사이트 제작부터 광고 7일 집행, 측정, 판정까지 전부 (광고비 5만원 포함)",
+    desc: "검증용 사이트부터 저희가 만들어 드립니다. 실제 광고 집행, 수백 명 유입, 측정, Go/No-Go 판정까지 전부. 광고비 포함.",
   },
 };
 

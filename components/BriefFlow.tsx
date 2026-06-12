@@ -74,6 +74,16 @@ export default function BriefFlow({ code }: { code: string }) {
     load();
   }, [load]);
 
+  // 입금 대기~광고 집행 단계는 운영자가 상태를 바꾸면 화면이 따라오도록 폴링
+  useEffect(() => {
+    const s = lead?.stage;
+    if (s !== "deposit" && s !== "paid" && s !== "build" && s !== "live") {
+      return;
+    }
+    const t = setInterval(load, 20000);
+    return () => clearInterval(t);
+  }, [lead?.stage, load]);
+
   if (error) {
     return (
       <div className="cold-panel rounded-lg p-8 text-center">
@@ -264,16 +274,33 @@ function BriefStep({
   }
 
   if (drafting || (!draft && !draftError)) {
+    const steps = [
+      "광고에 쓸 헤드라인을 뽑고 있습니다",
+      "표시할 가격을 정하고 있습니다",
+      "검증용 페이지 구성을 짜고 있습니다",
+      "서비스 가칭을 만들고 있습니다",
+    ];
     return (
-      <div className="cold-panel flex flex-col items-center rounded-lg p-10">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-border border-t-accent" />
-        <p className="mt-4 text-base font-bold text-text">
+      <div className="cold-panel flex flex-col items-center rounded-lg p-8 text-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-[3px] border-border border-t-accent" />
+        <p className="mt-6 text-base font-bold text-text">
           검증 준비안을 짜고 있습니다
         </p>
         <p className="mt-1 text-sm text-text-secondary">
-          설계서를 바탕으로 광고에 쓸 헤드라인과 가격, 페이지 구성을
-          준비합니다. 10~20초 정도 걸립니다.
+          설계서를 바탕으로 광고 헤드라인, 가격, 페이지 구성을 준비합니다.
+          10~20초 걸립니다.
         </p>
+        <div className="mt-6 h-2 w-56 max-w-full overflow-hidden rounded-full bg-bg-alt">
+          <div className="gen-progress h-full rounded-full bg-accent" />
+        </div>
+        <ol className="mt-6 space-y-1.5 text-left text-sm text-text-tertiary">
+          {steps.map((s) => (
+            <li key={s} className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-accent/50" />
+              {s}
+            </li>
+          ))}
+        </ol>
       </div>
     );
   }
@@ -569,11 +596,38 @@ function DepositStep({ lead }: { lead: PublicLead }) {
           </div>
         </div>
 
-        <p className="mt-4 text-xs leading-relaxed text-text-tertiary">
-          입금 확인은 보통 몇 시간 안에 끝납니다. 확인되면 이 화면이 자동으로
-          다음 단계로 바뀝니다. 세금계산서나 현금영수증이 필요하시면 카카오톡
-          채널로 알려주세요.
-        </p>
+        <div className="mt-4 rounded-lg border border-border bg-bg-alt p-4">
+          <p className="text-sm font-bold text-text">입금하신 다음은요</p>
+          <ol className="mt-2 space-y-1.5 text-sm leading-relaxed text-text-secondary">
+            <li>1. 입금 확인은 보통 몇 시간 안에 끝납니다 (영업시간 기준).</li>
+            <li>
+              2. 확인되면 남겨주신 번호로 문자를 보내드리고, 이 화면도 다음
+              단계로 바뀝니다.
+            </li>
+            <li>
+              3. 이 페이지는 닫으셔도 됩니다. 진행 코드로 언제든 다시 들어와
+              현황을 보실 수 있습니다.
+            </li>
+          </ol>
+          <p className="mt-2 text-xs text-text-tertiary">
+            세금계산서나 현금영수증이 필요하시면 카카오톡 채널로 알려주세요.
+          </p>
+        </div>
+
+        <div className="mt-4 flex gap-2">
+          <a
+            href="/"
+            className="flex-1 rounded-lg border border-border bg-surface px-4 py-3 text-center text-sm font-bold text-text-secondary transition hover:text-text"
+          >
+            홈으로
+          </a>
+          <a
+            href="/d"
+            className="flex-1 rounded-lg border border-border bg-surface px-4 py-3 text-center text-sm font-bold text-text-secondary transition hover:text-text"
+          >
+            내 검증 현황
+          </a>
+        </div>
       </div>
 
       {confirmed && (

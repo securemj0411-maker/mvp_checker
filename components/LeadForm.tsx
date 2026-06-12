@@ -919,7 +919,7 @@ function ReportView({
           </p>
           <p className="mt-2 text-sm leading-relaxed text-text-secondary">
             {isEngine
-              ? "페이지를 직접 준비하시는 분께는 제작을 뺀 검증 엔진만. 광고 세팅과 7일 집행(광고비 5만원 포함), 측정, 판정까지. 재검증 30% 할인."
+              ? "페이지를 직접 준비하시는 분께는 제작을 뺀 검증만. 광고 세팅과 7일 집행(광고비 포함), 측정, 판정까지. 재검증 30% 할인."
               : "검증용 사이트 제작부터 광고 7일 집행, 측정, Go/No-Go 판정까지 전부. 분명한 판정을 못 드리면 전액 환불."}
           </p>
         </div>
@@ -931,17 +931,40 @@ function ReportView({
           진짜 사람들로 이 아이디어 테스트 시작하기
           <ArrowRightMini />
         </a>
-        {accessCode && (
-          <p className="mt-3 text-center text-xs text-text-tertiary">
-            내 진행 코드 <b className="font-mono text-text">{accessCode}</b> ·
-            이 코드로 bizfilter.kr/d 에서 언제든 다시 볼 수 있습니다
-          </p>
-        )}
-        <p className="mt-1 text-center text-xs text-text-tertiary">
+        <p className="mt-3 text-center text-xs text-text-tertiary">
           지금은 결제가 아닙니다. 다음 화면에서 브리프를 확인하고 동의하면 그때
           입금을 안내합니다.
         </p>
       </div>
+
+      {/* 결과 저장 — 가치 받은 직후 소프트 옵트인 */}
+      {accessCode && (
+        <div className="cold-panel rounded-lg p-5">
+          <p className="text-sm font-bold text-text">
+            이 결과, 저장해 둘까요?
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-text-secondary">
+            카카오로 로그인하면 이 설계서와 진행 현황을 언제든 다시 보실 수
+            있습니다. 로그인 없이는 아래 코드를 적어두셔야 합니다.
+          </p>
+          <a
+            href={`/api/auth/kakao/login?link=${accessCode}`}
+            onClick={() =>
+              sendGAEvent("event", "kakao_login", { from: "report" })
+            }
+            className="mt-3 flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-sm font-bold transition hover:brightness-95"
+            style={{ background: "#FEE500", color: "#191600" }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+              <path d="M12 3C6.5 3 2 6.5 2 10.8c0 2.8 1.9 5.2 4.7 6.6-.2.7-.7 2.6-.8 3-.1.5.2.5.4.4.2-.1 2.6-1.8 3.7-2.5.6.1 1.3.1 2 .1 5.5 0 10-3.5 10-7.8C22 6.5 17.5 3 12 3z" />
+            </svg>
+            카카오로 저장하기
+          </a>
+          <p className="mt-2 text-center text-xs text-text-tertiary">
+            내 진행 코드 <b className="font-mono text-text">{accessCode}</b>
+          </p>
+        </div>
+      )}
 
       {/* 모바일 sticky CTA — 항상 보임 */}
       <div className="sticky bottom-3 z-10 sm:hidden">
