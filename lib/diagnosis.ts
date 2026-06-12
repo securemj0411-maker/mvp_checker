@@ -60,11 +60,78 @@ export interface Report {
 
 export type RecommendedPath = "engine" | "quick" | "deep";
 
+/** 측정 스크립트 설치가 불가능한 플랫폼 — 엔진 경로 차단 */
+const UNMEASURABLE_HOSTS = [
+  "smartstore.naver.com",
+  "blog.naver.com",
+  "place.naver.com",
+  "post.naver.com",
+  "m.place.naver.com",
+  "instagram.com",
+  "pf.kakao.com",
+  "open.kakao.com",
+  "litt.ly",
+  "linktr.ee",
+];
+
+/** 페이지 URL이 측정(스크립트 설치) 가능한 플랫폼인지 판별 */
+export function isPageMeasurable(url: string | null | undefined): boolean | null {
+  if (!url?.trim()) return null;
+  try {
+    const host = new URL(
+      url.startsWith("http") ? url : `https://${url}`,
+    ).hostname.replace(/^www\./, "");
+    return !UNMEASURABLE_HOSTS.some(
+      (b) => host === b || host.endsWith(`.${b.split(".")[0]}.naver.com`) || host.endsWith(b),
+    );
+  } catch {
+    return null; // 판별 불가 — 사람이 확인
+  }
+}
+
 /** 제작 상황 기준 추천 경로 — 모델이 아니라 코드가 결정한다 */
 export function recommendPath(a: QuizAnswers): RecommendedPath {
+  if (a.build === "built" && isPageMeasurable(a.pageUrl) === false) {
+    // 측정 불가 플랫폼(스마트스토어 등)은 엔진이 성립하지 않음
+    return "quick";
+  }
   if (a.build === "self" || a.build === "built") return "engine";
   return "quick";
 }
+
+/* ───────── 결제/환불 — 사업 상수 ───────── */
+
+export const BANK_INFO = {
+  bank: "케이뱅크",
+  account: "100-3011-67210",
+  holder: "이민제(득템잡이)",
+} as const;
+
+export const TIER_INFO: Record<
+  "engine" | "quick",
+  { label: string; price: number; priceLabel: string; desc: string }
+> = {
+  engine: {
+    label: "엔진",
+    price: 290000,
+    priceLabel: "29만원",
+    desc: "직접 만든 페이지에 광고 집행과 측정, 판정만 (광고비 5만원 포함)",
+  },
+  quick: {
+    label: "Quick",
+    price: 500000,
+    priceLabel: "50만원",
+    desc: "검증용 사이트 제작부터 광고 7일 집행, 측정, 판정까지 전부 (광고비 5만원 포함)",
+  },
+};
+
+export const REFUND_POLICY = [
+  "입금 후 브리프 재확인 단계에서 취소: 전액 환불",
+  "제작 착수 후 광고 집행 전 취소: 50% 환불",
+  "광고 집행 시작 후: 변심 환불은 어렵습니다. 단, 집행되지 않은 광고비는 돌려드립니다",
+  "분명한 Go/No-Go 판정을 못 드리면: 전액 환불 (판정 보장)",
+  "광고 정책상 집행 불가 업종으로 판명되면: 전액 환불",
+] as const;
 
 /** 플레이북 섹션 C — 업종/타깃 기반 채널 결정 */
 export function decideChannel(a: QuizAnswers): {
@@ -112,16 +179,18 @@ export function decideChannel(a: QuizAnswers): {
   };
 }
 
-/** 플레이북 B-6 — 가격대/업종 기반 합격선 */
+/** 플레이북 B-6 — 가격대/업종 기반 합격선 (+ 표본 미달 분쟁 방지 조항) */
 export function decidePassBar(a: QuizAnswers): {
   bar: string;
   reason: string;
+  minSample: string;
 } {
   if (a.service === "offline") {
     return {
       bar: "방문 100명당 사전예약 3명",
       reason:
         "오프라인은 결제 클릭 대신 사전예약 제출을 신호로 씁니다. 상권 반경 안의 클릭만 집계합니다.",
+      minSample: "상권 반경 내 방문 70명",
     };
   }
   if (a.audience === "b2b") {
@@ -129,25 +198,55 @@ export function decidePassBar(a: QuizAnswers): {
       bar: "7일 안에 자격 통과 리드 2~3건",
       reason:
         "B2B는 모수가 작아 비율 대신 절대 건수로 판정합니다. 즉시 결제보다 리드 품질이 신호입니다.",
+      minSample: "광고 클릭 30회",
     };
   }
   if (a.price === "over100k") {
     return {
       bar: "방문 100명당 결제 클릭 2명",
       reason: "객단가 10만원 이상은 클릭 문턱이 높아 기준을 한 단계 낮춥니다.",
+      minSample: "방문 70명",
     };
   }
   if (a.price === "under10k") {
     return {
       bar: "방문 100명당 결제 클릭 4명",
       reason: "1만원 미만은 클릭 문턱이 낮은 만큼 기준을 올려서 봅니다.",
+      minSample: "방문 70명",
     };
   }
   return {
     bar: "방문 100명당 결제 클릭 3명",
     reason:
       "표준 기준입니다. 광고 시작 전에 숫자를 확정하고, 데이터를 본 뒤에는 어느 쪽도 기준을 바꾸지 않습니다.",
+    minSample: "방문 70명",
   };
+}
+
+/* ───────── 브리프 (무통화 킥오프 대체물) ───────── */
+
+export interface BriefDraft {
+  offer_options: { headline: string; angle: string }[];
+  target_line: string;
+  problem_line: string;
+  price_value: number;
+  price_rationale: string;
+  selling_points: string[];
+  name_candidates: string[];
+  excluded: string[];
+}
+
+export interface ConfirmedBrief {
+  offer: string;
+  target_line: string;
+  problem_line: string;
+  price_value: number;
+  selling_points: string[];
+  name: string;
+  excluded: string[];
+  pass_bar: string;
+  min_sample: string;
+  shortfall_choice: "ratio" | "extend";
 }
 
 const SERVICE_LABEL: Record<ServiceType, string> = {

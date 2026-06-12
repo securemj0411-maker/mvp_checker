@@ -1,14 +1,28 @@
+import { randomBytes } from "crypto";
 import Anthropic from "@anthropic-ai/sdk";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import {
   buildFallbackReport,
   decideChannel,
   decidePassBar,
+  isPageMeasurable,
   recommendPath,
   type InterpretResult,
   type QuizAnswers,
   type Report,
 } from "@/lib/diagnosis";
+
+/** 사람이 읽기 쉬운 접근 코드 (혼동 문자 제외, XXXX-XXXX) */
+function generateAccessCode(): string {
+  const chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  const bytes = randomBytes(8);
+  let code = "";
+  for (let i = 0; i < 8; i++) {
+    code += chars[bytes[i] % chars.length];
+    if (i === 3) code += "-";
+  }
+  return code;
+}
 
 export const maxDuration = 60;
 
@@ -117,6 +131,16 @@ const REPORT_SCHEMA = {
       description:
         "이 분석이 알 수 없는 것에 대한 정직한 고백 한두 문장. 과장 금지.",
     },
+    policy_flag: {
+      type: "string",
+      enum: ["none", "restricted", "prohibited"],
+      description:
+        "광고 정책 분류. prohibited=구글/메타 광고가 원천 금지되는 영역(무허가 의료·의약품, 사행성·도박, 성인, 무기, 마약, 불법 대부, 모조품). restricted=조건부 제한 영역(병의원 마케팅, 건강기능식품, 금융·투자, 암호화폐, 다이어트, 주류). none=해당 없음.",
+    },
+    policy_reason: {
+      type: "string",
+      description: "policy_flag가 none이 아닐 때 그 이유 한 문장. none이면 빈 문자열.",
+    },
   },
   required: [
     "one_liner",
@@ -130,9 +154,16 @@ const REPORT_SCHEMA = {
     "pass_bar_reason",
     "risks",
     "blind_spot",
+    "policy_flag",
+    "policy_reason",
   ],
   additionalProperties: false,
 } as const;
+
+type ReportWithPolicy = Report & {
+  policy_flag?: "none" | "restricted" | "prohibited";
+  policy_reason?: string;
+};
 
 const LABELS: Record<string, Record<string, string>> = {
   service: {
@@ -180,7 +211,7 @@ const LABELS: Record<string, Record<string, string>> = {
   },
 };
 
-async function generateReport(a: QuizAnswers): Promise<Report | null> {
+async function generateReport(a: QuizAnswers): Promise<ReportWithPolicy | null> {
   const client = getClient();
   if (!client) return null;
 
@@ -230,7 +261,7 @@ async function generateReport(a: QuizAnswers): Promise<Report | null> {
 
   const text = response.content.find((b) => b.type === "text");
   if (!text || text.type !== "text") return null;
-  return JSON.parse(text.text) as Report;
+  return JSON.parse(text.text) as ReportWithPolicy;
 }
 
 /* ───────────────── 라우트 ───────────────── */
@@ -244,6 +275,7 @@ interface DiagnoseBody {
   phone?: string;
   utm?: string | null;
   userAgent?: string | null;
+  interpretStatus?: string;
 }
 
 export async function POST(request: Request) {
@@ -283,6 +315,9 @@ export async function POST(request: Request) {
 
     // 1) 리드부터 저장 — AI가 실패해도 리드는 남는다. 텔레그램 알림 트리거도 여기서 발화.
     const admin = getSupabaseAdmin();
+    const accessCode = generateAccessCode();
+    const path = recommendPath(answers);
+    const measurable = isPageMeasurable(answers.pageUrl);
     const { data: lead, error: insertError } = await admin
       .from("o2o_leads")
       .insert({
@@ -301,6 +336,10 @@ export async function POST(request: Request) {
         alternative: answers.alternative,
         location: answers.location?.slice(0, 200) ?? null,
         page_url: answers.pageUrl?.slice(0, 500) ?? null,
+        page_measurable: measurable,
+        interpret_status: body.interpretStatus?.slice(0, 30) ?? null,
+        access_code: accessCode,
+        tier: path,
         user_agent: body.userAgent?.slice(0, 500) ?? null,
       })
       .select("id")
@@ -312,7 +351,7 @@ export async function POST(request: Request) {
     }
 
     // 2) 설계서 생성 — 실패하면 규칙 기반 폴백
-    let report: Report;
+    let report: ReportWithPolicy;
     let source: "ai" | "fallback" = "ai";
     try {
       report = (await generateReport(answers)) ?? buildFallbackReport(answers);
@@ -322,15 +361,28 @@ export async function POST(request: Request) {
       report = buildFallbackReport(answers);
       source = "fallback";
     }
+    // 채널과 합격선은 코드가 결정한 값으로 고정 — 모델이 다듬다 바꾸는 것 방지
+    report.channel = decideChannel(answers).channel;
+    report.pass_bar = decidePassBar(answers).bar;
 
     // 3) 설계서를 리드에 저장 (실패해도 응답은 내보낸다)
     const { error: updateError } = await admin
       .from("o2o_leads")
-      .update({ ai_report: { ...report, source } })
+      .update({
+        ai_report: { ...report, source },
+        policy_flag: report.policy_flag ?? "none",
+      })
       .eq("id", lead.id);
     if (updateError) console.error("[diagnose update]", updateError);
 
-    return Response.json({ report, path: recommendPath(answers), source });
+    return Response.json({
+      report,
+      path,
+      source,
+      accessCode,
+      policyFlag: report.policy_flag ?? "none",
+      pageMeasurable: measurable,
+    });
   }
 
   return Response.json({ error: "unknown action" }, { status: 400 });

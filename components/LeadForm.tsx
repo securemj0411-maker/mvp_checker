@@ -179,9 +179,12 @@ export default function LeadForm() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [report, setReport] = useState<Report | null>(null);
   const [path, setPath] = useState<RecommendedPath>("quick");
+  const [accessCode, setAccessCode] = useState<string | null>(null);
+  const [policyFlag, setPolicyFlag] = useState<string>("none");
   const [genMsgIdx, setGenMsgIdx] = useState(0);
 
   const skippedInterpret = useRef(false);
+  const interpretStatus = useRef<string>("original");
   const restored = useRef(false);
 
   /* 이탈 후 복귀 — 진행 상태를 로컬에 저장하고, 재방문 시 이어서 진행 */
@@ -301,12 +304,14 @@ export default function LeadForm() {
 
   function skipInterpret() {
     skippedInterpret.current = true;
+    interpretStatus.current = "skipped_error";
     setInterp(null);
     setPhase("quiz");
   }
 
   function pickInterpretation(detail: string | null) {
     setIdeaRefined(detail);
+    interpretStatus.current = detail ? "picked" : "original";
     sendGAEvent("event", "quiz_interpret_pick", {
       picked: detail ? "candidate" : "original",
     });
@@ -364,6 +369,7 @@ export default function LeadForm() {
           contact: contact.trim(),
           phone: phone.trim() || undefined,
           utm: getUtm(),
+          interpretStatus: interpretStatus.current,
           userAgent:
             typeof navigator !== "undefined" ? navigator.userAgent : null,
         }),
@@ -381,6 +387,8 @@ export default function LeadForm() {
       });
       setReport(data.report as Report);
       setPath((data.path as RecommendedPath) ?? "quick");
+      setAccessCode((data.accessCode as string) ?? null);
+      setPolicyFlag((data.policyFlag as string) ?? "none");
       setPhase("done");
       try {
         localStorage.removeItem(STORAGE_KEY);
@@ -402,7 +410,14 @@ export default function LeadForm() {
   /* ───────────────────── 화면 ───────────────────── */
 
   if (phase === "done" && report) {
-    return <ReportView report={report} path={path} />;
+    return (
+      <ReportView
+        report={report}
+        path={path}
+        accessCode={accessCode}
+        policyFlag={policyFlag}
+      />
+    );
   }
 
   if (phase === "generating") {
@@ -693,9 +708,13 @@ export default function LeadForm() {
 function ReportView({
   report,
   path,
+  accessCode,
+  policyFlag,
 }: {
   report: Report;
   path: RecommendedPath;
+  accessCode: string | null;
+  policyFlag: string;
 }) {
   useEffect(() => {
     sendGAEvent("event", "report_view", { path });
@@ -822,8 +841,21 @@ function ReportView({
       {/* 신청 후 진행 절차 — 다음에 무슨 일이 일어나는지 */}
       <NextSteps path={path} />
 
-      {/* 경로별 CTA */}
-      <PathCta path={path} />
+      {/* 경로별 CTA — 브리프 확정 화면으로 */}
+      {policyFlag === "prohibited" ? (
+        <div className="mt-6 rounded-lg border border-border bg-bg-alt p-5">
+          <p className="text-sm font-bold text-text">
+            광고 정책상 검증 설계가 어려운 영역입니다
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+            구글과 메타의 광고 정책상 이 업종은 광고 집행이 제한되어, 저희
+            방식으로는 정직한 검증을 드릴 수 없습니다. 그래서 결제를 받지
+            않습니다. 궁금한 점은 카카오톡 채널로 문의해주세요.
+          </p>
+        </div>
+      ) : (
+        <PathCta path={path} accessCode={accessCode} />
+      )}
 
       <p className="mt-3 text-center text-xs text-text-tertiary">
         설계서와 진행 안내는 화면에서 즉시 확인됩니다 · 궁금한 점은 카톡
@@ -855,8 +887,8 @@ function NextSteps({ path }: { path: RecommendedPath }) {
       text: "7일 광고 집행: 라이브 대시보드를 상시 공개하고 기간 내 최적화합니다.",
     },
     {
-      who: "함께",
-      text: "판정 미팅 30분: 합격선 대비 Go/No-Go와 다음 액션을 정리해 드립니다.",
+      who: "비즈필터",
+      text: "판정 리포트: 합격선 대비 Go/No-Go와 다음 액션을 정리해 대시보드로 보내드립니다. 질문은 일주일간 채팅으로 답합니다.",
     },
   ];
   return (
@@ -895,7 +927,13 @@ function NextSteps({ path }: { path: RecommendedPath }) {
   );
 }
 
-function PathCta({ path }: { path: RecommendedPath }) {
+function PathCta({
+  path,
+  accessCode,
+}: {
+  path: RecommendedPath;
+  accessCode: string | null;
+}) {
   const isEngine = path === "engine";
   return (
     <div className="mt-6 space-y-3">
@@ -909,32 +947,38 @@ function PathCta({ path }: { path: RecommendedPath }) {
             : "실서비스처럼 보이는 검증용 사이트 제작부터 광고 7일 집행, 측정, Go/No-Go 판정까지 전부 포함입니다. 분명한 판정을 못 드리면 전액 환불합니다."}
         </p>
       </div>
-      <a
-        href={KAKAO_CHAT_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={() =>
-          sendGAEvent("event", "kakao_open", {
-            from: "report",
-            tier: isEngine ? "engine" : "quick",
-          })
-        }
-        className="flex items-center justify-center gap-2 rounded-lg px-6 py-4 text-base font-bold transition hover:brightness-95"
-        style={{ background: "#FEE500", color: "#191600" }}
-      >
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          aria-hidden
+      {accessCode ? (
+        <>
+          <a
+            href={`/d/${accessCode}`}
+            onClick={() =>
+              sendGAEvent("event", "brief_start", {
+                tier: isEngine ? "engine" : "quick",
+              })
+            }
+            className="flex items-center justify-center gap-2 rounded-lg bg-accent px-6 py-4 text-base font-bold text-white transition hover:bg-accent-hover hover:shadow-[0_12px_32px_var(--accent-glow)]"
+          >
+            이 설계 그대로 브리프 확정하고 시작하기
+          </a>
+          <p className="text-center text-xs text-text-tertiary">
+            내 진행 코드: <b className="font-mono text-text">{accessCode}</b> ·
+            이 코드로 언제든 bizfilter.kr/d 에서 진행 현황을 볼 수 있습니다
+          </p>
+        </>
+      ) : (
+        <a
+          href={KAKAO_CHAT_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() =>
+            sendGAEvent("event", "kakao_open", { from: "report" })
+          }
+          className="flex items-center justify-center gap-2 rounded-lg px-6 py-4 text-base font-bold transition hover:brightness-95"
+          style={{ background: "#FEE500", color: "#191600" }}
         >
-          <path d="M12 3C6.5 3 2 6.5 2 10.8c0 2.8 1.9 5.2 4.7 6.6-.2.7-.7 2.6-.8 3-.1.5.2.5.4.4.2-.1 2.6-1.8 3.7-2.5.6.1 1.3.1 2 .1 5.5 0 10-3.5 10-7.8C22 6.5 17.5 3 12 3z" />
-        </svg>
-        {isEngine
-          ? "이 설계 그대로 엔진으로 시작하기"
-          : "이 설계 그대로 Quick으로 시작하기"}
-      </a>
+          카카오톡으로 시작하기
+        </a>
+      )}
       <p className="text-center text-xs text-text-tertiary">
         {isEngine
           ? "제작까지 맡기고 싶으시면 Quick 50만원, 단가와 손익까지 보려면 Deep 130만원도 있습니다."
