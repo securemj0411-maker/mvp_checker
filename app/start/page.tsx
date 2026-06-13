@@ -34,8 +34,10 @@ export default function StartPage() {
             진짜 사람들로 확인합니다
           </h1>
           <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-text-secondary">
-            아이디어를 적으면, 어디에 광고를 걸어 모르는 사람 수백 명을
-            불러올지 담긴 검증 설계서를 그 자리에서 무료로 드립니다.
+            아이디어를 적으면, 어디에 광고를 걸고 합격 기준은 얼마로 둘지
+            담긴 검증 설계서(계획)를 그 자리에서 무료로 드립니다. 실제로
+            광고를 돌려 수백 명을 불러오는 검증은 계획을 보고 결정하시면
+            됩니다.
           </p>
         </div>
 
