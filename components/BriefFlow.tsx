@@ -147,7 +147,7 @@ export default function BriefFlow({ code }: { code: string }) {
       </header>
 
       {lead.stage === "brief" && <BriefStep code={code} lead={lead} onDone={load} />}
-      {lead.stage === "deposit" && <DepositStep lead={lead} code={code} />}
+      {lead.stage === "deposit" && <DepositStep lead={lead} />}
       {(lead.stage === "paid" ||
         lead.stage === "build" ||
         lead.stage === "live" ||
@@ -635,7 +635,7 @@ function BriefStep({
 
 /* ───────── 2단계: 입금 안내 ───────── */
 
-function DepositStep({ lead, code }: { lead: PublicLead; code: string }) {
+function DepositStep({ lead }: { lead: PublicLead }) {
   const tier = lead.tiers[lead.tier === "engine" ? "engine" : "quick"];
   const confirmed = lead.brief?.confirmed;
   const due = lead.depositDueAt
@@ -720,14 +720,8 @@ function DepositStep({ lead, code }: { lead: PublicLead; code: string }) {
         </div>
       </div>
 
-      {/* 엔진: 입금 기다리는 동안 측정 연결을 미리 끝낼 수 있게 */}
-      {lead.tier === "engine" && (
-        <TagInstallCard
-          code={code}
-          hasPageUrl={lead.hasPageUrl}
-          verified={lead.tagVerified}
-        />
-      )}
+      {/* 측정 연결(엔진)은 결제 후로 — 입금 화면은 입금에만 집중시킨다.
+          설치 카드는 제작 준비/제작 단계(ProgressStep)에서 노출된다. */}
 
       {confirmed && (
         <div className="cold-panel rounded-lg p-6">
