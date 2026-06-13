@@ -60,23 +60,34 @@ export async function updateLead(formData: FormData) {
   };
   const imp = numOrNull("ad_impressions");
   const clk = numOrNull("ad_clicks");
+  const vis = numOrNull("ad_visits");
+  const conv = numOrNull("ad_conversions");
   const spend = numOrNull("ad_spend");
   const hasAdInput =
     formData.has("ad_impressions") ||
     formData.has("ad_clicks") ||
+    formData.has("ad_visits") ||
+    formData.has("ad_conversions") ||
     formData.has("ad_spend");
 
   const update: Record<string, unknown> = { status, memo: memo || null };
   if (hasAdInput) {
-    update.ad_stats =
-      imp === null && clk === null && spend === null
-        ? null
-        : {
-            impressions: imp ?? 0,
-            clicks: clk ?? 0,
-            spend: spend ?? 0,
-            updated_at: new Date().toISOString(),
-          };
+    const allEmpty =
+      imp === null &&
+      clk === null &&
+      vis === null &&
+      conv === null &&
+      spend === null;
+    update.ad_stats = allEmpty
+      ? null
+      : {
+          impressions: imp ?? 0,
+          clicks: clk ?? 0,
+          visits: vis ?? 0,
+          conversions: conv ?? 0,
+          spend: spend ?? 0,
+          updated_at: new Date().toISOString(),
+        };
   }
 
   const { getSupabaseAdmin } = await import("@/lib/supabaseAdmin");

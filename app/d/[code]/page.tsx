@@ -13,10 +13,8 @@ export default async function DashboardPage({
 }) {
   const { code } = await params;
   return (
-    <main className="min-h-screen bg-bg px-4 py-10 sm:px-6">
-      <div className="mx-auto max-w-2xl">
-        <BriefFlow code={code} />
-      </div>
+    <main className="min-h-screen bg-bg">
+      <BriefFlow code={code} />
     </main>
   );
 }

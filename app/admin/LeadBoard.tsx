@@ -46,6 +46,8 @@ export type Lead = {
   ad_stats: {
     impressions: number;
     clicks: number;
+    visits?: number;
+    conversions?: number;
     spend: number;
     updated_at?: string;
   } | null;
@@ -196,7 +198,13 @@ export default function LeadBoard({ leads: initial }: { leads: Lead[] }) {
     id: string,
     status: string,
     memo: string,
-    ad?: { impressions: string; clicks: string; spend: string },
+    ad?: {
+      impressions: string;
+      clicks: string;
+      visits: string;
+      conversions: string;
+      spend: string;
+    },
   ) {
     const fd = new FormData();
     fd.set("id", id);
@@ -205,6 +213,8 @@ export default function LeadBoard({ leads: initial }: { leads: Lead[] }) {
     if (ad) {
       fd.set("ad_impressions", ad.impressions);
       fd.set("ad_clicks", ad.clicks);
+      fd.set("ad_visits", ad.visits);
+      fd.set("ad_conversions", ad.conversions);
       fd.set("ad_spend", ad.spend);
     }
     setLeads((ls) =>
@@ -413,7 +423,13 @@ function Modal({
     id: string,
     status: string,
     memo: string,
-    ad?: { impressions: string; clicks: string; spend: string },
+    ad?: {
+      impressions: string;
+      clicks: string;
+      visits: string;
+      conversions: string;
+      spend: string;
+    },
   ) => void;
   onDelete: (id: string, name: string) => void;
 }) {
@@ -421,6 +437,8 @@ function Modal({
   const [memo, setMemo] = useState(lead.memo ?? "");
   const [adImp, setAdImp] = useState(String(lead.ad_stats?.impressions ?? ""));
   const [adClk, setAdClk] = useState(String(lead.ad_stats?.clicks ?? ""));
+  const [adVis, setAdVis] = useState(String(lead.ad_stats?.visits ?? ""));
+  const [adConv, setAdConv] = useState(String(lead.ad_stats?.conversions ?? ""));
   const [adSpend, setAdSpend] = useState(String(lead.ad_stats?.spend ?? ""));
 
   useEffect(() => {
@@ -715,6 +733,8 @@ function Modal({
                 [
                   ["노출", adImp, setAdImp, "12420"],
                   ["광고 클릭", adClk, setAdClk, "398"],
+                  ["사이트 방문", adVis, setAdVis, "320"],
+                  ["전환(결제·예약)", adConv, setAdConv, "11"],
                   ["광고비(원)", adSpend, setAdSpend, "1530000"],
                 ] as [string, string, (v: string) => void, string][]
               ).map(([label, val, set, ph]) => (
@@ -733,8 +753,9 @@ function Modal({
               ))}
             </div>
             <p className="mt-1.5 text-[11px] leading-relaxed text-text-tertiary">
-              노출·광고클릭은 고객 코크핏 퍼널에 표시됩니다. 광고비는 내부 전용(고객
-              화면 노출 안 함). 비워두면 미변경.
+              노출·광고클릭·방문·전환은 고객 코크핏 퍼널에 표시됩니다(방문·전환은
+              비워두면 페이지 자동 측정값 사용). 광고비는 내부 전용(고객 화면 노출 안
+              함). 비워두면 미변경.
               {lead.ad_stats?.updated_at && (
                 <>
                   {" "}
@@ -780,6 +801,8 @@ function Modal({
                 onSave(lead.id, status, memo, {
                   impressions: adImp,
                   clicks: adClk,
+                  visits: adVis,
+                  conversions: adConv,
                   spend: adSpend,
                 })
               }

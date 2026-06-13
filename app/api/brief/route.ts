@@ -120,12 +120,19 @@ function publicLead(lead: Record<string, unknown>) {
     // 구글애즈 실측 — 노출·클릭만 고객에게. 광고비(spend)는 절대 노출 금지.
     adStats: (() => {
       const a = lead.ad_stats as
-        | { impressions?: number; clicks?: number }
+        | {
+            impressions?: number;
+            clicks?: number;
+            visits?: number;
+            conversions?: number;
+          }
         | null;
       if (!a) return null;
       return {
         impressions: Number(a.impressions ?? 0),
         clicks: Number(a.clicks ?? 0),
+        visits: Number(a.visits ?? 0),
+        conversions: Number(a.conversions ?? 0),
       };
     })(),
     passBar,

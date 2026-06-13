@@ -37,8 +37,13 @@ interface PublicLead {
   tagVerified: boolean;
   /** 광고 시작 후 실측 숫자 (금액 정보 없음) */
   stats?: { visits: number; clicks: number; payClicks: number } | null;
-  /** 관리자가 입력한 구글애즈 실측 (노출·클릭만, 광고비 없음) */
-  adStats?: { impressions: number; clicks: number } | null;
+  /** 관리자가 입력한 구글애즈 실측 (광고비 제외). 방문·전환은 비면 0 → t.js 사용 */
+  adStats?: {
+    impressions: number;
+    clicks: number;
+    visits: number;
+    conversions: number;
+  } | null;
   passBar: { bar: string; reason: string; minSample: string };
   tiers: Record<
     "engine" | "quick",
@@ -102,53 +107,26 @@ export default function BriefFlow({ code }: { code: string }) {
 
   if (error) {
     return (
-      <div className="cold-panel rounded-lg p-8 text-center">
-        <p className="text-base font-bold text-text">{error}</p>
+      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
+        <div className="cold-panel rounded-lg p-8 text-center">
+          <p className="text-base font-bold text-text">{error}</p>
+        </div>
       </div>
     );
   }
   if (!lead) {
     return (
-      <div className="cold-panel flex flex-col items-center rounded-lg p-10">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-border border-t-accent" />
-        <p className="mt-4 text-sm text-text-secondary">불러오는 중입니다</p>
+      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
+        <div className="cold-panel flex flex-col items-center rounded-lg p-10">
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-border border-t-accent" />
+          <p className="mt-4 text-sm text-text-secondary">불러오는 중입니다</p>
+        </div>
       </div>
     );
   }
 
-  return (
-    <div className="space-y-5">
-      {/* 로고 헤더 — 길을 잃지 않게 */}
-      <div className="flex items-center justify-between">
-        <a href="/" className="flex items-center gap-2">
-          <BrandMark size={24} />
-          <Wordmark className="text-base" />
-        </a>
-        <a
-          href="/"
-          className="text-xs font-semibold text-text-tertiary transition hover:text-text"
-        >
-          홈으로
-        </a>
-      </div>
-
-      <header className="cold-panel rounded-lg p-6">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-lg font-bold text-text">
-              {lead.name}님의 검증 현황
-            </p>
-            <p className="mt-0.5 text-xs text-text-tertiary">
-              진행 코드 <b className="font-mono text-text-secondary">{code}</b>
-            </p>
-            <p className="mt-1 text-xs text-text-tertiary">
-              진행 현황이 바뀔 때마다 남겨주신 번호로 문자를 드립니다.
-            </p>
-          </div>
-        </div>
-        <StagePipeline stage={lead.stage} />
-      </header>
-
+  const content = (
+    <>
       {(lead.stage === "brief" || editing) && (
         <BriefStep
           code={code}
@@ -175,7 +153,128 @@ export default function BriefFlow({ code }: { code: string }) {
         lead.stage === "live" ||
         lead.stage === "verdict" ||
         lead.stage === "closed") && <ProgressStep lead={lead} code={code} />}
+    </>
+  );
+
+  return (
+    <div className="lg:flex">
+      {/* ── 데스크탑 좌측 사이드바 (대시보드 네비) ── */}
+      <aside className="sticky top-0 hidden h-screen w-64 flex-shrink-0 flex-col border-r border-border bg-surface px-5 py-6 lg:flex">
+        <a href="/" className="flex items-center gap-2 text-[18px]">
+          <BrandMark />
+          <Wordmark />
+        </a>
+        <div className="mt-7">
+          <p className="text-[15px] font-bold text-text">{lead.name}님</p>
+          <p className="mt-0.5 text-[11px] text-text-tertiary">
+            진행 코드 <b className="font-mono text-text-secondary">{code}</b>
+          </p>
+        </div>
+        <p className="mt-6 text-[11px] font-bold uppercase tracking-wider text-text-tertiary">
+          진행 단계
+        </p>
+        <div className="mt-2.5">
+          <StageRail stage={lead.stage} />
+        </div>
+        <div className="mt-auto space-y-2 pt-6">
+          <a
+            href={KAKAO_CHAT_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-xs font-bold transition hover:brightness-95"
+            style={{ background: "#FEE500", color: "#191600" }}
+          >
+            카카오톡 문의
+          </a>
+          <a
+            href="/"
+            className="block rounded-lg px-3 py-2 text-center text-xs font-semibold text-text-tertiary transition hover:text-text"
+          >
+            홈으로
+          </a>
+        </div>
+      </aside>
+
+      {/* ── 콘텐츠 영역 ── */}
+      <div className="min-w-0 flex-1">
+        <div className="mx-auto max-w-3xl space-y-5 px-4 py-7 sm:px-6 sm:py-9">
+          {/* 모바일 상단 — 사이드바 대체 */}
+          <div className="lg:hidden">
+            <div className="flex items-center justify-between">
+              <a href="/" className="flex items-center gap-2">
+                <BrandMark size={24} />
+                <Wordmark className="text-base" />
+              </a>
+              <a
+                href="/"
+                className="text-xs font-semibold text-text-tertiary transition hover:text-text"
+              >
+                홈으로
+              </a>
+            </div>
+            <header className="mt-4 cold-panel rounded-lg p-6">
+              <p className="text-lg font-bold text-text">
+                {lead.name}님의 검증 현황
+              </p>
+              <p className="mt-0.5 text-xs text-text-tertiary">
+                진행 코드{" "}
+                <b className="font-mono text-text-secondary">{code}</b>
+              </p>
+              <p className="mt-1 text-xs text-text-tertiary">
+                진행 현황이 바뀔 때마다 남겨주신 번호로 문자를 드립니다.
+              </p>
+              <StagePipeline stage={lead.stage} />
+            </header>
+          </div>
+
+          {content}
+        </div>
+      </div>
     </div>
+  );
+}
+
+/* 데스크탑 사이드바용 세로 진행 단계 네비 */
+function StageRail({ stage }: { stage: Stage }) {
+  const idx = STAGES.findIndex((s) => s.key.includes(stage));
+  return (
+    <nav className="space-y-0.5">
+      {STAGES.map((s, i) => {
+        const cur = i === idx;
+        const past = i < idx;
+        return (
+          <div
+            key={s.label}
+            className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 ${
+              cur ? "bg-accent/10" : ""
+            }`}
+          >
+            <span
+              className={`grid h-6 w-6 flex-shrink-0 place-items-center rounded-full text-[11px] font-bold ${
+                past
+                  ? "bg-accent text-white"
+                  : cur
+                    ? "border-2 border-accent text-accent"
+                    : "border border-border text-text-tertiary"
+              }`}
+            >
+              {past ? "✓" : i + 1}
+            </span>
+            <span
+              className={`text-[13px] ${
+                cur
+                  ? "font-bold text-accent"
+                  : past
+                    ? "font-semibold text-text-secondary"
+                    : "font-medium text-text-tertiary"
+              }`}
+            >
+              {s.label}
+            </span>
+          </div>
+        );
+      })}
+    </nav>
   );
 }
 
@@ -1275,7 +1374,12 @@ const PROGRESS_COPY: Record<string, { title: string; desc: string }> = {
    실제 데이터(없으면 0/대기) + 합격선(목표)만 쓰고, 가짜 숫자는 절대 넣지 않는다. */
 function Cockpit({ lead, preview = false }: { lead: PublicLead; preview?: boolean }) {
   const s = lead.stats ?? { visits: 0, clicks: 0, payClicks: 0 };
-  const hasData = s.visits > 0;
+  const av = lead.adStats;
+  // 관리자가 방문/전환을 직접 넣었으면 그 값을, 아니면 t.js 자동측정값을 쓴다.
+  const visits = av && av.visits > 0 ? av.visits : s.visits;
+  const payClicks = av && av.conversions > 0 ? av.conversions : s.payClicks;
+  const buttonClicks = s.clicks;
+  const hasData = visits > 0;
   const live = lead.stage === "live";
   const done = lead.stage === "verdict" || lead.stage === "closed";
   const bar = lead.brief?.confirmed?.pass_bar ?? lead.passBar.bar;
@@ -1286,24 +1390,21 @@ function Cockpit({ lead, preview = false }: { lead: PublicLead; preview?: boolea
     : /문의/.test(bar)
       ? { noun: "문의", click: "문의" }
       : { noun: "결제 클릭", click: "결제 클릭" };
-  const payRate = hasData ? (s.payClicks / s.visits) * 100 : 0;
+  const payRate = hasData ? (payClicks / visits) * 100 : 0;
   // 관리자가 구글애즈 노출·클릭을 입력하면 퍼널 맨 위에 광고 단을 붙인다.
-  const ad =
-    lead.adStats && (lead.adStats.impressions > 0 || lead.adStats.clicks > 0)
-      ? lead.adStats
-      : null;
+  const ad = av && (av.impressions > 0 || av.clicks > 0) ? av : null;
   const anyData = hasData || !!ad;
   const rows = ad
     ? [
         { k: "광고 노출", v: ad.impressions, tone: "var(--bg-light)" },
         { k: "광고 클릭", v: ad.clicks, tone: "var(--border-hover)" },
-        { k: "사이트 방문", v: s.visits, tone: "var(--accent-soft)" },
-        { k: intent.click, v: s.payClicks, tone: "var(--accent)" },
+        { k: "사이트 방문", v: visits, tone: "var(--accent-soft)" },
+        { k: intent.click, v: payClicks, tone: "var(--accent)" },
       ]
     : [
-        { k: "방문", v: s.visits, tone: "var(--border-hover)" },
-        { k: "버튼 클릭", v: s.clicks, tone: "var(--accent-soft)" },
-        { k: intent.click, v: s.payClicks, tone: "var(--accent)" },
+        { k: "방문", v: visits, tone: "var(--border-hover)" },
+        { k: "버튼 클릭", v: buttonClicks, tone: "var(--accent-soft)" },
+        { k: intent.click, v: payClicks, tone: "var(--accent)" },
       ];
   const maxRow = Math.max(...rows.map((r) => r.v), 1);
   const funnel = rows.map((r) => ({
@@ -1319,9 +1420,9 @@ function Cockpit({ lead, preview = false }: { lead: PublicLead; preview?: boolea
     STAGES.find((x) => x.key.includes(lead.stage))?.label ?? "준비 중";
   const cards = [
     { k: "진행 단계", v: stageLabel, accent: false, small: true },
-    { k: "방문", v: hasData ? s.visits.toLocaleString() : "—", accent: false },
-    { k: "버튼 클릭", v: hasData ? s.clicks.toLocaleString() : "—", accent: false },
-    { k: intent.click, v: hasData ? s.payClicks.toLocaleString() : "—", accent: true },
+    { k: "방문", v: hasData ? visits.toLocaleString() : "—", accent: false },
+    { k: "버튼 클릭", v: hasData ? buttonClicks.toLocaleString() : "—", accent: false },
+    { k: intent.click, v: hasData ? payClicks.toLocaleString() : "—", accent: true },
   ];
 
   return (
