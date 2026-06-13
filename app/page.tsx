@@ -104,8 +104,8 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
     );
   const sub =
     variant === "a"
-      ? "실제 서비스처럼 보이는 페이지에 진짜 광고비를 써서, 당신을 모르는 사람 수백 명을 불러옵니다. 48시간 안에 클릭과 결제 버튼 반응이 쌓이고(실제 결제는 없습니다), 7일 안에 살릴지 죽일지 판정이 나옵니다."
-      : "당신 아이디어로 진짜 광고를 돌려 모르는 사람 수백 명을 불러옵니다. 48시간 안에 클릭률과 결제 의향이 쌓이고(실제 결제는 없습니다), 7일 안에 Go/No-Go로 답합니다.";
+      ? "실제 서비스처럼 보이는 페이지에 진짜 광고비를 써서, 당신을 모르는 사람 수백 명을 불러옵니다. 48시간 안에 준비를 끝내 광고를 켜고, 클릭과 결제 버튼 반응(실제 결제는 없습니다)을 재서 7일 안에 살릴지 죽일지 판정합니다."
+      : "당신 아이디어로 진짜 광고를 돌려 모르는 사람 수백 명을 불러옵니다. 48시간 안에 광고를 켜고, 클릭률과 결제 의향(실제 결제는 없습니다)을 재서 7일 안에 Go/No-Go로 답합니다.";
 
   const ctas = (
     <>
@@ -164,7 +164,7 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
           </p>
           <div className="mt-7 flex flex-col gap-3">{ctas}</div>
           <p className="mt-6 text-xs font-medium text-white/55">
-            광고비는 비즈필터가 부담 · 신청은 결제가 아닙니다 · 판정 보장
+            광고비 별도 청구 없음 · 신청은 결제가 아닙니다 · 판정 보장
           </p>
         </div>
       </div>
@@ -181,7 +181,7 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
           </p>
           <div className="mt-9 flex flex-wrap items-center gap-3">{ctas}</div>
           <p className="mt-7 text-sm font-medium text-text-tertiary">
-            광고비는 비즈필터가 부담 · 신청은 결제가 아닙니다 · Go/No-Go 판정 보장
+            광고비 별도 청구 없음 · 신청은 결제가 아닙니다 · Go/No-Go 판정 보장
           </p>
         </div>
         <div className="reveal relative flex items-end justify-center self-stretch">
@@ -879,8 +879,8 @@ function Cases() {
             말 대신, 숫자
           </h2>
           <p className="mt-6 text-lg leading-[1.7] text-text-secondary">
-            직접 검증하고 분석한 결과를 그대로 공개합니다. 좋은 답도, 나쁜
-            답도.
+            판정서가 어떤 모습인지 포맷 그대로 보여드립니다. 실제 검증
+            케이스는 고객 동의 하에 좋은 답도, 나쁜 답도 순차 공개합니다.
           </p>
         </div>
 
@@ -948,6 +948,9 @@ function Cases() {
               key={c.idea}
               className="flex flex-col gap-4 rounded-[20px] border border-border bg-surface p-7 transition hover:-translate-y-1 hover:shadow-[0_20px_40px_-26px_rgba(10,23,38,0.3)]"
             >
+              <span className="w-fit rounded-full border border-border px-2.5 py-1 text-[11px] font-bold text-text-tertiary">
+                포맷 예시
+              </span>
               <div className="flex items-start justify-between gap-3">
                 <p className="text-[16px] font-bold leading-snug text-text">
                   {c.idea}
@@ -1428,7 +1431,7 @@ function FAQ() {
     },
     {
       q: "제 아이디어를 가져가면 어떡하죠?",
-      a: "비밀유지 약정을 맺고 시작합니다. 검증 산출물(사이트·도메인·데이터)은 종료 후 전부 고객 자산으로 이관되며, 저희는 어떤 권리도 갖지 않습니다. 저희는 검증을 파는 회사지, 아이디어로 사업하는 회사가 아닙니다.",
+      a: "신청 내용은 검증 목적 외에 사용하지 않습니다(이용약관 제7조 비밀유지 조항). 검증 산출물(사이트·도메인·데이터)은 종료 후 전부 고객 자산으로 이관되며, 저희는 어떤 권리도 갖지 않습니다. 저희는 검증을 파는 회사지, 아이디어로 사업하는 회사가 아닙니다.",
     },
     {
       q: "제 잠재고객을 속이는 건 아닌가요?",

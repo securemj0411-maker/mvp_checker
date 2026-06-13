@@ -23,6 +23,12 @@ function CallbackInner() {
     (async () => {
       const url = new URL(window.location.href);
       const qp = url.searchParams;
+      const rawNext = qp.get("next");
+      const next = rawNext && rawNext.startsWith("/") ? rawNext : "/d/me";
+      // 로그인이 실패해도 코드 페이지(/d/CODE)는 로그인이 필요 없으므로
+      // next 로 폴백 — 코드를 안 적어둔 고객이 길을 잃지 않게 한다.
+      const errDest = next.startsWith("/d/") ? next : "/d";
+
       // 카카오/Supabase 가 에러를 query 또는 hash 로 줄 수 있다.
       const hash = new URLSearchParams(url.hash.replace(/^#/, ""));
       const errParam =
@@ -31,15 +37,16 @@ function CallbackInner() {
         hash.get("error_description") ||
         hash.get("error");
       if (errParam) {
-        router.replace(`/d?login_error=${encodeURIComponent(errParam.slice(0, 90))}`);
+        router.replace(
+          `${errDest}?login_error=${encodeURIComponent(errParam.slice(0, 90))}`,
+        );
         return;
       }
 
       const code = qp.get("code");
-      const next = qp.get("next") || "/d/me";
       const link = qp.get("link");
       if (!code) {
-        router.replace("/d?login_error=no_code");
+        router.replace(`${errDest}?login_error=no_code`);
         return;
       }
 
@@ -47,7 +54,7 @@ function CallbackInner() {
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
       if (error || !data.session) {
         router.replace(
-          `/d?login_error=${encodeURIComponent((error?.message || "exchange_failed").slice(0, 90))}`,
+          `${errDest}?login_error=${encodeURIComponent((error?.message || "exchange_failed").slice(0, 90))}`,
         );
         return;
       }

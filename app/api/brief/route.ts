@@ -297,13 +297,19 @@ export async function POST(request: Request) {
     const ua = request.headers.get("user-agent")?.slice(0, 500) ?? null;
 
     // 그 순간 화면에 표시된 합의 내용 전문 스냅샷 — 분쟁 방어의 원본 (고객은 안 봐도 기록은 남김)
+    const planLine =
+      confirmed.plans && confirmed.plans.length > 0
+        ? confirmed.plans
+            .map((p) => `${p.label} ${p.price.toLocaleString()}원`)
+            .join(" / ")
+        : `${confirmed.price_value.toLocaleString()}원`;
     const snapshot = [
       `오퍼: ${confirmed.offer}`,
       `타깃: ${confirmed.target_line}`,
-      `표시 가격: ${confirmed.price_value.toLocaleString()}원`,
+      `표시 가격·플랜 구성: ${planLine}`,
       `가칭: ${confirmed.name}`,
       `판정 기준(합격선): ${pb.bar} (최소 표본 ${pb.minSample}, 미달 시 비율 환산 또는 1~2일 연장)`,
-      `플랜: ${TIER_INFO[tier].label} ${TIER_INFO[tier].priceLabel}`,
+      `상품: ${TIER_INFO[tier].label} ${TIER_INFO[tier].priceLabel}`,
       `환불 규정: ${REFUND_POLICY.join(" | ")}`,
       `확정 방식: '이 브리프로 확정하고 진행하기' 버튼 클릭`,
     ].join("\n");

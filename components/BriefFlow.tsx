@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { sendGAEvent } from "@next/third-parties/google";
 import { BANK_INFO, type BriefDraft, type ConfirmedBrief } from "@/lib/diagnosis";
-import { KAKAO_CHAT_URL, SITE_NAME } from "@/lib/site";
+import { KAKAO_CHAT_URL } from "@/lib/site";
+import { BrandMark, Wordmark } from "@/components/Brand";
 
 /* ─────────────────────────────────────────────────────────────
    고객 대시보드 + 브리프 확정 — 킥오프 통화의 무통화 대체물.
@@ -41,7 +42,7 @@ interface PublicLead {
 }
 
 const STAGES: { key: Stage[]; label: string }[] = [
-  { key: ["brief"], label: "브리프 확정" },
+  { key: ["brief"], label: "준비안 확정" },
   { key: ["deposit"], label: "입금" },
   { key: ["paid"], label: "제작 준비" },
   { key: ["build"], label: "제작" },
@@ -104,11 +105,9 @@ export default function BriefFlow({ code }: { code: string }) {
     <div className="space-y-5">
       {/* 로고 헤더 — 길을 잃지 않게 */}
       <div className="flex items-center justify-between">
-        <a href="/" className="flex items-center gap-2 font-extrabold text-text">
-          <span className="grid h-7 w-7 place-items-center rounded-md bg-accent text-sm text-white">
-            B
-          </span>
-          {SITE_NAME}
+        <a href="/" className="flex items-center gap-2">
+          <BrandMark size={24} />
+          <Wordmark className="text-base" />
         </a>
         <a
           href="/"
@@ -218,7 +217,8 @@ function BriefStep({
   // 확정 폼 상태 — 고객이 확인/수정하는 건 핵심 3개(오퍼·가격·가칭)뿐.
   // 타깃·문제·소구점·제외는 전문가가 정한 내부 자료로 보관만 한다.
   const [offer, setOffer] = useState("");
-  const [price, setPrice] = useState<number>(0);
+  // 플랜 1~3개 — 첫 플랜 가격이 대표 가격(price_value)이 된다
+  const [plans, setPlans] = useState<{ label: string; price: number }[]>([]);
   const [name, setName] = useState("");
   const [tier, setTier] = useState<"engine" | "quick">(
     lead.tier === "engine" ? "engine" : "quick",
@@ -253,7 +253,9 @@ function BriefStep({
   useEffect(() => {
     if (!draft) return;
     setOffer((v) => v || draft.offer_options[0]?.headline || "");
-    setPrice((v) => v || draft.price_value);
+    setPlans((v) =>
+      v.length > 0 ? v : [{ label: "기본", price: draft.price_value }],
+    );
     setName((v) => v || draft.name_candidates[0] || "");
   }, [draft]);
 
@@ -287,8 +289,8 @@ function BriefStep({
           검증 준비안을 짜고 있습니다
         </p>
         <p className="mt-1 text-sm text-text-secondary">
-          설계서를 바탕으로 광고 헤드라인, 가격, 페이지 구성을 준비합니다.
-          10~20초 걸립니다.
+          설계서를 바탕으로 광고 헤드라인, 표시 가격, 페이지 구성을
+          준비합니다. 10~20초 걸립니다.
         </p>
         <div className="mt-6 h-2 w-56 max-w-full overflow-hidden rounded-full bg-bg-alt">
           <div className="gen-progress h-full rounded-full bg-accent" />
@@ -323,8 +325,13 @@ function BriefStep({
   }
 
   async function submit() {
-    if (!offer.trim() || !price || !name.trim()) {
-      setSubmitError("오퍼, 가격, 가칭을 확인해주세요.");
+    const cleanPlans = plans
+      .map((p) => ({ label: p.label.trim(), price: p.price }))
+      .filter((p) => p.label && p.price > 0);
+    if (!offer.trim() || cleanPlans.length === 0 || !name.trim()) {
+      setSubmitError(
+        "핵심 메시지, 가격 플랜(이름과 가격), 서비스 이름을 확인해주세요.",
+      );
       return;
     }
     setSubmitting(true);
@@ -334,7 +341,8 @@ function BriefStep({
       offer: offer.trim(),
       target_line: draft!.target_line,
       problem_line: draft!.problem_line,
-      price_value: price,
+      price_value: cleanPlans[0].price,
+      plans: cleanPlans,
       selling_points: draft!.selling_points,
       name: name.trim(),
       excluded: draft!.excluded,
@@ -405,22 +413,72 @@ function BriefStep({
         />
       </Card>
 
-      {/* 2. 표시 가격 */}
-      <Card label="검증 페이지에 표시할 가격" required>
+      {/* 2. 표시 가격 · 플랜 — 고객이 직접 구성 (1~3개) */}
+      <Card label="검증 페이지에 표시할 가격 · 플랜" required>
         <p className="mb-2 text-xs leading-relaxed text-text-tertiary">
           {draft.price_rationale}
         </p>
-        <div className="flex items-center gap-2">
-          <input
-            type="number"
-            value={price || ""}
-            onChange={(e) => setPrice(Number(e.target.value))}
-            min={100}
-            step={100}
-            className={`${inputBase} mt-0 text-right font-mono`}
-          />
-          <span className="text-sm font-bold text-text">원</span>
+        <div className="space-y-2">
+          {plans.map((p, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <input
+                value={p.label}
+                onChange={(e) =>
+                  setPlans((arr) =>
+                    arr.map((x, j) =>
+                      j === i ? { ...x, label: e.target.value } : x,
+                    ),
+                  )
+                }
+                maxLength={16}
+                placeholder="플랜 이름 (예: 베이직)"
+                className={`${inputBase} mt-0 flex-1`}
+              />
+              <input
+                type="number"
+                value={p.price || ""}
+                onChange={(e) =>
+                  setPlans((arr) =>
+                    arr.map((x, j) =>
+                      j === i ? { ...x, price: Number(e.target.value) } : x,
+                    ),
+                  )
+                }
+                min={100}
+                step={100}
+                className={`${inputBase} mt-0 w-32 text-right font-mono`}
+              />
+              <span className="text-sm font-bold text-text">원</span>
+              {plans.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setPlans((arr) => arr.filter((_, j) => j !== i))
+                  }
+                  aria-label="플랜 삭제"
+                  className="px-1 text-lg leading-none text-text-tertiary transition hover:text-red-400"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          ))}
         </div>
+        {plans.length < 3 && (
+          <button
+            type="button"
+            onClick={() =>
+              setPlans((arr) => [...arr, { label: "", price: 0 }])
+            }
+            className="mt-2 text-sm font-semibold text-accent transition hover:underline"
+          >
+            + 플랜 추가
+          </button>
+        )}
+        <p className="mt-2 text-xs leading-relaxed text-text-tertiary">
+          단건 옵션을 여러 개 보여주거나 구독 플랜을 나눠도 됩니다. 어떤 플랜이
+          많이 눌리는지도 같이 측정해 드립니다.
+        </p>
       </Card>
 
       {/* 3. 가칭 */}
@@ -451,7 +509,11 @@ function BriefStep({
       </Card>
 
       {/* 플랜 선택 */}
-      <Card label="플랜" required>
+      <Card label="비즈필터 검증 상품" required>
+        <p className="mb-2 text-xs leading-relaxed text-text-tertiary">
+          여기서부터는 검증 페이지에 표시될 내용이 아니라, 저희 비즈필터에
+          맡기실 검증 상품 선택입니다.
+        </p>
         <div className="grid gap-2 sm:grid-cols-2">
           {(["engine", "quick"] as const).map((t) => {
             const info = lead.tiers[t];
@@ -533,7 +595,8 @@ function BriefStep({
         {submitting ? "확정 중..." : "이대로 검증 시작하기"}
       </button>
       <p className="text-center text-xs text-text-tertiary">
-        다음 화면에서 결제(입금)를 안내드립니다 · 입금 전까지는 전액 환불됩니다
+        다음 화면에서 입금 계좌를 안내드립니다 · 입금 전에는 비용이 발생하지
+        않고, 입금 후에도 제작 착수 전 취소는 전액 환불됩니다
       </p>
       <p className="text-center text-xs text-text-tertiary">
         궁금한 점은{" "}
@@ -568,7 +631,7 @@ function DepositStep({ lead }: { lead: PublicLead }) {
     <div className="space-y-5">
       <div className="cold-panel rounded-lg p-6">
         <p className="text-lg font-bold text-text">
-          브리프가 확정됐습니다. 입금만 남았습니다.
+          준비안이 확정됐습니다. 입금만 남았습니다.
         </p>
         <p className="mt-1 text-sm leading-relaxed text-text-secondary">
           입금이 확인되면 48시간 안에 검증 준비가 끝나고, 진행 상황은 이
@@ -578,7 +641,7 @@ function DepositStep({ lead }: { lead: PublicLead }) {
         <div className="mt-5 rounded-lg border border-accent/30 bg-accent/5 p-5">
           <div className="flex items-baseline justify-between">
             <p className="text-sm font-bold text-text-secondary">
-              {tier.label} 플랜
+              {tier.label}
             </p>
             <p className="text-2xl font-extrabold tracking-tight text-text">
               {tier.price.toLocaleString()}원
@@ -594,6 +657,10 @@ function DepositStep({ lead }: { lead: PublicLead }) {
             />
             {due && <Row k="입금 기한" v={due} />}
           </div>
+          <p className="mt-3 text-xs leading-relaxed text-text-tertiary">
+            비즈필터는 개인사업자 &lsquo;득템잡이&rsquo;(대표 이민제)가 운영하는
+            브랜드라 예금주가 위와 같이 표시됩니다.
+          </p>
         </div>
 
         <div className="mt-4 rounded-lg border border-border bg-bg-alt p-4">
@@ -637,7 +704,7 @@ function DepositStep({ lead }: { lead: PublicLead }) {
           </p>
           <div className="mt-3 space-y-2 text-sm">
             <Row k="핵심 메시지" v={confirmed.offer} />
-            <Row k="표시 가격" v={`${confirmed.price_value.toLocaleString()}원`} />
+            <Row k="표시 가격·플랜" v={planText(confirmed)} />
             <Row k="가칭" v={confirmed.name} />
           </div>
         </div>
@@ -678,7 +745,7 @@ function DepositStep({ lead }: { lead: PublicLead }) {
 const PROGRESS_COPY: Record<string, { title: string; desc: string }> = {
   paid: {
     title: "입금이 확인됐습니다. 제작을 준비하고 있습니다.",
-    desc: "확정된 브리프 그대로 검증용 사이트와 광고 문구를 만듭니다. 48시간 안에 준비가 끝납니다.",
+    desc: "확정된 준비안 그대로 검증용 사이트와 광고 문구를 만듭니다. 48시간 안에 준비가 끝납니다.",
   },
   build: {
     title: "검증용 사이트를 만들고 있습니다.",
@@ -686,11 +753,11 @@ const PROGRESS_COPY: Record<string, { title: string; desc: string }> = {
   },
   live: {
     title: "광고가 돌아가고 있습니다.",
-    desc: "7일 동안 실제 광고비를 써서 수요를 측정합니다. 중간 숫자는 해석 없이 그대로 공유드립니다.",
+    desc: "7일 동안 실제 광고비를 써서 수요를 측정합니다. 중간 숫자는 해석 없이 남겨주신 번호 문자로 그대로 공유드립니다.",
   },
   verdict: {
     title: "판정이 나왔습니다.",
-    desc: "합격선 대비 Go/No-Go 판정 리포트를 보내드렸습니다. 궁금한 점은 일주일간 카카오톡 채널로 답해드립니다.",
+    desc: "합격선 대비 Go/No-Go 판정 리포트를 남겨주신 번호 문자와 카카오톡 채널로 보내드립니다. 궁금한 점은 일주일간 카카오톡 채널로 답해드립니다.",
   },
   closed: {
     title: "검증이 완료됐습니다.",
@@ -716,7 +783,7 @@ function ProgressStep({ lead }: { lead: PublicLead }) {
           </p>
           <div className="mt-3 space-y-2 text-sm">
             <Row k="핵심 메시지" v={confirmed.offer} />
-            <Row k="표시 가격" v={`${confirmed.price_value.toLocaleString()}원`} />
+            <Row k="표시 가격·플랜" v={planText(confirmed)} />
             <Row k="가칭" v={confirmed.name} />
             {confirmed.pass_bar && <Row k="판정 기준" v={confirmed.pass_bar} />}
           </div>
@@ -755,6 +822,13 @@ function Card({
       {children}
     </div>
   );
+}
+
+/** 확정된 플랜 구성을 고객 에코용 한 줄로 (서버 스냅샷과 동일 포맷) */
+function planText(c: ConfirmedBrief): string {
+  return c.plans && c.plans.length > 0
+    ? c.plans.map((p) => `${p.label} ${p.price.toLocaleString()}원`).join(" / ")
+    : `${c.price_value.toLocaleString()}원`;
 }
 
 function Row({ k, v, strong }: { k: string; v: string; strong?: boolean }) {

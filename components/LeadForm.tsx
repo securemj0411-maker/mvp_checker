@@ -72,7 +72,7 @@ const QUESTIONS: Question[] = [
       {
         value: "need",
         label: "테스트용 사이트가 필요해요",
-        hint: "실서비스처럼 보이는 검증용 사이트를 저희가 만듭니다",
+        hint: "실서비스처럼 보이는 검증용 사이트를 저희 비즈필터가 대신 만들어 드립니다",
       },
       {
         value: "built",
@@ -83,8 +83,8 @@ const QUESTIONS: Question[] = [
   },
   {
     id: "audience",
-    title: "돈은 누가 내나요?",
-    sub: "여러 종류라면, 첫 결제를 낼 한 부류만 골라주세요.",
+    title: "이 서비스에 돈을 낼 사람은 누구인가요?",
+    sub: "비즈필터 비용 얘기가 아니라, 고객님 서비스의 결제 고객을 묻는 질문입니다. 여러 부류라면 첫 결제를 낼 한 부류만 골라주세요.",
     options: [
       { value: "b2c", label: "일반 소비자" },
       { value: "b2b", label: "회사 · 사장님" },
@@ -121,7 +121,8 @@ const QUESTIONS: Question[] = [
   },
   {
     id: "revenue",
-    title: "고객은 어떻게 돈을 내나요?",
+    title: "이 서비스의 고객은 어떻게 돈을 내나요?",
+    sub: "주력 한 가지 기준으로 골라주세요. 플랜을 여러 개 보여주고 싶으면(구독 플랜 추가 등) 시작 전 확정 화면에서 직접 추가할 수 있습니다.",
     options: [
       { value: "once", label: "한 번 결제", hint: "단건 구매" },
       { value: "subscription", label: "월 구독" },
@@ -148,6 +149,11 @@ const QUESTIONS: Question[] = [
       { value: "competitor", label: "비슷한 서비스를 쓰고 있어요" },
       { value: "manual", label: "수작업 · 엑셀 같은 임시방편으로 버텨요" },
       { value: "none", label: "마땅한 방법이 없어 불편을 감수하고 있어요" },
+      {
+        value: "unaware",
+        label: "문제라고 인식조차 못 하고 있어요",
+        hint: "필요성을 제가 먼저 알려줘야 하는 시장",
+      },
       { value: "unknown", label: "잘 모르겠어요" },
     ],
   },
@@ -426,6 +432,7 @@ export default function LeadForm() {
           path={path}
           build={(answers.build ?? "need") as QuizAnswers["build"]}
           accessCode={accessCode}
+          answers={answers}
         />
       );
     }
@@ -526,8 +533,9 @@ export default function LeadForm() {
               AI가 아이디어를 분석하고 있습니다
             </p>
             <p className="mt-1 text-sm text-text-secondary">
-              이 문장 그대로 광고 문구와 검증용 페이지가 만들어져 진짜 사람들이
-            보게 됩니다. 그래서 한 번 더 확인해요.
+              이 문장이 광고 문구와 검증용 페이지의 출발점이 됩니다. 그래서
+              뜻을 한 번 더 확인합니다. 실제 광고는 모든 내용을 직접 확인하고
+              동의하신 뒤에만 나갑니다.
             </p>
             <div className="mt-5 h-1.5 w-48 overflow-hidden rounded-full bg-bg-alt">
               <div className="loading-sweep h-full rounded-full bg-accent" />
@@ -626,8 +634,8 @@ export default function LeadForm() {
             거의 다 됐어요. 연락받을 곳만 남겨주세요.
           </p>
           <p className="mt-1 text-sm text-text-secondary">
-            검증 설계서는 바로 다음 화면에 뜹니다. 연락처는 진행 상황을
-            알려드릴 때만 씁니다.
+            검증 설계서는 바로 다음 화면에 뜹니다. 전화를 드리는 일은 없고,
+            진행 상황은 문자로만 알려드립니다.
           </p>
         </div>
         <div>
@@ -796,20 +804,54 @@ function RejectView({ policyLabel }: { policyLabel: string | null }) {
 
 /* ───────────────── 설계서 결과 화면 — 짧게, CTA 우선 ───────────────── */
 
+/* 설계 입력 에코 — 고객 답변을 그대로 비춰서 "제대로 접수됐다"를 보여준다 */
+const ECHO_LABELS: Record<string, Record<string, string>> = {
+  build: {
+    self: "직접 만든 페이지로",
+    need: "검증용 사이트는 비즈필터가 제작",
+    built: "이미 있는 페이지로",
+  },
+  audience: { b2c: "일반 소비자", b2b: "회사 · 사장님", both: "둘 다" },
+  revenue: {
+    once: "단건 결제",
+    subscription: "월 구독",
+    fee: "광고 · 수수료",
+    undecided: "미정",
+  },
+  price: {
+    under10k: "1만원 미만",
+    "10kto50k": "1~5만원",
+    "50kto100k": "5~10만원",
+    over100k: "10만원 이상",
+    unknown: "미정",
+  },
+  alternative: {
+    competitor: "경쟁 서비스 사용 중",
+    manual: "수작업 · 엑셀로 버팀",
+    none: "방법 없이 감수 중",
+    unaware: "문제 인식 전 시장",
+    unknown: "모름",
+  },
+};
+
 function ReportView({
   report,
   path,
   build,
   accessCode,
+  answers,
 }: {
   report: Report;
   path: RecommendedPath;
   build: QuizAnswers["build"];
   accessCode: string | null;
+  answers: Partial<Record<QuizKey, string>>;
 }) {
   useEffect(() => {
     sendGAEvent("event", "report_view", { path });
   }, [path]);
+
+  const [gate, setGate] = useState(false);
 
   const isEngine = path === "engine";
   const priceLine = isEngine ? "엔진 29만원" : "Quick 50만원 · 7일";
@@ -822,6 +864,118 @@ function ReportView({
     });
   }
 
+  /* CTA 클릭 — 코드가 있으면 카카오 저장 게이트를 먼저 보여준다 */
+  function onStart(e: React.MouseEvent, position: string) {
+    fireStart(position);
+    if (accessCode) {
+      e.preventDefault();
+      setGate(true);
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+  }
+
+  const echo = (["build", "audience", "revenue", "price", "alternative"] as const)
+    .map((k) => ({
+      key: k,
+      label:
+        k === "build"
+          ? "페이지"
+          : k === "audience"
+            ? "결제 고객"
+            : k === "revenue"
+              ? "과금 방식"
+              : k === "price"
+                ? "가격대"
+                : "현재 대안",
+      value: ECHO_LABELS[k]?.[answers[k] ?? ""] ?? null,
+    }))
+    .filter((r) => r.value);
+
+  /* ── 카카오 저장 게이트 — 전환 직후, 기대가 가장 높은 순간 ── */
+  if (gate && accessCode) {
+    const dest = `/d/${accessCode}`;
+    return (
+      <div className="cold-panel rounded-lg p-6 sm:p-8">
+        <p className="text-xs font-bold uppercase tracking-[0.14em] text-accent">
+          마지막 한 단계
+        </p>
+        <h2 className="mt-2 text-xl font-bold leading-snug text-text">
+          다음 화면에서 검증 준비안을
+          <br />
+          직접 확인하고 고치실 수 있습니다
+        </h2>
+        <ul className="mt-4 space-y-2 text-sm leading-relaxed text-text-secondary">
+          <li className="flex gap-2">
+            <span className="text-accent">✓</span>
+            광고 헤드라인 · 표시 가격 · 서비스 가칭을 직접 수정
+          </li>
+          <li className="flex gap-2">
+            <span className="text-accent">✓</span>
+            플랜 여러 개(구독 플랜 추가 등)도 그 자리에서 구성
+          </li>
+          <li className="flex gap-2">
+            <span className="text-accent">✓</span>
+            동의 버튼을 누르기 전에는 아무것도 시작되지 않습니다
+          </li>
+        </ul>
+
+        <button
+          type="button"
+          onClick={async () => {
+            sendGAEvent("event", "kakao_login", { from: "report_gate" });
+            try {
+              const supabase = getSupabaseBrowser();
+              const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(dest)}&link=${accessCode}`;
+              const result = await Promise.race([
+                supabase.auth.signInWithOAuth({
+                  provider: "kakao",
+                  options: { redirectTo, skipBrowserRedirect: true },
+                }),
+                new Promise<never>((_, reject) =>
+                  setTimeout(() => reject(new Error("login_timeout")), 8000),
+                ),
+              ]);
+              if (result.error || !result.data?.url) throw new Error("oauth");
+              window.location.assign(result.data.url);
+            } catch {
+              // 로그인이 안 되더라도 흐름은 끊지 않는다 — 코드로 계속
+              window.location.assign(dest);
+            }
+          }}
+          className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg px-6 py-[18px] text-base font-bold transition hover:brightness-95"
+          style={{ background: "#FEE500", color: "#191600" }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+            <path d="M12 3C6.5 3 2 6.5 2 10.8c0 2.8 1.9 5.2 4.7 6.6-.2.7-.7 2.6-.8 3-.1.5.2.5.4.4.2-.1 2.6-1.8 3.7-2.5.6.1 1.3.1 2 .1 5.5 0 10-3.5 10-7.8C22 6.5 17.5 3 12 3z" />
+          </svg>
+          카카오로 저장하고 계속하기
+        </button>
+        <p className="mt-2 text-center text-xs text-text-tertiary">
+          진행 현황 알림과 재방문이 쉬워집니다 · 3초면 끝
+        </p>
+
+        <a
+          href={dest}
+          className="mt-4 block text-center text-sm font-medium text-text-tertiary underline-offset-2 transition hover:text-text hover:underline"
+        >
+          로그인 없이 계속하기
+        </a>
+        <p className="mt-2 text-center text-xs text-text-tertiary">
+          로그인 없이 가시면 진행 코드{" "}
+          <b className="font-mono text-text">{accessCode}</b> 를 꼭 적어두세요.
+        </p>
+
+        <button
+          type="button"
+          onClick={() => setGate(false)}
+          className="mt-5 block w-full text-center text-xs text-text-tertiary transition hover:text-text"
+        >
+          ← 설계서 다시 보기
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {/* 1. 이해 확인 — 거울 */}
@@ -832,20 +986,43 @@ function ReportView({
         <p className="mt-2 text-lg font-bold leading-relaxed text-text">
           {report.understanding_line}
         </p>
-        <p className="mt-2 text-sm text-text-secondary">
-          이 방향이 맞다면 바로 7일 검증으로 넘어갈 수 있습니다. 다른 부분이
-          있으면 다음 단계(브리프)에서 그대로 고칠 수 있습니다.
+
+        {/* 설계 입력 에코 — 답변이 전부 접수됐음을 구조로 보여준다 */}
+        {echo.length > 0 && (
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            {echo.map((r) => (
+              <div
+                key={r.key}
+                className="rounded-md border border-border bg-surface-light px-3 py-2"
+              >
+                <p className="text-[11px] font-semibold text-text-tertiary">
+                  {r.label}
+                </p>
+                <p className="mt-0.5 text-[13px] font-semibold text-text">
+                  {r.value}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <p className="mt-3 text-sm leading-relaxed text-text-secondary">
+          위 내용은 출발점입니다. 광고 문구 · 표시 가격(플랜 추가 가능) ·
+          서비스 가칭은 다음 화면에서 직접 보고 고치신 뒤에 시작됩니다.
         </p>
 
         {/* 1차 CTA — 가격 빼고 가치로. 스크롤 전에 바로 전환 */}
         <a
           href={href}
-          onClick={() => fireStart("top")}
+          onClick={(e) => onStart(e, "top")}
           className="mt-5 flex items-center justify-center gap-2 rounded-lg bg-accent px-6 py-[18px] text-base font-bold text-white transition hover:bg-accent-hover hover:shadow-[0_12px_32px_var(--accent-glow)]"
         >
-          내 페이지에 진짜 사람들 불러와서 테스트하기
+          내 검증 준비안 확인하고 다듬으러 가기
           <ArrowRightMini />
         </a>
+        <p className="mt-2 text-center text-xs text-text-tertiary">
+          눌러도 바로 시작되지 않습니다 · 세부 내용을 확인하고 동의해야 시작
+        </p>
         <a
           href="#how-we-validate"
           className="mt-2 block text-center text-sm font-medium text-text-tertiary transition hover:text-text"
@@ -926,73 +1103,28 @@ function ReportView({
         </div>
         <a
           href={href}
-          onClick={() => fireStart("bottom")}
+          onClick={(e) => onStart(e, "bottom")}
           className="mt-3 flex items-center justify-center gap-2 rounded-lg bg-accent px-6 py-4 text-base font-bold text-white transition hover:bg-accent-hover"
         >
           진짜 사람들로 이 아이디어 테스트 시작하기
           <ArrowRightMini />
         </a>
         <p className="mt-3 text-center text-xs text-text-tertiary">
-          지금은 결제가 아닙니다. 다음 화면에서 브리프를 확인하고 동의하면 그때
-          입금을 안내합니다.
+          지금은 결제가 아닙니다. 다음 화면에서 세부 내용을 확인·수정하고
+          동의하면 그때 입금을 안내합니다.
         </p>
-      </div>
-
-      {/* 결과 저장 — 가치 받은 직후 소프트 옵트인 */}
-      {accessCode && (
-        <div className="cold-panel rounded-lg p-5">
-          <p className="text-sm font-bold text-text">
-            이 결과, 저장해 둘까요?
-          </p>
-          <p className="mt-1 text-xs leading-relaxed text-text-secondary">
-            카카오로 로그인하면 이 설계서와 진행 현황을 언제든 다시 보실 수
-            있습니다. 로그인 없이는 아래 코드를 적어두셔야 합니다.
-          </p>
-          <button
-            type="button"
-            onClick={async () => {
-              sendGAEvent("event", "kakao_login", { from: "report" });
-              try {
-                const supabase = getSupabaseBrowser();
-                const redirectTo = `${window.location.origin}/auth/callback?next=/d/me&link=${accessCode}`;
-                const result = await Promise.race([
-                  supabase.auth.signInWithOAuth({
-                    provider: "kakao",
-                    options: { redirectTo, skipBrowserRedirect: true },
-                  }),
-                  new Promise<never>((_, reject) =>
-                    setTimeout(() => reject(new Error("login_timeout")), 8000),
-                  ),
-                ]);
-                if (result.error) throw result.error;
-                if (!result.data?.url) throw new Error("no_oauth_url");
-                window.location.assign(result.data.url);
-              } catch (e) {
-                const msg = e instanceof Error ? e.message : String(e);
-                window.location.assign(
-                  `/d?login_error=${encodeURIComponent(msg.slice(0, 90))}`,
-                );
-              }
-            }}
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg px-6 py-3 text-sm font-bold transition hover:brightness-95"
-            style={{ background: "#FEE500", color: "#191600" }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-              <path d="M12 3C6.5 3 2 6.5 2 10.8c0 2.8 1.9 5.2 4.7 6.6-.2.7-.7 2.6-.8 3-.1.5.2.5.4.4.2-.1 2.6-1.8 3.7-2.5.6.1 1.3.1 2 .1 5.5 0 10-3.5 10-7.8C22 6.5 17.5 3 12 3z" />
-            </svg>
-            카카오로 저장하기
-          </button>
+        {accessCode && (
           <p className="mt-2 text-center text-xs text-text-tertiary">
             내 진행 코드 <b className="font-mono text-text">{accessCode}</b>
           </p>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* 모바일 sticky CTA — 항상 보임 */}
       <div className="sticky bottom-3 z-10 sm:hidden">
         <a
           href={href}
-          onClick={() => fireStart("sticky")}
+          onClick={(e) => onStart(e, "sticky")}
           className="flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 text-base font-bold text-white shadow-[0_12px_32px_var(--accent-glow)]"
         >
           진짜 사람들로 테스트 시작하기
@@ -1018,8 +1150,8 @@ function NextSteps({
         ? "48시간 안에 준비 완료: 직접 만드실 페이지 가이드와 측정 설치 스펙을 드립니다."
         : "48시간 안에 준비 완료: 실서비스처럼 보이는 검증용 사이트를 제작합니다.";
   const steps = [
-    "이 방향으로 브리프 초안(핵심 메시지, 가격, 가칭)을 잡아 드립니다.",
-    "브리프 확정: 화면에서 확인하고 승인만 하면 됩니다. 통화 없습니다.",
+    "이 방향으로 검증 준비안 초안(핵심 메시지, 표시 가격, 가칭)을 잡아 드립니다.",
+    "준비안 확정: 화면에서 확인하고 승인만 하면 됩니다. 통화 없습니다.",
     prepStep,
     "7일 광고 집행: 진행 대시보드를 상시 공개합니다.",
     "판정 리포트: Go/No-Go와 다음 액션을 대시보드로 보내드립니다.",
@@ -1043,7 +1175,7 @@ function NextSteps({
         ))}
       </ol>
       <p className="mt-3 text-sm font-bold text-text">
-        고객님이 하실 일은 브리프를 확인하고 승인하는 것뿐입니다.
+        고객님이 하실 일은 검증 준비안을 확인하고 승인하는 것뿐입니다.
       </p>
     </details>
   );

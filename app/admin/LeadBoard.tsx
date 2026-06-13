@@ -30,6 +30,7 @@ export type Lead = {
   build_status: string | null;
   price_band: string | null;
   alternative: string | null;
+  region: string | null;
   location: string | null;
   page_url: string | null;
   page_measurable: boolean | null;
@@ -82,7 +83,13 @@ const LABEL = {
     competitor: "유사 서비스",
     manual: "수작업·엑셀",
     none: "그냥 감수",
+    unaware: "문제인식 전",
     unknown: "모름",
+  } as Record<string, string>,
+  region: {
+    local: "동네 상권",
+    city: "도시 전체",
+    nationwide: "전국",
   } as Record<string, string>,
   tier: {
     engine: "엔진 29만",
@@ -405,6 +412,9 @@ function Modal({
     ["수익", L(LABEL.revenue, lead.revenue_model)],
     ["가격대", L(LABEL.price, lead.price_band)],
     ["대안", L(LABEL.alternative, lead.alternative)],
+    ...(lead.region
+      ? ([["상권", L(LABEL.region, lead.region)]] as [string, string][])
+      : []),
     ["제작상황", L(LABEL.build, lead.build_status)],
   ];
   const report = lead.ai_report;
@@ -568,7 +578,17 @@ function Modal({
               </p>
               <div className="mt-2.5 space-y-1.5 text-sm">
                 <Row k="핵심 메시지" v={brief.offer} strong />
-                <Row k="표시 가격" v={`${brief.price_value.toLocaleString()}원`} strong />
+                <Row
+                  k="표시 가격·플랜"
+                  v={
+                    brief.plans && brief.plans.length > 0
+                      ? brief.plans
+                          .map((p) => `${p.label} ${p.price.toLocaleString()}원`)
+                          .join(" / ")
+                      : `${brief.price_value.toLocaleString()}원`
+                  }
+                  strong
+                />
                 <Row k="가칭" v={brief.name} strong />
                 <Row k="타깃" v={brief.target_line} />
                 <Row k="문제" v={brief.problem_line} />

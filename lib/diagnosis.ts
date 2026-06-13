@@ -20,7 +20,12 @@ export type PriceBand =
   | "50kto100k"
   | "over100k"
   | "unknown";
-export type Alternative = "competitor" | "manual" | "none" | "unknown";
+export type Alternative =
+  | "competitor"
+  | "manual"
+  | "none"
+  | "unaware"
+  | "unknown";
 export type Region = "local" | "city" | "nationwide";
 
 export interface QuizAnswers {
@@ -150,13 +155,13 @@ export const TIER_INFO: Record<
   { label: string; price: number; priceLabel: string; desc: string }
 > = {
   engine: {
-    label: "페이지는 내가",
+    label: "엔진 (페이지는 내가)",
     price: 290000,
     priceLabel: "29만원",
-    desc: "검증용 페이지가 이미 있으신 분. 그 페이지에 진짜 광고를 걸어 수백 명을 불러오고, 클릭과 결제율을 재서 Go/No-Go까지 판정합니다. 광고비 포함.",
+    desc: "검증용 페이지가 이미 있으신 분. 그 페이지에 진짜 광고를 걸어 수백 명을 불러오고, 클릭과 결제 의향(결제 버튼 클릭률)을 재서 Go/No-Go까지 판정합니다. 광고비 포함.",
   },
   quick: {
-    label: "처음부터 전부",
+    label: "Quick (처음부터 전부)",
     price: 500000,
     priceLabel: "50만원",
     desc: "검증용 사이트부터 저희가 만들어 드립니다. 실제 광고 집행, 수백 명 유입, 측정, Go/No-Go 판정까지 전부. 광고비 포함.",
@@ -164,7 +169,7 @@ export const TIER_INFO: Record<
 };
 
 export const REFUND_POLICY = [
-  "입금 후 브리프 재확인 단계에서 취소: 전액 환불",
+  "입금 후 제작 착수 전 취소: 전액 환불",
   "제작 착수 후 광고 집행 전 취소: 50% 환불",
   "광고 집행 시작 후: 변심 환불은 어렵습니다. 단, 집행되지 않은 광고비는 돌려드립니다",
   "분명한 Go/No-Go 판정을 못 드리면: 전액 환불 (판정 보장)",
@@ -201,6 +206,13 @@ export function decideChannel(a: QuizAnswers): {
       channel: "메타(인스타) 디맨드젠 광고",
       reason:
         "앱은 출시 전 검색 수요가 거의 없어 피드 노출이 기본입니다. 무료 알림이 아니라 유료 플랜 선택이 포함된 사전등록을 신호로 잡습니다.",
+    };
+  }
+  if (a.alternative === "unaware") {
+    return {
+      channel: "메타(인스타) 디맨드젠 광고",
+      reason:
+        "문제라고 인식 못 하는 고객은 해결책을 검색하지 않아 검색광고는 모수가 안 나옵니다. 피드에서 문제를 먼저 보여주고 반응을 만드는 방식이 맞습니다.",
     };
   }
   if (a.audience === "b2b") {
@@ -279,6 +291,9 @@ export interface ConfirmedBrief {
   target_line: string;
   problem_line: string;
   price_value: number;
+  /** 검증 페이지에 표시할 플랜 구성 (1~3개). 고객이 확정 화면에서 직접 구성.
+   *  price_value 는 첫 플랜 가격과 동일하게 유지(하위 호환). */
+  plans?: { label: string; price: number }[];
   selling_points: string[]; // 내부용 (고객 미노출)
   name: string;
   excluded: string[]; // 내부용 (고객 미노출)
@@ -316,6 +331,7 @@ const ALT_LABEL: Record<Alternative, string> = {
   competitor: "비슷한 서비스",
   manual: "수작업이나 엑셀 같은 임시방편",
   none: "마땅한 대안 없이 그냥 참는 것",
+  unaware: "아직 문제라고 느끼지도 못하는 상태",
   unknown: "확인되지 않은 대안",
 };
 

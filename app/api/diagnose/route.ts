@@ -190,6 +190,7 @@ const LABELS: Record<string, Record<string, string>> = {
     competitor: "비슷한 서비스를 쓰고 있음",
     manual: "수작업이나 엑셀로 버팀",
     none: "그냥 참고 있음",
+    unaware: "문제라고 인식조차 못 함 (필요성을 알려줘야 하는 시장)",
     unknown: "모름",
   },
   region: {
@@ -357,6 +358,7 @@ export async function POST(request: Request) {
         build_status: answers.build,
         price_band: answers.price,
         alternative: answers.alternative,
+        region: answers.region ?? null,
         location: answers.location?.slice(0, 200) ?? null,
         page_url: answers.pageUrl?.slice(0, 500) ?? null,
         page_measurable: measurable,
@@ -402,9 +404,14 @@ export async function POST(request: Request) {
       report = buildFallbackReport(answers);
       source = "fallback";
     }
-    // 채널과 합격선은 코드가 결정한 값으로 고정 — 모델이 다듬다 바꾸는 것 방지
-    report.channel = decideChannel(answers).channel;
-    report.pass_bar = decidePassBar(answers).bar;
+    // 채널·합격선은 숫자도 근거 문장도 코드가 결정한 값으로 고정.
+    // 모델이 쓴 근거는 톤이 어설퍼 고객 신뢰를 깎는다(플레이북 문장으로 교체).
+    const ch = decideChannel(answers);
+    const pb = decidePassBar(answers);
+    report.channel = ch.channel;
+    report.channel_reason = ch.reason;
+    report.pass_bar = pb.bar;
+    report.pass_bar_reason = pb.reason;
 
     // 4) 설계서를 리드에 저장 (실패해도 응답은 내보낸다)
     const { error: updateError } = await admin

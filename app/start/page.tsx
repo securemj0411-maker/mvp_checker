@@ -20,7 +20,7 @@ export default function StartPage() {
             <Wordmark className="text-lg" />
           </a>
           <span className="text-[11px] font-semibold text-text-tertiary sm:text-xs">
-            광고비 비즈필터 부담 · 신청은 결제가 아닙니다
+            광고비 별도 청구 없음 · 신청은 결제가 아닙니다
           </span>
         </div>
       </header>
@@ -34,7 +34,7 @@ export default function StartPage() {
             진짜 사람들로 확인합니다
           </h1>
           <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-text-secondary">
-            아이디어를 적으면, 어디에 광고를 걸어 보통 48시간 안에 수백 명을
+            아이디어를 적으면, 어디에 광고를 걸어 모르는 사람 수백 명을
             불러올지 담긴 검증 설계서를 그 자리에서 무료로 드립니다.
           </p>
         </div>
