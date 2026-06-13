@@ -44,6 +44,8 @@ interface PublicLead {
     visits: number;
     conversions: number;
   } | null;
+  /** 일자별 방문·결제 추세 (추세 차트용) */
+  series?: { d: string; visits: number; pay: number }[] | null;
   passBar: { bar: string; reason: string; minSample: string };
   tiers: Record<
     "engine" | "quick",
@@ -1370,6 +1372,81 @@ const PROGRESS_COPY: Record<string, { title: string; desc: string }> = {
   },
 };
 
+/* 일자별 방문·결제 추세 라인 차트 (SVG). 데이터 없으면 대기 안내. */
+function TrendChart({
+  series,
+}: {
+  series: { d: string; visits: number; pay: number }[];
+}) {
+  const data = series.slice(-14);
+  const n = data.length;
+  const has = data.some((p) => p.visits > 0 || p.pay > 0);
+  const max = Math.max(1, ...data.map((p) => p.visits));
+  const X = (i: number) => (n <= 1 ? 50 : (i / (n - 1)) * 100);
+  const Y = (v: number) => 38 - (v / max) * 33;
+  const line = (key: "visits" | "pay") =>
+    data
+      .map((p, i) => `${i === 0 ? "M" : "L"}${X(i).toFixed(1)},${Y(p[key]).toFixed(1)}`)
+      .join(" ");
+  const area = `M0,40 ${data
+    .map((p, i) => `L${X(i).toFixed(1)},${Y(p.visits).toFixed(1)}`)
+    .join(" ")} L100,40 Z`;
+  return (
+    <div>
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-bold text-text-secondary">일자별 추세</p>
+        <div className="flex items-center gap-3 text-[11px] font-semibold">
+          <span className="flex items-center gap-1 text-accent">
+            <span className="h-1 w-3 rounded-full bg-accent" />방문
+          </span>
+          <span className="flex items-center gap-1" style={{ color: "#06A86B" }}>
+            <span
+              className="h-1 w-3 rounded-full"
+              style={{ background: "#06A86B" }}
+            />
+            결제·예약
+          </span>
+        </div>
+      </div>
+      <div className="relative mt-3 h-32 w-full overflow-hidden rounded-xl border border-border bg-bg-alt/40">
+        {has ? (
+          <svg
+            viewBox="0 0 100 40"
+            preserveAspectRatio="none"
+            className="h-full w-full"
+          >
+            <path d={area} fill="rgba(49,130,246,0.10)" />
+            <path
+              d={line("visits")}
+              fill="none"
+              stroke="var(--accent)"
+              strokeWidth="2"
+              vectorEffect="non-scaling-stroke"
+            />
+            <path
+              d={line("pay")}
+              fill="none"
+              stroke="#06A86B"
+              strokeWidth="2"
+              vectorEffect="non-scaling-stroke"
+            />
+          </svg>
+        ) : (
+          <div className="flex h-full items-center justify-center px-4 text-center text-xs text-text-tertiary">
+            광고가 시작되면 일자별 방문·결제가 여기에 그려집니다.
+          </div>
+        )}
+      </div>
+      {has && n > 1 && (
+        <div className="mt-1.5 flex justify-between text-[10px] text-text-tertiary">
+          <span>{data[0].d}</span>
+          <span>{data[n - 1].d}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* 검증 코크핏 — 광고 전이라도 "여기가 내 실시간 대시보드"임을 보여준다.
    실제 데이터(없으면 0/대기) + 합격선(목표)만 쓰고, 가짜 숫자는 절대 넣지 않는다. */
 function Cockpit({ lead, preview = false }: { lead: PublicLead; preview?: boolean }) {
@@ -1378,7 +1455,6 @@ function Cockpit({ lead, preview = false }: { lead: PublicLead; preview?: boolea
   // 관리자가 방문/전환을 직접 넣었으면 그 값을, 아니면 t.js 자동측정값을 쓴다.
   const visits = av && av.visits > 0 ? av.visits : s.visits;
   const payClicks = av && av.conversions > 0 ? av.conversions : s.payClicks;
-  const buttonClicks = s.clicks;
   const hasData = visits > 0;
   const live = lead.stage === "live";
   const done = lead.stage === "verdict" || lead.stage === "closed";
@@ -1393,45 +1469,50 @@ function Cockpit({ lead, preview = false }: { lead: PublicLead; preview?: boolea
   const payRate = hasData ? (payClicks / visits) * 100 : 0;
   // 관리자가 구글애즈 노출·클릭을 입력하면 퍼널 맨 위에 광고 단을 붙인다.
   const ad = av && (av.impressions > 0 || av.clicks > 0) ? av : null;
-  const anyData = hasData || !!ad;
-  const rows = ad
-    ? [
-        { k: "광고 노출", v: ad.impressions, tone: "var(--bg-light)" },
-        { k: "광고 클릭", v: ad.clicks, tone: "var(--border-hover)" },
-        { k: "사이트 방문", v: visits, tone: "var(--accent-soft)" },
-        { k: intent.click, v: payClicks, tone: "var(--accent)" },
-      ]
-    : [
-        { k: "방문", v: visits, tone: "var(--border-hover)" },
-        { k: "버튼 클릭", v: buttonClicks, tone: "var(--accent-soft)" },
-        { k: intent.click, v: payClicks, tone: "var(--accent)" },
-      ];
-  const maxRow = Math.max(...rows.map((r) => r.v), 1);
-  const funnel = rows.map((r) => ({
-    ...r,
-    w: anyData ? Math.max((r.v / maxRow) * 100, r.v > 0 ? 4 : 2) : 6,
-  }));
+  // 합격선 목표치 파싱 (예: "방문 100명당 결제 버튼 클릭 4명" → 4). 게이지용.
+  const tm = bar.match(/100명당[^0-9]*(\d+(?:\.\d+)?)/);
+  const target = tm ? parseFloat(tm[1]) : null;
+  const passing = target != null && hasData && payRate >= target;
+  const scaleMax =
+    target != null ? Math.max(target * 1.5, payRate * 1.15, target + 1) : 1;
+  const fillPct = target != null ? Math.min((payRate / scaleMax) * 100, 100) : 0;
+  const markPct = target != null ? Math.min((target / scaleMax) * 100, 100) : 0;
+
   const status = live
     ? { t: "측정 중", live: true }
     : done
       ? { t: "측정 완료", live: false }
       : { t: preview ? "입금 후 열림" : "측정 준비 중", live: false };
-  const stageLabel =
-    STAGES.find((x) => x.key.includes(lead.stage))?.label ?? "준비 중";
-  const cards = [
-    { k: "진행 단계", v: stageLabel, accent: false, small: true },
-    { k: "방문", v: hasData ? visits.toLocaleString() : "—", accent: false },
-    { k: "버튼 클릭", v: hasData ? buttonClicks.toLocaleString() : "—", accent: false },
-    { k: intent.click, v: hasData ? payClicks.toLocaleString() : "—", accent: true },
+
+  const tiles = [
+    { k: "광고 노출", v: ad ? ad.impressions.toLocaleString() : "—", sub: "" },
+    {
+      k: "광고 클릭",
+      v: ad ? ad.clicks.toLocaleString() : "—",
+      sub:
+        ad && ad.impressions > 0
+          ? `클릭률 ${((ad.clicks / ad.impressions) * 100).toFixed(1)}%`
+          : "",
+    },
+    { k: "사이트 방문", v: hasData ? visits.toLocaleString() : "—", sub: "" },
   ];
 
   return (
     <div className="cold-panel rounded-lg p-6">
-      <div className="flex items-center justify-between">
-        <p className="text-base font-bold text-text">라이브 대시보드</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-base font-bold text-text">라이브 대시보드</p>
+          <p className="mt-0.5 text-xs text-text-tertiary">
+            {preview
+              ? "입금 후 열립니다 · 광고가 시작되면 실시간으로 채워집니다"
+              : "광고 반응이 실시간으로 쌓입니다 · 자동 갱신"}
+          </p>
+        </div>
         <span
-          className={`flex items-center gap-1.5 text-[11px] font-bold ${
-            status.live ? "text-emerald-500" : "text-text-tertiary"
+          className={`flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold ${
+            status.live
+              ? "bg-emerald-500/10 text-emerald-600"
+              : "bg-bg-alt text-text-tertiary"
           }`}
         >
           {status.live && (
@@ -1440,83 +1521,90 @@ function Cockpit({ lead, preview = false }: { lead: PublicLead; preview?: boolea
           {status.t}
         </span>
       </div>
-      {!hasData && (
-        <p className="mt-1 text-xs leading-relaxed text-text-tertiary">
-          {preview
-            ? "입금하시면 이 대시보드가 열리고, 광고가 시작되면 방문·클릭·결제 반응이 여기에 실시간으로 쌓입니다."
-            : "광고가 시작되면 방문·클릭·결제 반응이 여기에 실시간으로 쌓입니다."}
-        </p>
-      )}
 
-      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {cards.map((c) => (
+      {/* 메트릭 타일 — 3 화이트 + 1 히어로(전환, accent) */}
+      <div className="mt-5 grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+        {tiles.map((t) => (
           <div
-            key={c.k}
-            className={`rounded-[14px] px-3 py-3 ${
-              c.accent ? "border border-accent/30 bg-accent/5" : "bg-bg-alt"
-            }`}
+            key={t.k}
+            className="rounded-2xl border border-border bg-surface px-4 py-4"
           >
-            <p
-              className={`text-[11px] font-semibold ${
-                c.accent ? "text-accent" : "text-text-tertiary"
-              }`}
-            >
-              {c.k}
+            <p className="text-[12px] font-semibold text-text-tertiary">{t.k}</p>
+            <p className="mt-1.5 text-[26px] font-extrabold leading-none tracking-tight text-text">
+              {t.v}
             </p>
-            <p
-              className={`mt-1 ${c.small ? "text-sm" : "text-xl"} font-extrabold tracking-tight ${
-                c.accent ? "text-accent" : "text-text"
-              }`}
-            >
-              {c.v}
+            <p className="mt-1.5 h-3 text-[11px] font-semibold text-text-tertiary">
+              {t.sub}
             </p>
           </div>
         ))}
-      </div>
-
-      <div className="mt-5">
-        <p className="text-xs font-bold text-text-secondary">신호 퍼널</p>
-        <div className="mt-3 space-y-3">
-          {funnel.map((f) => (
-            <div key={f.k}>
-              <div className="flex items-baseline justify-between text-xs">
-                <span className="font-semibold text-text-secondary">{f.k}</span>
-                <span className="font-extrabold text-text">
-                  {anyData ? f.v.toLocaleString() : "—"}
-                </span>
-              </div>
-              <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-bg-alt">
-                <div
-                  className="h-full rounded-full transition-all duration-500"
-                  style={{ width: `${f.w}%`, background: f.tone }}
-                />
-              </div>
-            </div>
-          ))}
+        <div className="rounded-2xl bg-accent px-4 py-4 text-white shadow-[0_12px_28px_-12px_var(--accent-glow)]">
+          <p className="text-[12px] font-semibold text-white/85">{intent.click}</p>
+          <p className="mt-1.5 text-[26px] font-extrabold leading-none tracking-tight">
+            {hasData ? payClicks.toLocaleString() : "—"}
+          </p>
+          <p className="mt-1.5 h-3 text-[11px] font-semibold text-white/85">
+            {hasData ? `전환 ${payRate.toFixed(1)}%` : "전환 측정 대기"}
+          </p>
         </div>
       </div>
 
-      <div className="mt-5 rounded-[14px] bg-bg-alt px-4 py-3.5">
+      <div className="mt-6">
+        <TrendChart series={lead.series ?? []} />
+      </div>
+
+      {/* 합격선 게이지 */}
+      <div className="mt-6 rounded-2xl border border-border bg-bg-alt/40 px-4 py-4">
         <div className="flex items-center justify-between gap-3">
           <span className="text-xs font-semibold text-text-tertiary">
             합격선 (광고 전 못박은 목표)
           </span>
-          <span className="text-sm font-bold text-text">{bar}</span>
-        </div>
-        <p className="mt-1.5 text-xs leading-relaxed text-text-secondary">
-          {hasData ? (
-            <>
-              지금 방문 100명당 {intent.noun}{" "}
-              <b className="text-text">{payRate.toFixed(1)}명</b>. 7일 측정 뒤 이
-              합격선과 비교해 GO·보류·중단을 판정합니다.
-            </>
+          {hasData && target != null ? (
+            <span
+              className="text-xs font-extrabold"
+              style={{ color: passing ? "#06A86B" : "#C77A00" }}
+            >
+              {passing ? "통과 중" : "미달"}
+            </span>
           ) : (
-            <>
-              이 숫자는 광고 시작 전에 고정하고, 데이터를 본 뒤에는 저희도 바꾸지
-              않습니다. 그래야 판정이 공정합니다.
-            </>
+            <span className="text-sm font-bold text-text">{bar}</span>
           )}
-        </p>
+        </div>
+        {target != null ? (
+          <>
+            <div className="relative mt-3 h-2.5 rounded-full bg-border">
+              <div
+                className="absolute inset-y-0 left-0 rounded-full transition-all duration-500"
+                style={{
+                  width: `${fillPct}%`,
+                  background: passing ? "#06A86B" : "var(--accent)",
+                }}
+              />
+              <div
+                className="absolute -bottom-1 -top-1 w-0.5 bg-text"
+                style={{ left: `${markPct}%` }}
+              />
+            </div>
+            <div className="mt-2 flex justify-between text-[11px] text-text-tertiary">
+              <span>
+                {hasData ? (
+                  <>
+                    현재 방문 100명당 {intent.noun}{" "}
+                    <b className="text-text">{payRate.toFixed(1)}</b>
+                  </>
+                ) : (
+                  "측정 시작 후 목표선과 비교해 드려요"
+                )}
+              </span>
+              <span>목표 {target}</span>
+            </div>
+          </>
+        ) : (
+          <p className="mt-1.5 text-xs leading-relaxed text-text-secondary">
+            이 숫자는 광고 시작 전에 고정하고, 데이터를 본 뒤에는 저희도 바꾸지
+            않습니다. 그래야 판정이 공정합니다.
+          </p>
+        )}
       </div>
     </div>
   );

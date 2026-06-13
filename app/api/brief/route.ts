@@ -98,6 +98,40 @@ async function leadStats(
   };
 }
 
+/** 일자별 방문·결제 추세 (추세 차트용). 광고비/금액 정보 없음. */
+async function leadSeries(
+  admin: ReturnType<typeof getSupabaseAdmin>,
+  leadId: string,
+): Promise<{ d: string; visits: number; pay: number }[]> {
+  const PAY_WORDS = ["구매", "결제", "주문", "신청", "시작", "예약", "구독", "등록"];
+  const { data } = await admin
+    .from("o2o_events")
+    .select("created_at, type, label")
+    .eq("lead_id", leadId)
+    .order("created_at", { ascending: true })
+    .limit(5000);
+  const byDay = new Map<string, { visits: number; pay: number }>();
+  for (const e of data ?? []) {
+    const dt = new Date(e.created_at as string);
+    // KST 기준 일자 키 (MM/DD)
+    const k = new Intl.DateTimeFormat("ko-KR", {
+      timeZone: "Asia/Seoul",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(dt);
+    const row = byDay.get(k) ?? { visits: 0, pay: 0 };
+    if (e.type === "pageview") row.visits += 1;
+    else if (
+      e.type === "click" &&
+      e.label &&
+      PAY_WORDS.some((w) => (e.label as string).includes(w))
+    )
+      row.pay += 1;
+    byDay.set(k, row);
+  }
+  return [...byDay.entries()].map(([d, v]) => ({ d, ...v }));
+}
+
 function publicLead(lead: Record<string, unknown>) {
   const answers = leadAnswers(lead);
   const passBar = decidePassBar(answers);
@@ -345,10 +379,16 @@ export async function POST(request: Request) {
   if (body.action === "get") {
     const pub = publicLead(lead) as ReturnType<typeof publicLead> & {
       stats?: { visits: number; clicks: number; payClicks: number } | null;
+      series?: { d: string; visits: number; pay: number }[] | null;
     };
-    // 광고가 켜진 뒤에는 실측 숫자를 같이 내려보낸다 (금액은 절대 포함하지 않음)
+    // 광고가 켜진 뒤에는 실측 숫자 + 일자별 추세를 같이 내려보낸다 (금액 제외)
     if (["live", "verdict", "closed"].includes(pub.stage)) {
-      pub.stats = await leadStats(admin, lead.id as string);
+      const [stats, series] = await Promise.all([
+        leadStats(admin, lead.id as string),
+        leadSeries(admin, lead.id as string),
+      ]);
+      pub.stats = stats;
+      pub.series = series;
     }
     return Response.json({ lead: pub });
   }
