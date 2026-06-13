@@ -801,15 +801,22 @@ function DepositStep({ lead }: { lead: PublicLead }) {
             </div>
           </div>
 
-          <div className="mt-3 rounded-2xl border border-amber-500/30 bg-amber-500/[0.07] px-4 py-3">
-            <p className="flex items-center gap-1.5 text-xs font-bold text-amber-600">
+          <div
+            className="mt-3 rounded-2xl px-4 py-3"
+            style={{ background: "#FBF1DE" }}
+          >
+            <p
+              className="flex items-center gap-1.5 text-xs font-bold"
+              style={{ color: "#C77A00" }}
+            >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden>
                 <path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" />
               </svg>
               입금자명
             </p>
             <p className="mt-1 text-sm font-bold text-text">
-              반드시 <span className="text-amber-600">&ldquo;{lead.name}&rdquo;</span>{" "}
+              반드시{" "}
+              <span style={{ color: "#C77A00" }}>&ldquo;{lead.name}&rdquo;</span>{" "}
               으로 입금해주세요
             </p>
           </div>
