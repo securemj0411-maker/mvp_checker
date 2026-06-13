@@ -1375,8 +1375,10 @@ const PROGRESS_COPY: Record<string, { title: string; desc: string }> = {
 /* 일자별 방문·결제 추세 라인 차트 (SVG). 데이터 없으면 대기 안내. */
 function TrendChart({
   series,
+  payLabel,
 }: {
   series: { d: string; visits: number; pay: number }[];
+  payLabel: string;
 }) {
   const data = series.slice(-14);
   const n = data.length;
@@ -1404,7 +1406,7 @@ function TrendChart({
               className="h-1 w-3 rounded-full"
               style={{ background: "#06A86B" }}
             />
-            결제·예약
+            {payLabel}
           </span>
         </div>
       </div>
@@ -1550,7 +1552,7 @@ function Cockpit({ lead, preview = false }: { lead: PublicLead; preview?: boolea
       </div>
 
       <div className="mt-6">
-        <TrendChart series={lead.series ?? []} />
+        <TrendChart series={lead.series ?? []} payLabel={intent.click} />
       </div>
 
       {/* 합격선 게이지 */}

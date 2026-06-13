@@ -27,6 +27,7 @@ export async function generateMetadata({
       type: "article",
       publishedTime: post.date,
       locale: "ko_KR",
+      images: [{ url: "/og.png", width: 1200, height: 630 }],
     },
   };
 }

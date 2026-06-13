@@ -1023,8 +1023,8 @@ export default function LeadForm() {
             maxLength={13}
           />
           <p className="mt-1.5 text-xs leading-relaxed text-text-tertiary">
-            검증 진행 상황을 문자로 보내는 데만 씁니다. 영업 전화나 광고 문자는
-            보내지 않고, 검증이 끝나면 파기합니다.
+            검증 진행 상황과 최종 판정 결과를 문자로 보내는 데만 씁니다. 영업
+            전화나 광고 문자는 보내지 않습니다.
           </p>
         </div>
 
