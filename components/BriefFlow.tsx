@@ -703,6 +703,54 @@ function BriefStep({
 
 /* ───────── 2단계: 입금 안내 ───────── */
 
+function CopyButton({ value, label }: { value: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(value);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1600);
+        } catch {
+          /* 클립보드 권한 없으면 조용히 무시 — 번호는 화면에 그대로 보인다 */
+        }
+      }}
+      className="flex flex-shrink-0 items-center gap-1.5 rounded-xl border border-accent/30 bg-accent/10 px-3 py-2 text-xs font-bold text-accent transition hover:bg-accent/20 active:scale-95"
+    >
+      {copied ? (
+        <>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden>
+            <path d="M20 6 9 17l-5-5" />
+          </svg>
+          복사됨
+        </>
+      ) : (
+        <>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
+            <rect x="9" y="9" width="11" height="11" rx="2.5" />
+            <path d="M5 15V5a2 2 0 0 1 2-2h10" />
+          </svg>
+          복사
+        </>
+      )}
+    </button>
+  );
+}
+
+function ConfirmRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt className="text-xs font-semibold text-text-tertiary">{label}</dt>
+      <dd className="mt-0.5 break-words text-sm font-semibold leading-relaxed text-text">
+        {value}
+      </dd>
+    </div>
+  );
+}
+
 function DepositStep({ lead }: { lead: PublicLead }) {
   const tier = lead.tiers[lead.tier === "engine" ? "engine" : "quick"];
   const confirmed = lead.brief?.confirmed;
@@ -725,49 +773,79 @@ function DepositStep({ lead }: { lead: PublicLead }) {
           페이지에서 계속 보실 수 있습니다.
         </p>
 
-        <div className="mt-5 rounded-lg border border-accent/30 bg-accent/5 p-5">
-          <div className="flex items-baseline justify-between">
-            <p className="text-sm font-bold text-text-secondary">
+        <div className="mt-5 rounded-xl border border-accent/30 bg-accent/[0.05] p-5">
+          <div className="flex items-baseline justify-between gap-3">
+            <span className="text-sm font-semibold text-text-secondary">
               {tier.label}
-            </p>
-            <p className="text-2xl font-extrabold tracking-tight text-text">
+            </span>
+            <span className="text-[26px] font-extrabold tracking-tight text-text">
               {tier.price.toLocaleString()}원
+            </span>
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-border bg-surface p-4">
+            <p className="text-xs font-semibold text-text-tertiary">입금 계좌</p>
+            <div className="mt-1.5 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="break-all text-base font-bold text-text">
+                  {BANK_INFO.bank} {BANK_INFO.account}
+                </p>
+                <p className="mt-0.5 text-xs text-text-tertiary">
+                  예금주 {BANK_INFO.holder}
+                </p>
+              </div>
+              <CopyButton
+                value={BANK_INFO.account.replace(/\D/g, "")}
+                label="계좌번호 복사"
+              />
+            </div>
+          </div>
+
+          <div className="mt-3 rounded-2xl border border-amber-500/30 bg-amber-500/[0.07] px-4 py-3">
+            <p className="flex items-center gap-1.5 text-xs font-bold text-amber-600">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden>
+                <path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" />
+              </svg>
+              입금자명
+            </p>
+            <p className="mt-1 text-sm font-bold text-text">
+              반드시 <span className="text-amber-600">&ldquo;{lead.name}&rdquo;</span>{" "}
+              으로 입금해주세요
             </p>
           </div>
-          <div className="mt-4 space-y-2 border-t border-border pt-4 text-sm">
-            <Row k="입금 계좌" v={`${BANK_INFO.bank} ${BANK_INFO.account}`} />
-            <Row k="예금주" v={BANK_INFO.holder} />
-            <Row
-              k="입금자명"
-              v={`반드시 "${lead.name}"으로 입금해주세요`}
-              strong
-            />
-            {due && <Row k="입금 기한" v={due} />}
-          </div>
+
+          {due && (
+            <div className="mt-3 flex items-center justify-between px-1 text-sm">
+              <span className="text-text-tertiary">입금 기한</span>
+              <span className="font-bold text-text">{due}</span>
+            </div>
+          )}
+
           <p className="mt-3 text-xs leading-relaxed text-text-tertiary">
             비즈필터는 개인사업자 &lsquo;득템잡이&rsquo;(대표 이민제)가 운영하는
             브랜드라 예금주가 위와 같이 표시됩니다.
           </p>
         </div>
 
-        <div className="mt-4 rounded-lg border border-border bg-bg-alt p-4">
+        <div className="mt-4 rounded-xl border border-border bg-bg-alt/60 p-5">
           <p className="text-sm font-bold text-text">입금하신 다음은요</p>
-          <ol className="mt-2 space-y-1.5 text-sm leading-relaxed text-text-secondary">
-            <li>
-              1. 담당 검증 전문가가 확정하신 준비안을 직접 검토합니다 (보통
-              1~2시간, 영업시간 기준). 문제가 없으면 그대로 진행하고, 보완할
-              점이 보이면 먼저 연락드립니다.
-            </li>
-            <li>
-              2. 입금이 확인되면 남겨주신 번호로 문자를 보내드리고, 이 화면도
-              다음 단계로 바뀝니다.
-            </li>
-            <li>
-              3. 이 페이지는 닫으셔도 됩니다. 진행 코드로 언제든 다시 들어와
-              현황을 보실 수 있고, 현황이 바뀔 때마다 문자를 드립니다.
-            </li>
+          <ol className="mt-3 space-y-3">
+            {[
+              "담당 검증 전문가가 확정하신 준비안을 직접 검토합니다 (보통 1~2시간, 영업시간 기준). 문제가 없으면 그대로 진행하고, 보완할 점이 보이면 먼저 연락드립니다.",
+              "입금이 확인되면 남겨주신 번호로 문자를 보내드리고, 이 화면도 다음 단계로 바뀝니다.",
+              "이 페이지는 닫으셔도 됩니다. 진행 코드로 언제든 다시 들어와 현황을 보실 수 있고, 현황이 바뀔 때마다 문자를 드립니다.",
+            ].map((s, i) => (
+              <li key={i} className="flex gap-3">
+                <span className="grid h-5 w-5 flex-shrink-0 place-items-center rounded-full bg-accent/15 text-[11px] font-bold text-accent">
+                  {i + 1}
+                </span>
+                <span className="text-sm leading-relaxed text-text-secondary">
+                  {s}
+                </span>
+              </li>
+            ))}
           </ol>
-          <p className="mt-2 text-xs text-text-tertiary">
+          <p className="mt-3 border-t border-border pt-3 text-xs text-text-tertiary">
             세금계산서나 현금영수증이 필요하시면 카카오톡 채널로 알려주세요.
           </p>
         </div>
@@ -775,13 +853,13 @@ function DepositStep({ lead }: { lead: PublicLead }) {
         <div className="mt-4 flex gap-2">
           <a
             href="/"
-            className="flex-1 rounded-lg border border-border bg-surface px-4 py-3 text-center text-sm font-bold text-text-secondary transition hover:text-text"
+            className="flex-1 rounded-xl border border-border bg-surface px-4 py-3.5 text-center text-sm font-bold text-text-secondary transition hover:border-border-hover hover:text-text"
           >
             홈으로
           </a>
           <a
             href="/d"
-            className="flex-1 rounded-lg border border-border bg-surface px-4 py-3 text-center text-sm font-bold text-text-secondary transition hover:text-text"
+            className="flex-1 rounded-xl border border-border bg-surface px-4 py-3.5 text-center text-sm font-bold text-text-secondary transition hover:border-border-hover hover:text-text"
           >
             내 검증 현황
           </a>
@@ -793,14 +871,12 @@ function DepositStep({ lead }: { lead: PublicLead }) {
 
       {confirmed && (
         <div className="cold-panel rounded-lg p-6">
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
-            확정 내용
-          </p>
-          <div className="mt-3 space-y-2 text-sm">
-            <Row k="핵심 메시지" v={confirmed.offer} />
-            <Row k="표시 가격·플랜" v={planText(confirmed)} />
-            <Row k="임시 이름" v={confirmed.name} />
-          </div>
+          <p className="text-sm font-bold text-text">확정 내용</p>
+          <dl className="mt-3 space-y-3">
+            <ConfirmRow label="핵심 메시지" value={confirmed.offer} />
+            <ConfirmRow label="표시 가격·플랜" value={planText(confirmed)} />
+            <ConfirmRow label="임시 이름" value={confirmed.name} />
+          </dl>
         </div>
       )}
 

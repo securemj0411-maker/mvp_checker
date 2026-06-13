@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 
@@ -11,6 +11,31 @@ function DashboardEntryInner() {
   const loginError = params.get("login_error");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
+  // 이미 로그인된 사람이 "내 검증 현황"으로 들어오면 로그인 화면을 다시
+  // 보여주지 말고 곧장 목록(/d/me)으로 보낸다. 세션 확인이 끝날 때까지는
+  // 로그인 폼을 깜빡 노출하지 않도록 스피너만 보여준다.
+  const [checking, setChecking] = useState(!loginError);
+
+  useEffect(() => {
+    if (loginError) return; // 방금 로그인 실패 → 폼을 바로 보여준다
+    let cancelled = false;
+    (async () => {
+      try {
+        const supabase = getSupabaseBrowser();
+        const { data } = await supabase.auth.getSession();
+        if (!cancelled && data.session) {
+          router.replace("/d/me");
+          return;
+        }
+      } catch {
+        /* 세션 확인 실패 시엔 그냥 로그인 폼을 보여준다 */
+      }
+      if (!cancelled) setChecking(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [loginError, router]);
 
   function go(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -42,6 +67,14 @@ function DashboardEntryInner() {
       const msg = e instanceof Error ? e.message : String(e);
       router.push(`/d?login_error=${encodeURIComponent(msg.slice(0, 90))}`);
     }
+  }
+
+  if (checking) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-bg px-6">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+      </main>
+    );
   }
 
   return (
