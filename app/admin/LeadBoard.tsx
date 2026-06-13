@@ -34,6 +34,7 @@ export type Lead = {
   location: string | null;
   page_url: string | null;
   page_measurable: boolean | null;
+  page_tag_verified_at: string | null;
   access_code: string | null;
   tier: string | null;
   brief: { draft?: BriefDraft; confirmed?: ConfirmedBrief } | null;
@@ -564,6 +565,19 @@ function Modal({
                 {lead.page_measurable === false && (
                   <span className="font-bold text-red-500">
                     (측정 불가 플랫폼 — 엔진 불가)
+                  </span>
+                )}
+              </p>
+            )}
+            {lead.tier === "engine" && (
+              <p className="mt-1 text-xs">
+                {lead.page_tag_verified_at ? (
+                  <span className="font-bold text-emerald-500">
+                    측정 연결 확인됨 ({fmtKST(lead.page_tag_verified_at)})
+                  </span>
+                ) : (
+                  <span className="font-bold text-amber-500">
+                    측정 스크립트 미설치 (고객 설치 대기)
                   </span>
                 )}
               </p>

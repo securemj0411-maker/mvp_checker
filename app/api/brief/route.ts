@@ -71,6 +71,8 @@ function publicLead(lead: Record<string, unknown>) {
     depositDueAt: lead.deposit_due_at,
     policyFlag: lead.policy_flag ?? "none",
     pageMeasurable: lead.page_measurable,
+    hasPageUrl: !!lead.page_url,
+    tagVerified: !!lead.page_tag_verified_at,
     passBar,
     tiers: TIER_INFO,
     refundPolicy: REFUND_POLICY,

@@ -33,6 +33,8 @@ interface PublicLead {
   depositDueAt: string | null;
   policyFlag: string;
   pageMeasurable: boolean | null;
+  hasPageUrl: boolean;
+  tagVerified: boolean;
   passBar: { bar: string; reason: string; minSample: string };
   tiers: Record<
     "engine" | "quick",
@@ -127,18 +129,21 @@ export default function BriefFlow({ code }: { code: string }) {
               진행 코드 <b className="font-mono text-text-secondary">{code}</b>{" "}
               · 이 페이지를 즐겨찾기 해두시면 언제든 다시 보실 수 있습니다
             </p>
+            <p className="mt-1 text-xs text-text-tertiary">
+              진행 현황이 바뀔 때마다 남겨주신 번호로 문자를 드립니다.
+            </p>
           </div>
         </div>
         <StagePipeline stage={lead.stage} />
       </header>
 
       {lead.stage === "brief" && <BriefStep code={code} lead={lead} onDone={load} />}
-      {lead.stage === "deposit" && <DepositStep lead={lead} />}
+      {lead.stage === "deposit" && <DepositStep lead={lead} code={code} />}
       {(lead.stage === "paid" ||
         lead.stage === "build" ||
         lead.stage === "live" ||
         lead.stage === "verdict" ||
-        lead.stage === "closed") && <ProgressStep lead={lead} />}
+        lead.stage === "closed") && <ProgressStep lead={lead} code={code} />}
     </div>
   );
 }
@@ -595,6 +600,11 @@ function BriefStep({
         {submitting ? "확정 중..." : "이대로 검증 시작하기"}
       </button>
       <p className="text-center text-xs text-text-tertiary">
+        확정하시면 담당 검증 전문가가 보통 1~2시간 안에(영업시간 기준) 설계를
+        직접 검토합니다. 문제가 없으면 그대로 진행하고, 보완할 점이 보이면
+        먼저 연락드립니다.
+      </p>
+      <p className="text-center text-xs text-text-tertiary">
         다음 화면에서 입금 계좌를 안내드립니다 · 입금 전에는 비용이 발생하지
         않고, 입금 후에도 제작 착수 전 취소는 전액 환불됩니다
       </p>
@@ -616,7 +626,7 @@ function BriefStep({
 
 /* ───────── 2단계: 입금 안내 ───────── */
 
-function DepositStep({ lead }: { lead: PublicLead }) {
+function DepositStep({ lead, code }: { lead: PublicLead; code: string }) {
   const tier = lead.tiers[lead.tier === "engine" ? "engine" : "quick"];
   const confirmed = lead.brief?.confirmed;
   const due = lead.depositDueAt
@@ -666,14 +676,18 @@ function DepositStep({ lead }: { lead: PublicLead }) {
         <div className="mt-4 rounded-lg border border-border bg-bg-alt p-4">
           <p className="text-sm font-bold text-text">입금하신 다음은요</p>
           <ol className="mt-2 space-y-1.5 text-sm leading-relaxed text-text-secondary">
-            <li>1. 입금 확인은 보통 몇 시간 안에 끝납니다 (영업시간 기준).</li>
             <li>
-              2. 확인되면 남겨주신 번호로 문자를 보내드리고, 이 화면도 다음
-              단계로 바뀝니다.
+              1. 담당 검증 전문가가 확정하신 준비안을 직접 검토합니다 (보통
+              1~2시간, 영업시간 기준). 문제가 없으면 그대로 진행하고, 보완할
+              점이 보이면 먼저 연락드립니다.
+            </li>
+            <li>
+              2. 입금이 확인되면 남겨주신 번호로 문자를 보내드리고, 이 화면도
+              다음 단계로 바뀝니다.
             </li>
             <li>
               3. 이 페이지는 닫으셔도 됩니다. 진행 코드로 언제든 다시 들어와
-              현황을 보실 수 있습니다.
+              현황을 보실 수 있고, 현황이 바뀔 때마다 문자를 드립니다.
             </li>
           </ol>
           <p className="mt-2 text-xs text-text-tertiary">
@@ -696,6 +710,15 @@ function DepositStep({ lead }: { lead: PublicLead }) {
           </a>
         </div>
       </div>
+
+      {/* 엔진: 입금 기다리는 동안 측정 연결을 미리 끝낼 수 있게 */}
+      {lead.tier === "engine" && (
+        <TagInstallCard
+          code={code}
+          hasPageUrl={lead.hasPageUrl}
+          verified={lead.tagVerified}
+        />
+      )}
 
       {confirmed && (
         <div className="cold-panel rounded-lg p-6">
@@ -765,9 +788,15 @@ const PROGRESS_COPY: Record<string, { title: string; desc: string }> = {
   },
 };
 
-function ProgressStep({ lead }: { lead: PublicLead }) {
+function ProgressStep({ lead, code }: { lead: PublicLead; code: string }) {
   const c = PROGRESS_COPY[lead.stage] ?? PROGRESS_COPY.paid;
   const confirmed = lead.brief?.confirmed;
+  // 엔진 고객은 광고 시작 전까지 측정 연결 카드를 보여준다 (연결되면 완료 표시)
+  const showTagCard =
+    lead.tier === "engine" &&
+    (lead.stage === "paid" ||
+      lead.stage === "build" ||
+      (lead.stage === "live" && !lead.tagVerified));
   return (
     <div className="space-y-5">
       <div className="cold-panel rounded-lg p-6">
@@ -776,6 +805,13 @@ function ProgressStep({ lead }: { lead: PublicLead }) {
           {c.desc}
         </p>
       </div>
+      {showTagCard && (
+        <TagInstallCard
+          code={code}
+          hasPageUrl={lead.hasPageUrl}
+          verified={lead.tagVerified}
+        />
+      )}
       {confirmed && (
         <div className="cold-panel rounded-lg p-6">
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
@@ -820,6 +856,127 @@ function Card({
         {required && <span className="ml-1 text-accent">*</span>}
       </p>
       {children}
+    </div>
+  );
+}
+
+/* ───────── 측정 스크립트 설치 (엔진 — 페이지가 이미 있는 고객) ───────── */
+
+function TagInstallCard({
+  code,
+  hasPageUrl,
+  verified,
+}: {
+  code: string;
+  hasPageUrl: boolean;
+  verified: boolean;
+}) {
+  const [ok, setOk] = useState(verified);
+  const [url, setUrl] = useState("");
+  const [checking, setChecking] = useState(false);
+  const [result, setResult] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const snippet = `<script defer src="https://www.bizfilter.kr/t.js" data-code="${code}"></script>`;
+
+  if (ok) {
+    return (
+      <div className="cold-panel rounded-lg p-6">
+        <p className="flex items-center gap-2 text-sm font-bold text-text">
+          <span className="grid h-5 w-5 place-items-center rounded-full bg-emerald-500/15 text-xs text-emerald-500">
+            ✓
+          </span>
+          측정 연결 완료
+        </p>
+        <p className="mt-1 text-xs leading-relaxed text-text-secondary">
+          페이지의 방문과 클릭이 비즈필터 측정 서버로 들어오고 있습니다. 더
+          하실 일은 없습니다.
+        </p>
+      </div>
+    );
+  }
+
+  async function verify() {
+    setChecking(true);
+    setResult(null);
+    try {
+      const res = await fetch("/api/t/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, url: url.trim() || undefined }),
+      });
+      const data = await res.json();
+      if (data.verified) {
+        setOk(true);
+        return;
+      }
+      setResult(
+        data.reason === "no_url"
+          ? "페이지 주소를 입력해주세요."
+          : data.reason === "fetch_failed"
+            ? "페이지에 접속할 수 없습니다. 주소를 확인해주세요."
+            : "아직 스크립트가 보이지 않습니다. 저장(배포) 후 1~2분 뒤 다시 확인해주세요.",
+      );
+    } catch {
+      setResult("확인에 실패했습니다. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setChecking(false);
+    }
+  }
+
+  return (
+    <div className="cold-panel rounded-lg p-6">
+      <p className="text-sm font-bold text-text">
+        측정 연결 — 한 줄만 붙이면 끝납니다
+      </p>
+      <p className="mt-1 text-xs leading-relaxed text-text-secondary">
+        만드신 페이지의 &lt;head&gt; 에 아래 한 줄을 붙여넣으세요. 채널톡이나
+        GA 설치와 같은 방식입니다. 붙이는 순간 방문과 클릭이 자동으로
+        측정되고, 연결되면 이 카드가 완료로 바뀝니다.
+      </p>
+      <div className="mt-3 flex items-stretch gap-2">
+        <code className="flex-1 overflow-x-auto whitespace-nowrap rounded-md border border-border bg-bg-alt px-3 py-2.5 font-mono text-[11px] leading-relaxed text-text-secondary">
+          {snippet}
+        </code>
+        <button
+          type="button"
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(snippet);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1500);
+            } catch {}
+          }}
+          className="flex-shrink-0 rounded-md border border-border bg-surface px-3 text-xs font-bold text-text-secondary transition hover:border-accent hover:text-accent"
+        >
+          {copied ? "복사됨" : "복사"}
+        </button>
+      </div>
+      {!hasPageUrl && (
+        <input
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="페이지 주소 (예: https://my-service.com)"
+          className="mt-2 w-full rounded-md border border-border bg-surface-light px-3 py-2.5 text-sm text-text placeholder:text-text-tertiary outline-none transition focus:border-accent"
+        />
+      )}
+      <button
+        type="button"
+        onClick={verify}
+        disabled={checking}
+        className="mt-2 w-full rounded-md border border-accent/40 bg-accent/5 px-4 py-2.5 text-sm font-bold text-accent transition hover:bg-accent/10 disabled:opacity-50"
+      >
+        {checking ? "확인하는 중..." : "설치 확인하기"}
+      </button>
+      {result && (
+        <p className="mt-2 text-xs leading-relaxed text-text-tertiary">
+          {result}
+        </p>
+      )}
+      <p className="mt-2 text-xs leading-relaxed text-text-tertiary">
+        설치가 어려우시면 카카오톡 채널로 알려주세요. 검증 전문가가 화면을
+        보며 같이 붙여드립니다.
+      </p>
     </div>
   );
 }
