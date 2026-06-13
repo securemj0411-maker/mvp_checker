@@ -13,8 +13,8 @@ import type {
 
 /* ─────────────────────────────────────────────────────────────
    토스식 인앱 퀴즈 — 한 화면에 질문 하나.
-   아이디어 입력 → AI 되물음(해석 후보 선택) → 객관식 청크 →
-   연락처 → 무료 AI 검증 설계서.
+   아이디어 입력 → AI 인테이크(이해 확인 + 아이디어별 맞춤 빈칸 1~2개,
+   AI가 보기 미리 채움) → 객관식 청크 → 연락처 → 무료 AI 검증 설계서.
    ───────────────────────────────────────────────────────────── */
 
 type Phase = "idea" | "interpret" | "quiz" | "contact" | "generating" | "done";
@@ -271,6 +271,12 @@ export default function LeadForm() {
   const [idea, setIdea] = useState("");
   const [ideaRefined, setIdeaRefined] = useState<string | null>(null);
   const [interp, setInterp] = useState<InterpretResult | null>(null);
+  // interpret 단계 내부: 이해 확인(confirm) → 맞춤 빈칸 질문(gaps)
+  const [interpStage, setInterpStage] = useState<"confirm" | "gaps">("confirm");
+  const [gapIdx, setGapIdx] = useState(0);
+  const [gapAnswers, setGapAnswers] = useState<string[]>([]);
+  const [gapCustomMode, setGapCustomMode] = useState(false);
+  const [gapCustom, setGapCustom] = useState("");
 
   const [name, setName] = useState("");
   const [contact, setContact] = useState(""); // 전화번호
@@ -401,8 +407,20 @@ export default function LeadForm() {
         signal: controller.signal,
       });
       const data = await res.json();
-      if (data?.result?.candidates?.length) {
-        setInterp(data.result as InterpretResult);
+      if (data?.result?.summary) {
+        const r = data.result as InterpretResult;
+        // 마찰 상한: 빈칸 최대 2개, 보기 최대 4개로 잘라 보장
+        const normalized: InterpretResult = {
+          summary: r.summary,
+          gaps: (r.gaps ?? [])
+            .slice(0, 2)
+            .map((g) => ({ ...g, suggestions: (g.suggestions ?? []).slice(0, 4) })),
+        };
+        setInterp(normalized);
+        setInterpStage("confirm");
+        setGapIdx(0);
+        setGapAnswers([]);
+        setGapCustomMode(false);
       } else {
         skipInterpret();
       }
@@ -434,6 +452,51 @@ export default function LeadForm() {
     } else {
       setPhase("quiz");
     }
+  }
+
+  /* 이해 확인 "맞아요" — 빈칸 질문이 있으면 그쪽으로, 없으면 퀴즈로.
+     리포트에서 되물음으로 돌아온 경우엔 퀴즈 없이 바로 재생성. */
+  function confirmRead() {
+    const refined = interp?.summary ?? idea;
+    setIdeaRefined(refined);
+    interpretStatus.current = "confirmed";
+    if (reviseRef.current) {
+      reviseRef.current = false;
+      runGenerate(refined, accessCode);
+      return;
+    }
+    if (interp?.gaps?.length) {
+      setInterpStage("gaps");
+      setGapIdx(0);
+    } else {
+      setPhase("quiz");
+    }
+  }
+
+  /* 빈칸 답 1개 기록 → 다음 빈칸, 마지막이면 답을 녹여 refined 완성 후 퀴즈로 */
+  function answerGap(value: string) {
+    const v = value.trim();
+    if (!v) return;
+    const gaps = interp?.gaps ?? [];
+    const next = [...gapAnswers];
+    next[gapIdx] = v;
+    setGapAnswers(next);
+    setGapCustomMode(false);
+    setGapCustom("");
+    if (gapIdx + 1 < gaps.length) {
+      setGapIdx((i) => i + 1);
+      return;
+    }
+    const base = interp?.summary ?? idea;
+    const extra = gaps
+      .map((g, i) => (next[i] ? `${g.key}: ${next[i]}` : null))
+      .filter(Boolean)
+      .join(", ");
+    const refined = extra ? `${base} (${extra})` : base;
+    setIdeaRefined(refined);
+    interpretStatus.current = "intake";
+    sendGAEvent("event", "quiz_interpret_intake", { gaps: gaps.length });
+    setPhase("quiz");
   }
 
   /* ── 객관식: 탭 한 번이면 다음 청크 ── */
@@ -559,6 +622,7 @@ export default function LeadForm() {
           onRevise={() => {
             reviseRef.current = true;
             setCustomMode(false);
+            setInterpStage("confirm");
             setPhase(interp ? "interpret" : "idea");
           }}
         />
@@ -707,19 +771,16 @@ export default function LeadForm() {
           </div>
         ) : (
           <div className="quiz-step-in space-y-5">
-            <div>
-              <p className="text-xl font-bold text-text">
-                이런 뜻으로 이해했는데, 맞나요?
-              </p>
-              <p className="mt-1 text-sm leading-relaxed text-text-secondary">
-                {interp.summary}
-              </p>
-            </div>
             {customMode ? (
-              <div className="space-y-2.5">
-                <p className="text-sm font-semibold text-text-secondary">
-                  한 문장으로 직접 정리해주세요
-                </p>
+              <>
+                <div>
+                  <p className="text-xl font-bold text-text">
+                    한 문장으로 직접 정리해주세요
+                  </p>
+                  <p className="mt-1 text-sm leading-relaxed text-text-secondary">
+                    적어주신 그대로 검증 설계의 출발점이 됩니다.
+                  </p>
+                </div>
                 <textarea
                   autoFocus
                   value={customRefine}
@@ -741,44 +802,136 @@ export default function LeadForm() {
                   onClick={() => setCustomMode(false)}
                   className="w-full text-center text-sm font-medium text-text-tertiary transition hover:text-text"
                 >
-                  ← 추천 해석에서 고를게요
+                  ← 비즈필터가 이해한 걸로 돌아가기
                 </button>
-              </div>
-            ) : (
-              <div className="space-y-2.5">
-                {interp.candidates.map((c) => (
+              </>
+            ) : interpStage === "confirm" ? (
+              <>
+                <div>
+                  <p className="text-xl font-bold text-text">
+                    이렇게 이해했어요. 맞나요?
+                  </p>
+                  <p className="mt-2 rounded-lg border border-border bg-surface-light px-4 py-3 text-[15px] font-semibold leading-relaxed text-text">
+                    {interp.summary}
+                  </p>
+                </div>
+                <div className="space-y-2.5">
                   <button
-                    key={c.label}
                     type="button"
-                    onClick={() => pickInterpretation(c.detail)}
-                    className="w-full rounded-md border border-border bg-surface-light px-4 py-3.5 text-left transition hover:border-accent/60 hover:bg-bg-alt focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                    onClick={confirmRead}
+                    className="w-full rounded-md bg-accent px-6 py-3.5 text-base font-bold text-white transition hover:bg-accent-hover"
                   >
-                    <span className="block text-[15px] font-semibold text-text">
-                      {c.label}
-                    </span>
-                    <span className="mt-0.5 block text-xs leading-relaxed text-text-tertiary">
-                      {c.detail}
-                    </span>
+                    네, 맞아요
                   </button>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCustomRefine(ideaRefined || idea);
-                    setCustomMode(true);
-                  }}
-                  className="w-full rounded-md border border-dashed border-border px-4 py-3.5 text-left text-[15px] font-semibold text-text-secondary transition hover:border-accent/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-                >
-                  다 아니에요. 제가 직접 쓸게요
-                </button>
-              </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomRefine(ideaRefined || idea);
+                      setCustomMode(true);
+                    }}
+                    className="w-full rounded-md border border-border bg-surface-light px-6 py-3.5 text-base font-semibold text-text-secondary transition hover:border-accent/60 hover:text-text"
+                  >
+                    조금 달라요, 고칠게요
+                  </button>
+                </div>
+                <div className="flex items-center justify-between">
+                  <BackButton onClick={() => setPhase("idea")} />
+                  <p className="text-xs text-text-tertiary">
+                    맞다고 누르면 몇 가지만 더 여쭤봐요
+                  </p>
+                </div>
+              </>
+            ) : (
+              (() => {
+                const gaps = interp.gaps;
+                const g = gaps[Math.min(gapIdx, gaps.length - 1)];
+                return (
+                  <>
+                    <div>
+                      <div className="flex items-center justify-between text-xs font-bold text-text-tertiary">
+                        <span>
+                          맞춤 질문 {gapIdx + 1} / {gaps.length}
+                        </span>
+                        <span>AI가 보기를 미리 채워뒀어요</span>
+                      </div>
+                      <div className="mt-2 h-1 overflow-hidden rounded-full bg-bg-alt">
+                        <div
+                          className="h-full rounded-full bg-accent transition-all duration-300"
+                          style={{
+                            width: `${((gapIdx + 1) / (gaps.length + 1)) * 100}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold text-text">{g.question}</p>
+                      <p className="mt-1 text-sm leading-relaxed text-text-secondary">
+                        이 답이 검증용 페이지와 광고 문구에 그대로 반영됩니다.
+                        맞는 걸 고르거나 직접 적어주세요.
+                      </p>
+                    </div>
+                    <div className="space-y-2.5">
+                      {g.suggestions.map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() => answerGap(s)}
+                          className="w-full rounded-md border border-border bg-surface-light px-4 py-3.5 text-left text-[15px] font-semibold text-text transition hover:border-accent/60 hover:bg-bg-alt focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                        >
+                          {s}
+                        </button>
+                      ))}
+                      {gapCustomMode ? (
+                        <div className="flex gap-2">
+                          <input
+                            autoFocus
+                            value={gapCustom}
+                            onChange={(e) => setGapCustom(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                answerGap(gapCustom);
+                              }
+                            }}
+                            className={`${inputBase} flex-1`}
+                            placeholder="직접 적어주세요"
+                            maxLength={60}
+                          />
+                          <button
+                            type="button"
+                            disabled={gapCustom.trim().length < 1}
+                            onClick={() => answerGap(gapCustom)}
+                            className="flex-shrink-0 rounded-md bg-accent px-5 text-sm font-bold text-white transition hover:bg-accent-hover disabled:opacity-40"
+                          >
+                            확인
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setGapCustomMode(true)}
+                          className="w-full rounded-md border border-dashed border-border px-4 py-3.5 text-left text-[15px] font-semibold text-text-secondary transition hover:border-accent/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                        >
+                          직접 입력할게요
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <BackButton
+                        onClick={() => {
+                          if (gapCustomMode) setGapCustomMode(false);
+                          else if (gapIdx > 0) setGapIdx((i) => i - 1);
+                          else setInterpStage("confirm");
+                        }}
+                      />
+                      <p className="text-xs text-text-tertiary">
+                        고를수록 설계서가 정확해져요
+                      </p>
+                    </div>
+                  </>
+                );
+              })()
             )}
-            <div className="flex items-center justify-between">
-              <BackButton onClick={() => setPhase("idea")} />
-              <p className="text-xs text-text-tertiary">
-                고른 내용 기준으로 설계서가 만들어집니다
-              </p>
-            </div>
           </div>
         )}
       </div>

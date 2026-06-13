@@ -46,8 +46,11 @@ export interface QuizAnswers {
 }
 
 export interface InterpretResult {
+  /** 아이디어를 이해한 한 문장 (확인용 거울) */
   summary: string;
-  candidates: { label: string; detail: string }[];
+  /** 전화 없이 페이지·광고를 만들려면 알아야 하는데 원문만으론 모르는 것 1~2개.
+   *  각 질문에 AI가 추측한 보기(suggestions)를 미리 채워 둔다. */
+  gaps: { key: string; question: string; suggestions: string[] }[];
 }
 
 export interface Report {
