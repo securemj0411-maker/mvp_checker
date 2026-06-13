@@ -358,9 +358,13 @@ export default function LeadForm() {
 
   /* 노출되는 질문만 (업종별 분기) */
   const visibleQuestions = QUESTIONS.filter((q) => !q.when || q.when(answers));
-  // 분모는 '최대 질문 수'로 고정한다. visibleQuestions 는 답변 따라 조건부 질문이
-  // 추가되며 커지므로, 그걸 분모로 쓰면 진행바가 뒤로 가는 것처럼 보인다(1/9→2/11).
-  const totalChunks = 2 + QUESTIONS.length + 1; // 아이디어 + 되물음 + (최대)질문 + 연락처
+  // 분모는 '지금까지 본 청크 수의 최댓값'(단조 증가). 조건부 질문이 늘어도 뒤로
+  // 가지 않고(1/9→2/11 방지), 안 보이는 질문 때문에 끝에서 점프하지도 않는다
+  // (마지막 질문 73%→연락처 100% 공백 방지).
+  const liveChunks = 2 + visibleQuestions.length + 1; // 아이디어+되물음+(보이는)질문+연락처
+  const maxChunksRef = useRef(liveChunks);
+  if (liveChunks > maxChunksRef.current) maxChunksRef.current = liveChunks;
+  const totalChunks = maxChunksRef.current;
   const chunkIndex =
     phase === "idea"
       ? 0

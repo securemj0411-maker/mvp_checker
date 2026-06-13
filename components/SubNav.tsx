@@ -20,7 +20,7 @@ export function SubNav() {
           </a>
         </nav>
         <a
-          href="/#cta"
+          href="/start"
           className="inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-bold text-white transition hover:bg-accent-hover hover:shadow-[0_8px_24px_var(--accent-glow)]"
         >
           검증 신청 →
@@ -45,7 +45,7 @@ export function SubFooter() {
           <a href="/checklist" className="hover:text-accent">
             체크리스트
           </a>
-          <a href="/#cta" className="hover:text-accent">
+          <a href="/start" className="hover:text-accent">
             검증 신청
           </a>
           <a href="/terms" className="hover:text-accent">

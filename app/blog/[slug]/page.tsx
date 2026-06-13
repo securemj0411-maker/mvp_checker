@@ -90,7 +90,7 @@ export default async function BlogPost({
             드리면 전액 환불합니다. 신청은 결제가 아닙니다.
           </p>
           <a
-            href="/#cta"
+            href="/start"
             className="mt-6 inline-block rounded-full bg-accent px-6 py-3.5 text-base font-bold text-white transition hover:bg-accent-hover"
           >
             내 아이디어 검증 신청하기
