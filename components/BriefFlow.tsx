@@ -35,6 +35,8 @@ interface PublicLead {
   pageMeasurable: boolean | null;
   hasPageUrl: boolean;
   tagVerified: boolean;
+  /** 광고 시작 후 실측 숫자 (금액 정보 없음) */
+  stats?: { visits: number; clicks: number; payClicks: number } | null;
   passBar: { bar: string; reason: string; minSample: string };
   tiers: Record<
     "engine" | "quick",
@@ -812,6 +814,62 @@ function ProgressStep({ lead, code }: { lead: PublicLead; code: string }) {
           verified={lead.tagVerified}
         />
       )}
+
+      {/* 실측 숫자 — 광고 시작 후. 금액(광고비)은 어떤 형태로도 표시하지 않는다 */}
+      {lead.stats && (
+        <div className="cold-panel rounded-lg p-6">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
+              실시간 측정 숫자
+            </p>
+            {lead.stage === "live" && (
+              <span className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-500">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                측정 중
+              </span>
+            )}
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            <div className="rounded-md border border-border bg-surface-light px-3 py-3 text-center">
+              <p className="text-[11px] font-semibold text-text-tertiary">방문</p>
+              <p className="mt-1 text-xl font-extrabold tracking-tight text-text">
+                {lead.stats.visits.toLocaleString()}
+              </p>
+            </div>
+            <div className="rounded-md border border-border bg-surface-light px-3 py-3 text-center">
+              <p className="text-[11px] font-semibold text-text-tertiary">
+                버튼 클릭
+              </p>
+              <p className="mt-1 text-xl font-extrabold tracking-tight text-text">
+                {lead.stats.clicks.toLocaleString()}
+              </p>
+            </div>
+            <div className="rounded-md border border-accent/40 bg-accent/5 px-3 py-3 text-center">
+              <p className="text-[11px] font-semibold text-accent">결제 클릭</p>
+              <p className="mt-1 text-xl font-extrabold tracking-tight text-accent">
+                {lead.stats.payClicks.toLocaleString()}
+              </p>
+            </div>
+          </div>
+          <p className="mt-3 text-xs leading-relaxed text-text-secondary">
+            {lead.stats.visits > 0 ? (
+              <>
+                방문 100명당 결제 클릭{" "}
+                <b className="text-text">
+                  {((lead.stats.payClicks / lead.stats.visits) * 100).toFixed(1)}명
+                </b>{" "}
+                · 합격선 {lead.brief?.confirmed?.pass_bar ?? lead.passBar.bar}
+              </>
+            ) : (
+              <>아직 집계된 방문이 없습니다. 광고가 돌기 시작하면 여기에 숫자가 쌓입니다.</>
+            )}
+          </p>
+          <p className="mt-1 text-xs text-text-tertiary">
+            이 페이지를 열어두시면 숫자가 자동으로 갱신됩니다. 광고 노출·클릭
+            등 채널 지표는 판정 리포트에 정리해 드립니다.
+          </p>
+        </div>
+      )}
       {confirmed && (
         <div className="cold-panel rounded-lg p-6">
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
@@ -1004,8 +1062,16 @@ function TagInstallCard({
         </p>
       )}
       <p className="mt-2 text-xs leading-relaxed text-text-tertiary">
-        설치가 어려우시면 카카오톡 채널로 알려주세요. 검증 전문가가 화면을
-        보며 같이 붙여드립니다.
+        막히시면 바로{" "}
+        <a
+          href={KAKAO_CHAT_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-bold text-text underline underline-offset-2 transition hover:text-accent"
+        >
+          카카오톡 채널로 알려주세요
+        </a>
+        . 검증 전문가가 화면을 보며 같이 붙여드립니다.
       </p>
     </div>
   );

@@ -54,6 +54,50 @@ function leadAnswers(lead: Record<string, unknown>): QuizAnswers {
   };
 }
 
+/** 결제 의향으로 치는 버튼 문구 패턴 — 합격선 분자 */
+const PAY_LABEL_OR = [
+  "구매",
+  "결제",
+  "주문",
+  "신청",
+  "시작",
+  "예약",
+  "구독",
+  "등록",
+]
+  .map((w) => `label.ilike.%${w}%`)
+  .join(",");
+
+/** 실측 숫자 집계 (광고비/금액 정보는 어떤 형태로도 포함하지 않는다) */
+async function leadStats(
+  admin: ReturnType<typeof getSupabaseAdmin>,
+  leadId: string,
+) {
+  const [pv, clicks, pay] = await Promise.all([
+    admin
+      .from("o2o_events")
+      .select("id", { count: "exact", head: true })
+      .eq("lead_id", leadId)
+      .eq("type", "pageview"),
+    admin
+      .from("o2o_events")
+      .select("id", { count: "exact", head: true })
+      .eq("lead_id", leadId)
+      .eq("type", "click"),
+    admin
+      .from("o2o_events")
+      .select("id", { count: "exact", head: true })
+      .eq("lead_id", leadId)
+      .eq("type", "click")
+      .or(PAY_LABEL_OR),
+  ]);
+  return {
+    visits: pv.count ?? 0,
+    clicks: clicks.count ?? 0,
+    payClicks: pay.count ?? 0,
+  };
+}
+
 function publicLead(lead: Record<string, unknown>) {
   const answers = leadAnswers(lead);
   const passBar = decidePassBar(answers);
@@ -250,7 +294,14 @@ export async function POST(request: Request) {
 
   /* 대시보드 상태 조회 */
   if (body.action === "get") {
-    return Response.json({ lead: publicLead(lead) });
+    const pub = publicLead(lead) as ReturnType<typeof publicLead> & {
+      stats?: { visits: number; clicks: number; payClicks: number } | null;
+    };
+    // 광고가 켜진 뒤에는 실측 숫자를 같이 내려보낸다 (금액은 절대 포함하지 않음)
+    if (["live", "verdict", "closed"].includes(pub.stage)) {
+      pub.stats = await leadStats(admin, lead.id as string);
+    }
+    return Response.json({ lead: pub });
   }
 
   /* 브리프 초안 생성 (이미 있으면 재사용) */
