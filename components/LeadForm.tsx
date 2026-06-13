@@ -357,7 +357,9 @@ export default function LeadForm() {
 
   /* 노출되는 질문만 (업종별 분기) */
   const visibleQuestions = QUESTIONS.filter((q) => !q.when || q.when(answers));
-  const totalChunks = 2 + visibleQuestions.length + 1; // 아이디어 + 되물음 + 질문 + 연락처
+  // 분모는 '최대 질문 수'로 고정한다. visibleQuestions 는 답변 따라 조건부 질문이
+  // 추가되며 커지므로, 그걸 분모로 쓰면 진행바가 뒤로 가는 것처럼 보인다(1/9→2/11).
+  const totalChunks = 2 + QUESTIONS.length + 1; // 아이디어 + 되물음 + (최대)질문 + 연락처
   const chunkIndex =
     phase === "idea"
       ? 0

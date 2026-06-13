@@ -485,24 +485,6 @@ function BriefStep({
         </p>
       </div>
 
-      {/* 자유 입력 — 카톡처럼 다 말해주세요 (전문가가 읽고 반영) */}
-      <Card label="전문가에게 하고 싶은 말 (자유롭게)">
-        <p className="mb-2 text-xs leading-relaxed text-text-tertiary">
-          카톡에 말하듯 편하게 적어주세요. 어떤 서비스인지, 누구한테 팔고
-          싶은지, 꼭 강조하고 싶은 점, 원하는 느낌 등 뭐든 좋습니다. 담당
-          전문가가 다 읽고 사이트와 광고에 반영하고, 궁금한 점은 연락드립니다.
-          비워두셔도 괜찮습니다. 다만 한 줄이라도 더 적어주시면, 그만큼 더
-          정확하게 맞춰 드려요.
-        </p>
-        <textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          maxLength={1000}
-          rows={4}
-          placeholder="예: 30~40대 직장인 여성이 타깃이에요. ‘첫 달 무료’를 꼭 강조하고 싶고, 깔끔하고 신뢰가는 느낌이면 좋겠어요. 경쟁사 OOO보다 가격이 싸다는 점도..."
-          className={`${inputBase} min-h-[110px] resize-y leading-relaxed`}
-        />
-      </Card>
 
       {/* 전문가 사전 점검 — AI가 빌드에 비는 것만 골라 되물음 (보기 미리 채움) */}
       {draft.intake_questions && draft.intake_questions.length > 0 && (
@@ -780,7 +762,7 @@ function BriefStep({
       </Card>
 
       {/* 진행 방식 — 답변에 따라 하나로 자동 결정 (고객이 고르지 않음) */}
-      <Card label="진행 방식" required>
+      <Card label="진행 방식 (답변에 맞춰 자동 결정)">
         {(() => {
           const info = lead.tiers[tier];
           const isEngine = tier === "engine";
@@ -825,6 +807,18 @@ function BriefStep({
             </div>
           );
         })()}
+      </Card>
+
+      {/* 그 외 한마디 — 자유 입력(가볍게, 맨 끝). 위 점검과 안 겹치게 '그 외'로 한정 */}
+      <Card label="그 외 더 전하고 싶은 말 (선택)">
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          maxLength={1000}
+          rows={3}
+          placeholder="위에서 못 담은 게 있으면 편하게 적어주세요. 담당 전문가가 다 읽습니다. (비워두셔도 됩니다)"
+          className={`${inputBase} min-h-[76px] resize-y leading-relaxed`}
+        />
       </Card>
 
       {/* 판정 기준 — 정보로만 (고객 의사결정 없음) */}
