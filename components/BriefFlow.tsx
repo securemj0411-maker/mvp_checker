@@ -234,11 +234,8 @@ function BriefStep({
   const [plans, setPlans] = useState<
     { label: string; price: number; desc: string }[]
   >([]);
-  const [notes, setNotes] = useState(""); // 더 강조하고 싶은 점 (선택)
+  const [notes, setNotes] = useState(""); // 전문가에게 하고 싶은 말 (자유)
   const [name, setName] = useState("");
-  const [tier, setTier] = useState<"engine" | "quick">(
-    lead.tier === "engine" ? "engine" : "quick",
-  );
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -385,6 +382,10 @@ function BriefStep({
   }
 
   const engineBlocked = lead.pageMeasurable === false;
+  // 답변에 따라 진행 방식은 하나로 자동 결정된다 (고객이 고르지 않음).
+  // 페이지가 있고(engine) 측정이 가능하면 엔진, 그 외엔 Quick.
+  const tier: "engine" | "quick" =
+    lead.tier === "engine" && !engineBlocked ? "engine" : "quick";
 
   return (
     <div className="space-y-5">
@@ -393,20 +394,40 @@ function BriefStep({
 
       <div className="cold-panel rounded-lg p-6">
         <p className="text-lg font-bold text-text">
-          이렇게 검증을 시작하면 될까요?
+          담당 전문가에게 넘기기 전, 마지막 확인이에요
         </p>
         <p className="mt-1 text-sm leading-relaxed text-text-secondary">
-          답변을 바탕으로 저희가 준비안을 잡아왔습니다. 광고 문구와 페이지
-          디자인, 측정 설정은 저희가 알아서 합니다. 고객님은 아래 세 가지만
-          확인해주시면 됩니다. 마음에 안 들면 그 자리에서 고치셔도 됩니다.
+          아래는 비즈필터가 먼저 잡아둔 출발점입니다. 여기에 적어주신 내용을
+          바탕으로 <b className="text-text">담당 검증 전문가가 페이지와 광고를
+          직접 만들고</b>, 시작 전에 한 번 더 검토합니다. 그대로 나가는 게
+          아니라, 가장 잘 먹히게 다듬습니다. 빠졌거나 애매한 게 있으면 먼저
+          연락드려요.
         </p>
       </div>
+
+      {/* 자유 입력 — 카톡처럼 다 말해주세요 (전문가가 읽고 반영) */}
+      <Card label="전문가에게 하고 싶은 말 (자유롭게)">
+        <p className="mb-2 text-xs leading-relaxed text-text-tertiary">
+          카톡에 말하듯 편하게 적어주세요. 어떤 서비스인지, 누구한테 팔고
+          싶은지, 꼭 강조하고 싶은 점, 원하는 느낌 등 뭐든 좋습니다. 담당
+          전문가가 다 읽고 페이지·광고에 반영하고, 궁금한 점은 연락드립니다.
+          비워두셔도 저희가 알아서 잘 만듭니다.
+        </p>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          maxLength={1000}
+          rows={4}
+          placeholder="예: 30~40대 직장인 여성이 타깃이에요. ‘첫 달 무료’를 꼭 강조하고 싶고, 깔끔하고 신뢰가는 느낌이면 좋겠어요. 경쟁사 OOO보다 가격이 싸다는 점도..."
+          className={`${inputBase} min-h-[110px] resize-y leading-relaxed`}
+        />
+      </Card>
 
       {/* 1. 오퍼 핵심 문구 — 비즈필터가 뽑은 안 택1 OR 직접 수정 */}
       <Card label="검증 페이지의 핵심 메시지" required>
         <p className="mb-2 text-xs leading-relaxed text-text-tertiary">
-          비즈필터가 가장 잘 먹힐 문구로 뽑아드렸어요. 그대로 쓰셔도 되고,
-          아래 칸에서 직접 고치셔도 됩니다.
+          비즈필터가 뽑은 후보예요. 마음에 드는 걸 고르거나 직접 적어주세요.
+          이건 출발점이고, 최종 문구는 담당 전문가가 더 잘 먹히게 다듬습니다.
         </p>
         <div className="space-y-2">
           {draft.offer_options.map((o) => (
@@ -501,7 +522,7 @@ function BriefStep({
                   )
                 }
                 maxLength={60}
-                placeholder="이 플랜에 뭐가 포함되나요? (선택 · 예: 크레딧 1,600 + 전 상품 이용)"
+                placeholder="이 플랜을 설명해주세요 (선택 · 예: 크레딧 1,600 + 전 상품 이용)"
                 className={`${inputBase} mt-2 text-[13px]`}
               />
             </div>
@@ -526,7 +547,12 @@ function BriefStep({
       </Card>
 
       {/* 3. 가칭 */}
-      <Card label="검증용 서비스 이름 (정식 출시 전 임시 이름)" required>
+      <Card label="검증용 서비스 이름" required>
+        <p className="mb-2 text-xs leading-relaxed text-text-tertiary">
+          검증에만 쓰는 임시 이름이에요. 정식 출시할 진짜 이름과 달라도 전혀
+          상관없습니다. 지금 중요한 건 이름이 아니라, 이 아이디어에 사람들이
+          돈을 내느냐니까요.
+        </p>
         <div className="flex flex-wrap gap-2">
           {draft.name_candidates.map((n) => (
             <button
@@ -552,78 +578,52 @@ function BriefStep({
         />
       </Card>
 
-      {/* 비즈필터 검증 상품 선택 */}
-      <Card label="비즈필터 검증 상품" required>
-        <p className="mb-3 text-xs leading-relaxed text-text-tertiary">
-          여기서부터는 검증 페이지에 표시될 내용이 아니라, 저희 비즈필터에
-          맡기실 검증 상품 선택입니다. 광고비는 두 상품 모두 포함입니다.
-        </p>
-        <div className="grid gap-2.5 sm:grid-cols-2">
-          {(["engine", "quick"] as const).map((t) => {
-            const info = lead.tiers[t];
-            const disabled = t === "engine" && engineBlocked;
-            const selected = tier === t;
-            const recommended = lead.tier === t && !disabled;
-            return (
-              <button
-                key={t}
-                type="button"
-                disabled={disabled}
-                onClick={() => setTier(t)}
-                className={`relative flex flex-col rounded-xl border-2 p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-50 ${
-                  selected
-                    ? "border-accent bg-accent/5 shadow-[0_8px_24px_-12px_var(--accent-glow)]"
-                    : "border-border bg-surface-light hover:border-accent/50"
-                }`}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-bold text-text">
-                    {info.label}
-                  </span>
-                  <span
-                    className={`grid h-5 w-5 flex-shrink-0 place-items-center rounded-full border text-[11px] ${
-                      selected
-                        ? "border-accent bg-accent text-white"
-                        : "border-border text-transparent"
-                    }`}
-                  >
-                    ✓
-                  </span>
-                </div>
-                {recommended && (
-                  <span className="mt-1.5 w-fit rounded-full bg-accent/10 px-2 py-0.5 text-[11px] font-bold text-accent">
-                    답변 기준 추천
-                  </span>
-                )}
-                <span className="mt-2 text-2xl font-extrabold tracking-tight text-text">
+      {/* 진행 방식 — 답변에 따라 하나로 자동 결정 (고객이 고르지 않음) */}
+      <Card label="진행 방식" required>
+        {(() => {
+          const info = lead.tiers[tier];
+          const isEngine = tier === "engine";
+          const bullets = [
+            isEngine
+              ? "이미 갖고 계신 페이지에 측정 장치를 붙입니다"
+              : "실제 서비스처럼 보이는 검증용 페이지를 전문가가 직접 만듭니다",
+            "실제 구글·메타 광고로 모르는 사람 수백 명을 데려옵니다 (광고비 포함)",
+            "누가 들어와서 결제 버튼까지 눌렀는지 숫자로 집계합니다",
+            "7일 안에 살 사람이 있는지, 될 사업인지 판정해 드립니다",
+          ];
+          const why = isEngine
+            ? "페이지를 이미 갖고 계셔서, 페이지 제작은 빼고 측정·광고·판정만 진행하는 방식이에요."
+            : engineBlocked
+              ? "입력하신 페이지는 측정 장치를 붙일 수 없는 플랫폼이라, 검증용 페이지부터 저희가 새로 만듭니다."
+              : "보여줄 페이지가 아직 없으셔서, 검증용 페이지 제작부터 전부 저희가 맡습니다.";
+          return (
+            <div className="rounded-xl border-2 border-accent bg-accent/5 p-5 shadow-[0_8px_24px_-12px_var(--accent-glow)]">
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="text-base font-bold text-text">
+                  {info.label}
+                </span>
+                <span className="text-2xl font-extrabold tracking-tight text-text">
                   {info.priceLabel}
                 </span>
-                <span className="mt-1.5 text-xs leading-relaxed text-text-tertiary">
-                  {disabled
-                    ? "입력하신 페이지는 측정 설치가 안 되는 플랫폼이라 엔진 진행이 어렵습니다. Quick으로 진행해주세요."
-                    : info.desc}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </Card>
-
-      {/* 더 강조하고 싶은 점 — 직접 설명 + 비즈필터 반영 */}
-      <Card label="더 강조하고 싶은 점 (선택)">
-        <p className="mb-2 text-xs leading-relaxed text-text-tertiary">
-          꼭 들어갔으면 하는 내용이나 강조하고 싶은 점을 적어주세요. 비즈필터가
-          페이지와 광고 문구에 자연스럽게 반영해 드립니다. 비워두시면 저희가
-          가장 잘 먹히는 방향으로 알아서 씁니다.
-        </p>
-        <textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          maxLength={500}
-          rows={3}
-          placeholder="예: ‘첫 달 무료’를 꼭 강조하고 싶어요 / 환경친화 소재인 점을 부각해주세요"
-          className={`${inputBase} min-h-[80px] resize-y leading-relaxed`}
-        />
+              </div>
+              <p className="mt-1 text-xs leading-relaxed text-text-tertiary">
+                {why} 답변에 맞춰 자동으로 정해졌고, 광고비까지 포함된
+                금액이에요.
+              </p>
+              <ul className="mt-3 space-y-2 border-t border-border/60 pt-3">
+                {bullets.map((b) => (
+                  <li
+                    key={b}
+                    className="flex items-start gap-2 text-[13px] leading-relaxed text-text-secondary"
+                  >
+                    <span className="mt-0.5 flex-shrink-0 text-accent">✓</span>
+                    {b}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })()}
       </Card>
 
       {/* 판정 기준 — 정보로만 (고객 의사결정 없음) */}
