@@ -893,7 +893,7 @@ function BriefStep({
           onChange={(e) => setNotes(e.target.value)}
           maxLength={1000}
           rows={3}
-          placeholder="위에서 못 담은 게 있으면 편하게 적어주세요. 담당 전문가가 다 읽습니다. (비워두셔도 됩니다)"
+          placeholder="위에서 못 담은 게 있으면 편하게 적어주세요. 담당 전문가가 하나하나 직접 읽어보고 반영합니다. (비워두셔도 됩니다)"
           className={`${inputBase} min-h-[76px] resize-y leading-relaxed`}
         />
       </Card>
