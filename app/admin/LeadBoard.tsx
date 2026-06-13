@@ -598,13 +598,19 @@ function Modal({
                   v={
                     brief.plans && brief.plans.length > 0
                       ? brief.plans
-                          .map((p) => `${p.label} ${p.price.toLocaleString()}원`)
+                          .map(
+                            (p) =>
+                              `${p.label} ${p.price.toLocaleString()}원${p.desc ? ` (${p.desc})` : ""}`,
+                          )
                           .join(" / ")
                       : `${brief.price_value.toLocaleString()}원`
                   }
                   strong
                 />
                 <Row k="가칭" v={brief.name} strong />
+                {brief.notes && (
+                  <Row k="고객 강조 요청" v={brief.notes} strong />
+                )}
                 <Row k="타깃" v={brief.target_line} />
                 <Row k="문제" v={brief.problem_line} />
                 {brief.pass_bar && <Row k="합격선" v={brief.pass_bar} />}

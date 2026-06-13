@@ -354,7 +354,10 @@ export async function POST(request: Request) {
     const planLine =
       confirmed.plans && confirmed.plans.length > 0
         ? confirmed.plans
-            .map((p) => `${p.label} ${p.price.toLocaleString()}원`)
+            .map(
+              (p) =>
+                `${p.label} ${p.price.toLocaleString()}원${p.desc ? ` (${p.desc})` : ""}`,
+            )
             .join(" / ")
         : `${confirmed.price_value.toLocaleString()}원`;
     const snapshot = [
@@ -362,6 +365,7 @@ export async function POST(request: Request) {
       `타깃: ${confirmed.target_line}`,
       `표시 가격·플랜 구성: ${planLine}`,
       `가칭: ${confirmed.name}`,
+      ...(confirmed.notes ? [`고객 강조 요청: ${confirmed.notes}`] : []),
       `판정 기준(합격선): ${pb.bar} (최소 표본 ${pb.minSample}, 미달 시 비율 환산 또는 1~2일 연장)`,
       `상품: ${TIER_INFO[tier].label} ${TIER_INFO[tier].priceLabel}`,
       `환불 규정: ${REFUND_POLICY.join(" | ")}`,

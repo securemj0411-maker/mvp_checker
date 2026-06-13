@@ -230,8 +230,11 @@ function BriefStep({
   // 확정 폼 상태 — 고객이 확인/수정하는 건 핵심 3개(오퍼·가격·가칭)뿐.
   // 타깃·문제·소구점·제외는 전문가가 정한 내부 자료로 보관만 한다.
   const [offer, setOffer] = useState("");
-  // 플랜 1~3개 — 첫 플랜 가격이 대표 가격(price_value)이 된다
-  const [plans, setPlans] = useState<{ label: string; price: number }[]>([]);
+  // 플랜 1~3개 — 첫 플랜 가격이 대표 가격(price_value)이 된다. desc = 플랜 설명
+  const [plans, setPlans] = useState<
+    { label: string; price: number; desc: string }[]
+  >([]);
+  const [notes, setNotes] = useState(""); // 더 강조하고 싶은 점 (선택)
   const [name, setName] = useState("");
   const [tier, setTier] = useState<"engine" | "quick">(
     lead.tier === "engine" ? "engine" : "quick",
@@ -267,7 +270,7 @@ function BriefStep({
     if (!draft) return;
     setOffer((v) => v || draft.offer_options[0]?.headline || "");
     setPlans((v) =>
-      v.length > 0 ? v : [{ label: "기본", price: draft.price_value }],
+      v.length > 0 ? v : [{ label: "기본", price: draft.price_value, desc: "" }],
     );
     setName((v) => v || draft.name_candidates[0] || "");
   }, [draft]);
@@ -339,7 +342,11 @@ function BriefStep({
 
   async function submit() {
     const cleanPlans = plans
-      .map((p) => ({ label: p.label.trim(), price: p.price }))
+      .map((p) => ({
+        label: p.label.trim(),
+        price: p.price,
+        desc: p.desc.trim() || undefined,
+      }))
       .filter((p) => p.label && p.price > 0);
     if (!offer.trim() || cleanPlans.length === 0 || !name.trim()) {
       setSubmitError(
@@ -356,6 +363,7 @@ function BriefStep({
       problem_line: draft!.problem_line,
       price_value: cleanPlans[0].price,
       plans: cleanPlans,
+      notes: notes.trim() || undefined,
       selling_points: draft!.selling_points,
       name: name.trim(),
       excluded: draft!.excluded,
@@ -394,8 +402,12 @@ function BriefStep({
         </p>
       </div>
 
-      {/* 1. 오퍼 핵심 문구 — 2안 택1 + 수정 */}
+      {/* 1. 오퍼 핵심 문구 — 비즈필터가 뽑은 안 택1 OR 직접 수정 */}
       <Card label="검증 페이지의 핵심 메시지" required>
+        <p className="mb-2 text-xs leading-relaxed text-text-tertiary">
+          비즈필터가 가장 잘 먹힐 문구로 뽑아드렸어요. 그대로 쓰셔도 되고,
+          아래 칸에서 직접 고치셔도 됩니다.
+        </p>
         <div className="space-y-2">
           {draft.offer_options.map((o) => (
             <button
@@ -431,49 +443,67 @@ function BriefStep({
         <p className="mb-2 text-xs leading-relaxed text-text-tertiary">
           {draft.price_rationale}
         </p>
-        <div className="space-y-2">
+        <div className="space-y-3">
           {plans.map((p, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <input
-                value={p.label}
-                onChange={(e) =>
-                  setPlans((arr) =>
-                    arr.map((x, j) =>
-                      j === i ? { ...x, label: e.target.value } : x,
-                    ),
-                  )
-                }
-                maxLength={16}
-                placeholder="플랜 이름 (예: 베이직)"
-                className={`${inputBase} mt-0 min-w-0 flex-1`}
-              />
-              <input
-                type="number"
-                value={p.price || ""}
-                onChange={(e) =>
-                  setPlans((arr) =>
-                    arr.map((x, j) =>
-                      j === i ? { ...x, price: Number(e.target.value) } : x,
-                    ),
-                  )
-                }
-                min={100}
-                step={100}
-                className={`${inputBase} mt-0 w-24 min-w-0 shrink text-right font-mono sm:w-32`}
-              />
-              <span className="text-sm font-bold text-text">원</span>
-              {plans.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    setPlans((arr) => arr.filter((_, j) => j !== i))
+            <div
+              key={i}
+              className="rounded-lg border border-border bg-surface-light p-3"
+            >
+              <div className="flex items-center gap-2">
+                <input
+                  value={p.label}
+                  onChange={(e) =>
+                    setPlans((arr) =>
+                      arr.map((x, j) =>
+                        j === i ? { ...x, label: e.target.value } : x,
+                      ),
+                    )
                   }
-                  aria-label="플랜 삭제"
-                  className="px-1 text-lg leading-none text-text-tertiary transition hover:text-red-400"
-                >
-                  ×
-                </button>
-              )}
+                  maxLength={16}
+                  placeholder="플랜 이름 (예: 베이직)"
+                  className={`${inputBase} mt-0 min-w-0 flex-1`}
+                />
+                <input
+                  type="number"
+                  value={p.price || ""}
+                  onChange={(e) =>
+                    setPlans((arr) =>
+                      arr.map((x, j) =>
+                        j === i ? { ...x, price: Number(e.target.value) } : x,
+                      ),
+                    )
+                  }
+                  min={100}
+                  step={100}
+                  className={`${inputBase} mt-0 w-24 min-w-0 shrink text-right font-mono sm:w-32`}
+                />
+                <span className="text-sm font-bold text-text">원</span>
+                {plans.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPlans((arr) => arr.filter((_, j) => j !== i))
+                    }
+                    aria-label="플랜 삭제"
+                    className="px-1 text-lg leading-none text-text-tertiary transition hover:text-red-400"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+              <input
+                value={p.desc}
+                onChange={(e) =>
+                  setPlans((arr) =>
+                    arr.map((x, j) =>
+                      j === i ? { ...x, desc: e.target.value } : x,
+                    ),
+                  )
+                }
+                maxLength={60}
+                placeholder="이 플랜에 뭐가 포함되나요? (선택 · 예: 크레딧 1,600 + 전 상품 이용)"
+                className={`${inputBase} mt-2 text-[13px]`}
+              />
             </div>
           ))}
         </div>
@@ -481,7 +511,7 @@ function BriefStep({
           <button
             type="button"
             onClick={() =>
-              setPlans((arr) => [...arr, { label: "", price: 0 }])
+              setPlans((arr) => [...arr, { label: "", price: 0, desc: "" }])
             }
             className="mt-2 text-sm font-semibold text-accent transition hover:underline"
           >
@@ -489,8 +519,9 @@ function BriefStep({
           </button>
         )}
         <p className="mt-2 text-xs leading-relaxed text-text-tertiary">
-          단건 옵션을 여러 개 보여주거나 구독 플랜을 나눠도 됩니다. 어떤 플랜이
-          많이 눌리는지도 같이 측정해 드립니다.
+          단건 옵션을 여러 개 보여주거나 구독 플랜을 나눠도 됩니다. 플랜마다
+          포함 내용을 적으면 그대로 페이지에 보여드립니다. 어떤 플랜이 많이
+          눌리는지도 같이 측정해 드립니다.
         </p>
       </Card>
 
@@ -521,40 +552,78 @@ function BriefStep({
         />
       </Card>
 
-      {/* 플랜 선택 */}
+      {/* 비즈필터 검증 상품 선택 */}
       <Card label="비즈필터 검증 상품" required>
-        <p className="mb-2 text-xs leading-relaxed text-text-tertiary">
+        <p className="mb-3 text-xs leading-relaxed text-text-tertiary">
           여기서부터는 검증 페이지에 표시될 내용이 아니라, 저희 비즈필터에
-          맡기실 검증 상품 선택입니다.
+          맡기실 검증 상품 선택입니다. 광고비는 두 상품 모두 포함입니다.
         </p>
-        <div className="grid gap-2 sm:grid-cols-2">
+        <div className="grid gap-2.5 sm:grid-cols-2">
           {(["engine", "quick"] as const).map((t) => {
             const info = lead.tiers[t];
             const disabled = t === "engine" && engineBlocked;
+            const selected = tier === t;
+            const recommended = lead.tier === t && !disabled;
             return (
               <button
                 key={t}
                 type="button"
                 disabled={disabled}
                 onClick={() => setTier(t)}
-                className={`rounded-md border px-4 py-3 text-left transition disabled:opacity-40 ${
-                  tier === t
-                    ? "border-accent bg-accent/10"
-                    : "border-border bg-surface-light hover:border-accent/60"
+                className={`relative flex flex-col rounded-xl border-2 p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                  selected
+                    ? "border-accent bg-accent/5 shadow-[0_8px_24px_-12px_var(--accent-glow)]"
+                    : "border-border bg-surface-light hover:border-accent/50"
                 }`}
               >
-                <span className="block text-[15px] font-bold text-text">
-                  {info.label} · {info.priceLabel}
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-bold text-text">
+                    {info.label}
+                  </span>
+                  <span
+                    className={`grid h-5 w-5 flex-shrink-0 place-items-center rounded-full border text-[11px] ${
+                      selected
+                        ? "border-accent bg-accent text-white"
+                        : "border-border text-transparent"
+                    }`}
+                  >
+                    ✓
+                  </span>
+                </div>
+                {recommended && (
+                  <span className="mt-1.5 w-fit rounded-full bg-accent/10 px-2 py-0.5 text-[11px] font-bold text-accent">
+                    답변 기준 추천
+                  </span>
+                )}
+                <span className="mt-2 text-2xl font-extrabold tracking-tight text-text">
+                  {info.priceLabel}
                 </span>
-                <span className="mt-0.5 block text-xs leading-relaxed text-text-tertiary">
+                <span className="mt-1.5 text-xs leading-relaxed text-text-tertiary">
                   {disabled
-                    ? "입력하신 페이지는 측정 설치가 안 되는 플랫폼이라 엔진 진행이 어렵습니다. Quick으로 진행해주세요"
+                    ? "입력하신 페이지는 측정 설치가 안 되는 플랫폼이라 엔진 진행이 어렵습니다. Quick으로 진행해주세요."
                     : info.desc}
                 </span>
               </button>
             );
           })}
         </div>
+      </Card>
+
+      {/* 더 강조하고 싶은 점 — 직접 설명 + 비즈필터 반영 */}
+      <Card label="더 강조하고 싶은 점 (선택)">
+        <p className="mb-2 text-xs leading-relaxed text-text-tertiary">
+          꼭 들어갔으면 하는 내용이나 강조하고 싶은 점을 적어주세요. 비즈필터가
+          페이지와 광고 문구에 자연스럽게 반영해 드립니다. 비워두시면 저희가
+          가장 잘 먹히는 방향으로 알아서 씁니다.
+        </p>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          maxLength={500}
+          rows={3}
+          placeholder="예: ‘첫 달 무료’를 꼭 강조하고 싶어요 / 환경친화 소재인 점을 부각해주세요"
+          className={`${inputBase} min-h-[80px] resize-y leading-relaxed`}
+        />
       </Card>
 
       {/* 판정 기준 — 정보로만 (고객 의사결정 없음) */}
@@ -1080,7 +1149,12 @@ function TagInstallCard({
 /** 확정된 플랜 구성을 고객 에코용 한 줄로 (서버 스냅샷과 동일 포맷) */
 function planText(c: ConfirmedBrief): string {
   return c.plans && c.plans.length > 0
-    ? c.plans.map((p) => `${p.label} ${p.price.toLocaleString()}원`).join(" / ")
+    ? c.plans
+        .map(
+          (p) =>
+            `${p.label} ${p.price.toLocaleString()}원${p.desc ? ` (${p.desc})` : ""}`,
+        )
+        .join(" / ")
     : `${c.price_value.toLocaleString()}원`;
 }
 

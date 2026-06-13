@@ -159,13 +159,13 @@ export const TIER_INFO: Record<
     label: "엔진 (페이지는 내가)",
     price: 290000,
     priceLabel: "29만원",
-    desc: "검증용 페이지가 이미 있으신 분. 그 페이지에 진짜 광고를 걸어 수백 명을 불러오고, 클릭과 결제 의향(결제 버튼 클릭률)을 재서 될지 안 될지(Go/No-Go)까지 판정합니다. 광고비 포함.",
+    desc: "이 아이디어를 보여줄 웹페이지가 이미 있으신 분. 그 페이지에 진짜 광고를 걸어 수백 명을 불러오고, 클릭과 결제 의향(결제 버튼 클릭률)을 재서 될지 안 될지(Go/No-Go)까지 판정합니다. 광고비 포함.",
   },
   quick: {
     label: "Quick (처음부터 전부)",
     price: 500000,
     priceLabel: "50만원",
-    desc: "검증용 사이트부터 저희가 만들어 드립니다. 실제 광고 집행, 수백 명 유입, 측정, 될지 안 될지(Go/No-Go) 판정까지 전부. 광고비 포함.",
+    desc: "실제 서비스처럼 보이는 한 장짜리 검증용 사이트부터 저희가 만들어 드립니다. 실제 광고 집행, 수백 명 유입, 측정, 될지 안 될지(Go/No-Go) 판정까지 전부. 광고비 포함.",
   },
 };
 
@@ -293,8 +293,10 @@ export interface ConfirmedBrief {
   problem_line: string;
   price_value: number;
   /** 검증 페이지에 표시할 플랜 구성 (1~3개). 고객이 확정 화면에서 직접 구성.
-   *  price_value 는 첫 플랜 가격과 동일하게 유지(하위 호환). */
-  plans?: { label: string; price: number }[];
+   *  price_value 는 첫 플랜 가격과 동일하게 유지(하위 호환). desc = 플랜 설명. */
+  plans?: { label: string; price: number; desc?: string }[];
+  /** 고객이 더 강조하고 싶은 점 / 꼭 들어갔으면 하는 내용 (선택) */
+  notes?: string;
   selling_points: string[]; // 내부용 (고객 미노출)
   name: string;
   excluded: string[]; // 내부용 (고객 미노출)
