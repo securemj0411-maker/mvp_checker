@@ -1087,6 +1087,13 @@ function Cockpit({ lead, preview = false }: { lead: PublicLead; preview?: boolea
   const live = lead.stage === "live";
   const done = lead.stage === "verdict" || lead.stage === "closed";
   const bar = lead.brief?.confirmed?.pass_bar ?? lead.passBar.bar;
+  // 검증 행동은 사업 유형마다 다르다. 합격선 문구(decidePassBar)를 따라
+  // 결제 / 예약·신청 / 문의로 라벨을 맞춘다. 오프라인은 사전예약이 신호.
+  const intent = /예약|신청|등록/.test(bar)
+    ? { noun: "예약·신청", click: "예약·신청" }
+    : /문의/.test(bar)
+      ? { noun: "문의", click: "문의" }
+      : { noun: "결제 클릭", click: "결제 클릭" };
   const payRate = hasData ? (s.payClicks / s.visits) * 100 : 0;
   const maxV = Math.max(s.visits, 1);
   const funnel = [
@@ -1098,7 +1105,7 @@ function Cockpit({ lead, preview = false }: { lead: PublicLead; preview?: boolea
       tone: "var(--accent-soft)",
     },
     {
-      k: "결제 클릭",
+      k: intent.click,
       v: s.payClicks,
       w: hasData ? Math.max((s.payClicks / maxV) * 100, 4) : 6,
       tone: "var(--accent)",
@@ -1115,7 +1122,7 @@ function Cockpit({ lead, preview = false }: { lead: PublicLead; preview?: boolea
     { k: "진행 단계", v: stageLabel, accent: false, small: true },
     { k: "방문", v: hasData ? s.visits.toLocaleString() : "—", accent: false },
     { k: "버튼 클릭", v: hasData ? s.clicks.toLocaleString() : "—", accent: false },
-    { k: "결제 클릭", v: hasData ? s.payClicks.toLocaleString() : "—", accent: true },
+    { k: intent.click, v: hasData ? s.payClicks.toLocaleString() : "—", accent: true },
   ];
 
   return (
@@ -1199,7 +1206,7 @@ function Cockpit({ lead, preview = false }: { lead: PublicLead; preview?: boolea
         <p className="mt-1.5 text-xs leading-relaxed text-text-secondary">
           {hasData ? (
             <>
-              지금 방문 100명당 결제 클릭{" "}
+              지금 방문 100명당 {intent.noun}{" "}
               <b className="text-text">{payRate.toFixed(1)}명</b>. 7일 측정 뒤 이
               합격선과 비교해 GO·보류·중단을 판정합니다.
             </>
