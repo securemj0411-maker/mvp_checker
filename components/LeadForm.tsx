@@ -288,6 +288,7 @@ export default function LeadForm() {
   const [interpStage, setInterpStage] = useState<"confirm" | "gaps">("confirm");
   const [gapIdx, setGapIdx] = useState(0);
   const [gapAnswers, setGapAnswers] = useState<string[]>([]);
+  const [gapSel, setGapSel] = useState<string[]>([]); // 현재 빈칸의 복수 선택
   const [gapCustomMode, setGapCustomMode] = useState(false);
   const [gapCustom, setGapCustom] = useState("");
 
@@ -435,6 +436,7 @@ export default function LeadForm() {
         setInterpStage("confirm");
         setGapIdx(0);
         setGapAnswers([]);
+        setGapSel([]);
         setGapCustomMode(false);
       } else {
         skipInterpret();
@@ -483,6 +485,7 @@ export default function LeadForm() {
     if (interp?.gaps?.length) {
       setInterpStage("gaps");
       setGapIdx(0);
+      setGapSel([]);
     } else {
       setPhase("quiz");
     }
@@ -498,6 +501,7 @@ export default function LeadForm() {
     setGapAnswers(next);
     setGapCustomMode(false);
     setGapCustom("");
+    setGapSel([]);
     if (gapIdx + 1 < gaps.length) {
       setGapIdx((i) => i + 1);
       return;
@@ -781,7 +785,7 @@ export default function LeadForm() {
               동의하신 뒤에만 나갑니다.
             </p>
             <div className="mt-5 h-1.5 w-48 overflow-hidden rounded-full bg-bg-alt">
-              <div className="loading-sweep h-full rounded-full bg-accent" />
+              <div className="interpret-fill h-full rounded-full bg-accent" />
             </div>
           </div>
         ) : (
@@ -882,60 +886,81 @@ export default function LeadForm() {
                       <p className="text-xl font-bold text-text">{g.question}</p>
                       <p className="mt-1 text-sm leading-relaxed text-text-secondary">
                         이 답이 검증용 페이지와 광고 문구에 그대로 반영됩니다.
-                        맞는 걸 고르거나 직접 적어주세요.
+                        해당되는 걸 다 고르셔도 되고(여러 개 가능), 직접 적으셔도
+                        됩니다.
                       </p>
                     </div>
                     <div className="space-y-2.5">
-                      {g.suggestions.map((s) => (
-                        <button
-                          key={s}
-                          type="button"
-                          onClick={() => answerGap(s)}
-                          className="w-full rounded-md border border-border bg-surface-light px-4 py-3.5 text-left text-[15px] font-semibold text-text transition hover:border-accent/60 hover:bg-bg-alt focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-                        >
-                          {s}
-                        </button>
-                      ))}
-                      {gapCustomMode ? (
-                        <div className="flex gap-2">
-                          <input
-                            autoFocus
-                            value={gapCustom}
-                            onChange={(e) => setGapCustom(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                e.preventDefault();
-                                answerGap(gapCustom);
-                              }
-                            }}
-                            className={`${inputBase} flex-1`}
-                            placeholder="직접 적어주세요"
-                            maxLength={60}
-                          />
+                      {g.suggestions.map((s) => {
+                        const on = gapSel.includes(s);
+                        return (
                           <button
+                            key={s}
                             type="button"
-                            disabled={gapCustom.trim().length < 1}
-                            onClick={() => answerGap(gapCustom)}
-                            className="flex-shrink-0 rounded-md bg-accent px-5 text-sm font-bold text-white transition hover:bg-accent-hover disabled:opacity-40"
+                            onClick={() =>
+                              setGapSel((sel) =>
+                                on ? sel.filter((x) => x !== s) : [...sel, s],
+                              )
+                            }
+                            className={`flex w-full items-center justify-between gap-3 rounded-md border px-4 py-3.5 text-left text-[15px] font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                              on
+                                ? "border-accent bg-accent/10 text-text"
+                                : "border-border bg-surface-light text-text hover:border-accent/60 hover:bg-bg-alt"
+                            }`}
                           >
-                            확인
+                            {s}
+                            <span
+                              className={`grid h-5 w-5 flex-shrink-0 place-items-center rounded-md border text-[11px] ${
+                                on
+                                  ? "border-accent bg-accent text-white"
+                                  : "border-border text-transparent"
+                              }`}
+                            >
+                              ✓
+                            </span>
                           </button>
-                        </div>
+                        );
+                      })}
+                      {gapCustomMode ? (
+                        <input
+                          autoFocus
+                          value={gapCustom}
+                          onChange={(e) => setGapCustom(e.target.value)}
+                          className={`${inputBase}`}
+                          placeholder="직접 적어주세요 (위 선택과 함께 반영돼요)"
+                          maxLength={60}
+                        />
                       ) : (
                         <button
                           type="button"
                           onClick={() => setGapCustomMode(true)}
                           className="w-full rounded-md border border-dashed border-border px-4 py-3.5 text-left text-[15px] font-semibold text-text-secondary transition hover:border-accent/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                         >
-                          직접 입력할게요
+                          + 직접 입력 추가
                         </button>
                       )}
                     </div>
+                    <button
+                      type="button"
+                      disabled={
+                        gapSel.length === 0 && gapCustom.trim().length === 0
+                      }
+                      onClick={() =>
+                        answerGap(
+                          [...gapSel, gapCustom.trim()].filter(Boolean).join(", "),
+                        )
+                      }
+                      className="w-full rounded-md bg-accent px-6 py-3.5 text-base font-bold text-white transition hover:bg-accent-hover disabled:opacity-40"
+                    >
+                      다음
+                    </button>
                     <div className="flex items-center justify-between">
                       <BackButton
                         onClick={() => {
-                          if (gapCustomMode) setGapCustomMode(false);
-                          else if (gapIdx > 0) setGapIdx((i) => i - 1);
+                          setGapCustomMode(false);
+                          setGapCustom("");
+                          setGapSel([]);
+                          if (gapIdx > 0) setGapIdx((i) => i - 1);
                           else setInterpStage("confirm");
                         }}
                       />
