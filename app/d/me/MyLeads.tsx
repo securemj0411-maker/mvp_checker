@@ -9,6 +9,8 @@ export type MyLead = {
   idea: string;
   stage: string;
   tone: "action" | "progress" | "done" | "closed" | "neutral";
+  /** 라이브 이후 실측 (없으면 null). 카드에서 클릭 없이 바로 보여준다. */
+  metrics?: { visits: number; payClicks: number } | null;
 };
 
 /* 메인페이지 판정 컬러 시스템과 동일한 팔레트를 상태 칩에 재사용 */
@@ -81,6 +83,22 @@ export default function MyLeads({
                 {l.stage}
               </span>
             </div>
+            {l.metrics && (
+              <div className="flex gap-4 rounded-xl bg-bg-alt px-4 py-2.5">
+                <span className="text-[13px] text-text-secondary">
+                  방문{" "}
+                  <b className="font-extrabold text-text">
+                    {l.metrics.visits.toLocaleString()}
+                  </b>
+                </span>
+                <span className="text-[13px] text-text-secondary">
+                  결제 클릭{" "}
+                  <b className="font-extrabold text-accent">
+                    {l.metrics.payClicks.toLocaleString()}
+                  </b>
+                </span>
+              </div>
+            )}
             <div className="flex items-center justify-between border-t border-border-light pt-4">
               <span className="font-mono text-xs tracking-wide text-text-tertiary">
                 {l.code}

@@ -40,10 +40,39 @@ export default async function MyPage() {
   const { data: leadsRaw } = await admin
     .from("o2o_leads")
     .select(
-      "access_code, idea, idea_refined, status, tier, brief_confirmed_at, created_at",
+      "id, access_code, idea, idea_refined, status, tier, brief_confirmed_at, created_at",
     )
     .eq("account_id", accountId)
     .order("created_at", { ascending: false });
+
+  const rows = leadsRaw ?? [];
+  const status = (l: { status?: string | null }) => (l.status as string) ?? "new";
+  const LIVE_STAGES = ["live", "verdict", "won", "lost"];
+
+  // 라이브 이후 lead 들의 실측을 한 번에 모아 카드에 바로 보여준다 (클릭 없이 한눈).
+  const liveIds = rows
+    .filter((l) => LIVE_STAGES.includes(status(l)))
+    .map((l) => l.id as string);
+  const metricsById: Record<string, { visits: number; payClicks: number }> = {};
+  if (liveIds.length > 0) {
+    const { data: ev } = await admin
+      .from("o2o_events")
+      .select("lead_id, type, label")
+      .in("lead_id", liveIds);
+    const PAY = ["구매", "결제", "주문", "신청", "시작", "예약", "구독", "등록"];
+    for (const id of liveIds) metricsById[id] = { visits: 0, payClicks: 0 };
+    for (const e of ev ?? []) {
+      const m = metricsById[e.lead_id as string];
+      if (!m) continue;
+      if (e.type === "pageview") m.visits += 1;
+      else if (
+        e.type === "click" &&
+        e.label &&
+        PAY.some((w) => (e.label as string).includes(w))
+      )
+        m.payClicks += 1;
+    }
+  }
 
   const TONE: Record<string, MyLead["tone"]> = {
     new: "neutral",
@@ -56,18 +85,25 @@ export default async function MyPage() {
     won: "done",
     lost: "closed",
   };
-  const status = (l: { status?: string | null }) => (l.status as string) ?? "new";
-  const leads: MyLead[] = (leadsRaw ?? []).map((l) => {
-    const awaitingDeposit = l.brief_confirmed_at && status(l) === "new";
-    return {
-      code: (l.access_code as string) ?? "",
-      idea: (l.idea_refined as string) || (l.idea as string) || "",
-      stage: awaitingDeposit
-        ? "입금 대기"
-        : STAGE_LABEL[status(l)] ?? "진행 중",
-      tone: awaitingDeposit ? "action" : TONE[status(l)] ?? "neutral",
-    };
-  });
+  const isAwaiting = (l: { brief_confirmed_at?: unknown; status?: string | null }) =>
+    !!l.brief_confirmed_at && status(l) === "new";
+  const leads: MyLead[] = rows.map((l) => ({
+    code: (l.access_code as string) ?? "",
+    idea: (l.idea_refined as string) || (l.idea as string) || "",
+    stage: isAwaiting(l) ? "입금 대기" : STAGE_LABEL[status(l)] ?? "진행 중",
+    tone: isAwaiting(l) ? "action" : TONE[status(l)] ?? "neutral",
+    metrics: metricsById[l.id as string] ?? null,
+  }));
+
+  // 계정 전체 요약 — 클릭 없이 한눈에
+  const overview = {
+    total: rows.length,
+    active: rows.filter((l) =>
+      ["paid", "build", "live", "verdict"].includes(status(l)),
+    ).length,
+    awaiting: rows.filter(isAwaiting).length,
+    done: rows.filter((l) => ["won", "lost"].includes(status(l))).length,
+  };
 
   return (
     <main className="min-h-screen bg-bg">
@@ -94,7 +130,31 @@ export default async function MyPage() {
           신청하신 검증을 한곳에서 보고, 이어서 진행하실 수 있습니다.
         </p>
 
-        <div className="mt-8">
+        {overview.total > 0 && (
+          <div className="mt-7 grid grid-cols-4 gap-2">
+            {[
+              { k: "전체", v: overview.total, accent: false },
+              { k: "진행 중", v: overview.active, accent: true },
+              { k: "입금 대기", v: overview.awaiting, accent: false },
+              { k: "완료", v: overview.done, accent: false },
+            ].map((c) => (
+              <div key={c.k} className="rounded-[14px] bg-bg-alt px-3 py-3.5">
+                <p className="text-[11px] font-semibold text-text-tertiary">
+                  {c.k}
+                </p>
+                <p
+                  className={`mt-1 text-2xl font-extrabold tracking-tight ${
+                    c.accent && c.v > 0 ? "text-accent" : "text-text"
+                  }`}
+                >
+                  {c.v}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-6">
           <MyLeads leads={leads} hasPhone={hasPhone} />
         </div>
 
