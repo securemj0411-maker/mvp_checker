@@ -1,6 +1,7 @@
 import ScrollReveal from "@/components/ScrollReveal";
 import { ArrowRight, Check } from "lucide-react";
 import { BrandMark, Wordmark } from "@/components/Brand";
+import { KAKAO_CHAT_URL } from "@/lib/site";
 
 /* 판정 컬러 시스템 — GO/NO-GO/PIVOT */
 const verdict = {
@@ -1037,6 +1038,7 @@ function Pricing() {
       ],
       cta: "엔진으로 시작",
       highlight: false,
+      consult: false,
     },
     {
       tag: "QUICK 검증",
@@ -1054,6 +1056,7 @@ function Pricing() {
       ],
       cta: "Quick으로 시작",
       highlight: true,
+      consult: false,
     },
     {
       tag: "DEEP 검증",
@@ -1069,8 +1072,9 @@ function Pricing() {
         "객단가(한 명이 내는 돈) · 고객 1명 데려오는 값(CAC) · 평생 가치(LTV) · 손익 시뮬레이션",
         "판정 보장: 될지 안 될지 분명한 결론(Go/No-Go)을 못 드리면 전액 환불",
       ],
-      cta: "Deep으로 시작",
+      cta: "카카오톡으로 상담 문의",
       highlight: false,
+      consult: true,
     },
   ];
   return (
@@ -1148,6 +1152,11 @@ function Pricing() {
               <p className="mt-3 text-[15px] font-semibold leading-snug text-text-secondary">
                 {t.desc}
               </p>
+              {t.consult && (
+                <p className="mt-2 text-[13px] font-semibold text-text-tertiary">
+                  맞춤 상담형 · 결제 전 카카오톡으로 범위를 함께 정합니다
+                </p>
+              )}
               <ul className="mt-7 flex-1 space-y-3.5 text-[14px] leading-[1.55] text-text-secondary">
                 {t.lines.map((l, i) => (
                   <li key={l} className="grid grid-cols-[auto_1fr] gap-3">
@@ -1184,7 +1193,9 @@ function Pricing() {
                 ))}
               </ul>
               <a
-                href="/start"
+                href={t.consult ? KAKAO_CHAT_URL : "/start"}
+                target={t.consult ? "_blank" : undefined}
+                rel={t.consult ? "noopener noreferrer" : undefined}
                 className={`mt-8 block rounded-full py-4 text-center text-[15px] font-bold transition ${
                   t.highlight
                     ? "bg-accent text-white hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-[0_14px_30px_-8px_var(--accent-glow)]"
