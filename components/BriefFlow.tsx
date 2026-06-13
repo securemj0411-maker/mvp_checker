@@ -446,7 +446,7 @@ function BriefStep({
                 }
                 maxLength={16}
                 placeholder="플랜 이름 (예: 베이직)"
-                className={`${inputBase} mt-0 flex-1`}
+                className={`${inputBase} mt-0 min-w-0 flex-1`}
               />
               <input
                 type="number"
@@ -460,7 +460,7 @@ function BriefStep({
                 }
                 min={100}
                 step={100}
-                className={`${inputBase} mt-0 w-32 text-right font-mono`}
+                className={`${inputBase} mt-0 w-24 min-w-0 shrink text-right font-mono sm:w-32`}
               />
               <span className="text-sm font-bold text-text">원</span>
               {plans.length > 1 && (

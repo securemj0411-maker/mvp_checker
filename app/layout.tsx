@@ -1,9 +1,16 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import { SITE_URL, SITE_NAME, SITE_DESC } from "@/lib/site";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+
+// 모바일(특히 iOS) 키보드가 떠도 입력창이 가려지지 않게 콘텐츠 영역을 줄인다
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  interactiveWidget: "resizes-content",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

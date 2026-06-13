@@ -53,7 +53,7 @@ export default function MyLeads({
               className="block cold-panel rounded-lg p-5 transition hover:border-accent/60"
             >
               <div className="flex items-start justify-between gap-3">
-                <p className="text-sm font-bold leading-relaxed text-text">
+                <p className="min-w-0 break-words text-sm font-bold leading-relaxed text-text line-clamp-2">
                   {l.idea}
                 </p>
                 <span className="flex-shrink-0 rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-xs font-bold text-accent">
