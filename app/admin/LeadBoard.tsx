@@ -78,13 +78,14 @@ const LABEL = {
     "10kto50k": "1~5만",
     "50kto100k": "5~10만",
     over100k: "10만 이상",
+    multi: "여러 플랜",
     unknown: "미정",
   } as Record<string, string>,
   alternative: {
     competitor: "유사 서비스",
-    manual: "수작업·엑셀",
-    none: "그냥 감수",
-    unaware: "문제인식 전",
+    manual: "임시방편",
+    none: "안함·감수",
+    unaware: "인식 전",
     unknown: "모름",
   } as Record<string, string>,
   region: {

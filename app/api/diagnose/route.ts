@@ -184,13 +184,14 @@ const LABELS: Record<string, Record<string, string>> = {
     "10kto50k": "1~5만원",
     "50kto100k": "5~10만원",
     over100k: "10만원 이상",
+    multi: "여러 플랜 (하나로 못 정함)",
     unknown: "미정",
   },
   alternative: {
-    competitor: "비슷한 서비스를 쓰고 있음",
-    manual: "수작업이나 엑셀로 버팀",
-    none: "그냥 참고 있음",
-    unaware: "문제라고 인식조차 못 함 (필요성을 알려줘야 하는 시장)",
+    competitor: "비슷한 서비스·앱을 쓰고 있음",
+    manual: "공짜·임시방편으로 때움",
+    none: "안 하거나 그냥 참고 있음",
+    unaware: "있는 줄도 모름 (필요성을 알려줘야 하는 시장)",
     unknown: "모름",
   },
   region: {

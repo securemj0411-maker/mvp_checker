@@ -19,6 +19,7 @@ export type PriceBand =
   | "10kto50k"
   | "50kto100k"
   | "over100k"
+  | "multi"
   | "unknown";
 export type Alternative =
   | "competitor"
@@ -324,14 +325,15 @@ const PRICE_LABEL: Record<PriceBand, string> = {
   "10kto50k": "1~5만원",
   "50kto100k": "5~10만원",
   over100k: "10만원 이상",
+  multi: "여러 플랜",
   unknown: "미정",
 };
 
 const ALT_LABEL: Record<Alternative, string> = {
-  competitor: "비슷한 서비스",
-  manual: "수작업이나 엑셀 같은 임시방편",
-  none: "마땅한 대안 없이 그냥 참는 것",
-  unaware: "아직 문제라고 느끼지도 못하는 상태",
+  competitor: "비슷한 서비스나 앱",
+  manual: "공짜·임시방편으로 아쉬운 대로 때우는 방식",
+  none: "마땅한 게 없어 그냥 안 하거나 참는 것",
+  unaware: "아직 있는 줄도 모르는 상태",
   unknown: "확인되지 않은 대안",
 };
 
