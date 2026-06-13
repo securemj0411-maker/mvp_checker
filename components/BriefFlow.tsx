@@ -79,6 +79,13 @@ export default function BriefFlow({ code }: { code: string }) {
     load();
   }, [load]);
 
+  // 단계가 바뀌면(브리프 확정→입금 등) 맨 위로 올린다.
+  // 같은 컴포넌트 내 상태 전환이라 직전 화면 스크롤 위치가 남아, 입금액·계좌가
+  // 있는 상단을 못 보고 바닥부터 보이는 버그를 막는다. 폴링(같은 stage)엔 안 뜀.
+  useEffect(() => {
+    if (lead?.stage) window.scrollTo({ top: 0, behavior: "instant" });
+  }, [lead?.stage]);
+
   // 입금 대기~광고 집행 단계는 운영자가 상태를 바꾸면 화면이 따라오도록 폴링
   useEffect(() => {
     const s = lead?.stage;
