@@ -505,9 +505,8 @@ export default function LeadForm() {
           </p>
           <p className="mt-1 text-sm text-text-secondary">
             지금은 짧아도 괜찮습니다. 한 줄로 시작하면 다음 화면에서 같이
-            구체화해 드립니다. 끝까지 답하시면 ‘어디에 광고를 걸고 합격
-            기준은 얼마로 둘지’ 담긴 검증 설계서(계획)를 무료로 드립니다.
-            실제 광고 집행은 그 계획을 보고 결정하시면 됩니다.
+            구체화해 드립니다. 끝까지 답하시면 이 아이디어가 팔릴지 어떻게
+            확인할지 담긴 검증 설계서를 그 자리에서 무료로 드립니다.
           </p>
         </div>
         <textarea
@@ -912,21 +911,26 @@ function ReportView({
     return (
       <div className="cold-panel rounded-lg p-6 sm:p-8">
         <p className="text-xs font-bold uppercase tracking-[0.14em] text-accent">
-          마지막 한 단계
+          방금 만든 검증 설계서
         </p>
         <h2 className="mt-2 text-xl font-bold leading-snug text-text">
-          다음 화면에서 검증 준비안을
+          이 설계서, 잃어버리지 않게
           <br />
-          직접 확인하고 고치실 수 있습니다
+          카카오로 저장해 두세요
         </h2>
+        <p className="mt-3 text-sm leading-relaxed text-text-secondary">
+          지금 닫으면 진행 코드를 직접 적어둬야 다시 열 수 있습니다. 카카오로
+          저장하면 코드 없이 한 번에 다시 들어오고, 다음 화면에서 광고 문구 ·
+          가격 · 플랜을 직접 고칠 수 있습니다.
+        </p>
         <ul className="mt-4 space-y-2 text-sm leading-relaxed text-text-secondary">
           <li className="flex gap-2">
             <span className="text-accent">✓</span>
-            광고 헤드라인 · 표시 가격 · 서비스 가칭을 직접 수정
+            내 설계서 · 진행 현황을 언제든 다시 열람
           </li>
           <li className="flex gap-2">
             <span className="text-accent">✓</span>
-            플랜 여러 개(구독 플랜 추가 등)도 그 자리에서 구성
+            진행 단계가 바뀔 때마다 알림
           </li>
           <li className="flex gap-2">
             <span className="text-accent">✓</span>
@@ -966,7 +970,7 @@ function ReportView({
           카카오로 저장하고 계속하기
         </button>
         <p className="mt-2 text-center text-xs text-text-tertiary">
-          진행 현황 알림과 재방문이 쉬워집니다 · 3초면 끝
+          3초면 끝 · 코드 적어둘 필요 없음
         </p>
 
         <a
