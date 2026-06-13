@@ -875,9 +875,19 @@ function TagInstallCard({
   const [url, setUrl] = useState("");
   const [checking, setChecking] = useState(false);
   const [result, setResult] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<"tag" | "ai" | null>(null);
 
   const snippet = `<script defer src="https://www.bizfilter.kr/t.js" data-code="${code}"></script>`;
+  // 바이브코더용 — 커서/클로드에 그대로 붙여넣는 설치 요청문
+  const aiPrompt = `내 웹사이트의 모든 페이지 <head> 안에 아래 스크립트 태그를 추가해줘. 방문과 버튼 클릭을 측정하는 태그야. 다른 코드는 바꾸지 말고 이 한 줄만 추가해줘.\n\n${snippet}`;
+
+  async function copy(kind: "tag" | "ai", text: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(kind);
+      setTimeout(() => setCopied(null), 1500);
+    } catch {}
+  }
 
   if (ok) {
     return (
@@ -927,30 +937,50 @@ function TagInstallCard({
   return (
     <div className="cold-panel rounded-lg p-6">
       <p className="text-sm font-bold text-text">
-        측정 연결 — 한 줄만 붙이면 끝납니다
+        측정 연결 — 한 줄만 들어가면 끝납니다
       </p>
       <p className="mt-1 text-xs leading-relaxed text-text-secondary">
-        만드신 페이지의 &lt;head&gt; 에 아래 한 줄을 붙여넣으세요. 채널톡이나
-        GA 설치와 같은 방식입니다. 붙이는 순간 방문과 클릭이 자동으로
-        측정되고, 연결되면 이 카드가 완료로 바뀝니다.
+        아래 한 줄이 페이지에 들어가면 방문과 버튼 클릭이 자동으로 측정되고,
+        연결되는 순간 이 카드가 완료로 바뀝니다. 둘 중 편한 방법으로
+        설치하세요.
       </p>
-      <div className="mt-3 flex items-stretch gap-2">
-        <code className="flex-1 overflow-x-auto whitespace-nowrap rounded-md border border-border bg-bg-alt px-3 py-2.5 font-mono text-[11px] leading-relaxed text-text-secondary">
-          {snippet}
-        </code>
+
+      <div className="mt-3 rounded-md border border-border bg-bg-alt p-3">
+        <p className="text-xs font-bold text-text">
+          방법 1 · AI로 만드셨다면 (커서, 클로드, v0 등)
+        </p>
+        <p className="mt-1 text-xs leading-relaxed text-text-secondary">
+          아래 버튼으로 설치 요청문을 복사해서 쓰시는 AI에 그대로
+          붙여넣으세요. AI가 알아서 답니다.
+        </p>
         <button
           type="button"
-          onClick={async () => {
-            try {
-              await navigator.clipboard.writeText(snippet);
-              setCopied(true);
-              setTimeout(() => setCopied(false), 1500);
-            } catch {}
-          }}
-          className="flex-shrink-0 rounded-md border border-border bg-surface px-3 text-xs font-bold text-text-secondary transition hover:border-accent hover:text-accent"
+          onClick={() => copy("ai", aiPrompt)}
+          className="mt-2 w-full rounded-md bg-accent px-4 py-2.5 text-xs font-bold text-white transition hover:bg-accent-hover"
         >
-          {copied ? "복사됨" : "복사"}
+          {copied === "ai" ? "복사됐습니다. AI에 붙여넣으세요" : "AI 설치 요청문 복사"}
         </button>
+      </div>
+
+      <div className="mt-2 rounded-md border border-border bg-bg-alt p-3">
+        <p className="text-xs font-bold text-text">방법 2 · 직접 수정하신다면</p>
+        <p className="mt-1 text-xs leading-relaxed text-text-secondary">
+          아래 한 줄을 복사해 모든 페이지의 &lt;head&gt; 안에 붙여넣으세요.
+          노코드 툴(아임웹, 프레이머 등)은 설정의 &lsquo;커스텀 코드(head)&rsquo;
+          영역에 넣으면 됩니다.
+        </p>
+        <div className="mt-2 flex items-stretch gap-2">
+          <code className="flex-1 overflow-x-auto whitespace-nowrap rounded-md border border-border bg-surface px-3 py-2.5 font-mono text-[11px] leading-relaxed text-text-secondary">
+            {snippet}
+          </code>
+          <button
+            type="button"
+            onClick={() => copy("tag", snippet)}
+            className="flex-shrink-0 rounded-md border border-border bg-surface px-3 text-xs font-bold text-text-secondary transition hover:border-accent hover:text-accent"
+          >
+            {copied === "tag" ? "복사됨" : "복사"}
+          </button>
+        </div>
       </div>
       {!hasPageUrl && (
         <input
