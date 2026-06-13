@@ -1009,6 +1009,10 @@ function DepositStep({ lead }: { lead: PublicLead }) {
       {/* 측정 연결(엔진)은 결제 후로 — 입금 화면은 입금에만 집중시킨다.
           설치 카드는 제작 준비/제작 단계(ProgressStep)에서 노출된다. */}
 
+      {/* 입금 후 열리는 대시보드 미리보기 — "여기서 실시간으로 본다"를 미리 각인 */}
+      <Cockpit lead={lead} preview />
+      <VerdictSample />
+
       {confirmed && (
         <div className="cold-panel rounded-lg p-6">
           <p className="text-sm font-bold text-text">확정 내용</p>
@@ -1075,6 +1079,195 @@ const PROGRESS_COPY: Record<string, { title: string; desc: string }> = {
   },
 };
 
+/* 검증 코크핏 — 광고 전이라도 "여기가 내 실시간 대시보드"임을 보여준다.
+   실제 데이터(없으면 0/대기) + 합격선(목표)만 쓰고, 가짜 숫자는 절대 넣지 않는다. */
+function Cockpit({ lead, preview = false }: { lead: PublicLead; preview?: boolean }) {
+  const s = lead.stats ?? { visits: 0, clicks: 0, payClicks: 0 };
+  const hasData = s.visits > 0;
+  const live = lead.stage === "live";
+  const done = lead.stage === "verdict" || lead.stage === "closed";
+  const bar = lead.brief?.confirmed?.pass_bar ?? lead.passBar.bar;
+  const payRate = hasData ? (s.payClicks / s.visits) * 100 : 0;
+  const maxV = Math.max(s.visits, 1);
+  const funnel = [
+    { k: "방문", v: s.visits, w: hasData ? 100 : 6, tone: "var(--border-hover)" },
+    {
+      k: "버튼 클릭",
+      v: s.clicks,
+      w: hasData ? Math.max((s.clicks / maxV) * 100, 4) : 6,
+      tone: "var(--accent-soft)",
+    },
+    {
+      k: "결제 클릭",
+      v: s.payClicks,
+      w: hasData ? Math.max((s.payClicks / maxV) * 100, 4) : 6,
+      tone: "var(--accent)",
+    },
+  ];
+  const status = live
+    ? { t: "측정 중", live: true }
+    : done
+      ? { t: "측정 완료", live: false }
+      : { t: preview ? "입금 후 열림" : "측정 준비 중", live: false };
+  const stageLabel =
+    STAGES.find((x) => x.key.includes(lead.stage))?.label ?? "준비 중";
+  const cards = [
+    { k: "진행 단계", v: stageLabel, accent: false, small: true },
+    { k: "방문", v: hasData ? s.visits.toLocaleString() : "—", accent: false },
+    { k: "버튼 클릭", v: hasData ? s.clicks.toLocaleString() : "—", accent: false },
+    { k: "결제 클릭", v: hasData ? s.payClicks.toLocaleString() : "—", accent: true },
+  ];
+
+  return (
+    <div className="cold-panel rounded-lg p-6">
+      <div className="flex items-center justify-between">
+        <p className="text-base font-bold text-text">라이브 대시보드</p>
+        <span
+          className={`flex items-center gap-1.5 text-[11px] font-bold ${
+            status.live ? "text-emerald-500" : "text-text-tertiary"
+          }`}
+        >
+          {status.live && (
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+          )}
+          {status.t}
+        </span>
+      </div>
+      {!hasData && (
+        <p className="mt-1 text-xs leading-relaxed text-text-tertiary">
+          {preview
+            ? "입금하시면 이 대시보드가 열리고, 광고가 시작되면 방문·클릭·결제 반응이 여기에 실시간으로 쌓입니다."
+            : "광고가 시작되면 방문·클릭·결제 반응이 여기에 실시간으로 쌓입니다."}
+        </p>
+      )}
+
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {cards.map((c) => (
+          <div
+            key={c.k}
+            className={`rounded-[14px] px-3 py-3 ${
+              c.accent ? "border border-accent/30 bg-accent/5" : "bg-bg-alt"
+            }`}
+          >
+            <p
+              className={`text-[11px] font-semibold ${
+                c.accent ? "text-accent" : "text-text-tertiary"
+              }`}
+            >
+              {c.k}
+            </p>
+            <p
+              className={`mt-1 ${c.small ? "text-sm" : "text-xl"} font-extrabold tracking-tight ${
+                c.accent ? "text-accent" : "text-text"
+              }`}
+            >
+              {c.v}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-5">
+        <p className="text-xs font-bold text-text-secondary">신호 퍼널</p>
+        <div className="mt-3 space-y-3">
+          {funnel.map((f) => (
+            <div key={f.k}>
+              <div className="flex items-baseline justify-between text-xs">
+                <span className="font-semibold text-text-secondary">{f.k}</span>
+                <span className="font-extrabold text-text">
+                  {hasData ? f.v.toLocaleString() : "—"}
+                </span>
+              </div>
+              <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-bg-alt">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{ width: `${f.w}%`, background: f.tone }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-5 rounded-[14px] bg-bg-alt px-4 py-3.5">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-xs font-semibold text-text-tertiary">
+            합격선 (광고 전 못박은 목표)
+          </span>
+          <span className="text-sm font-bold text-text">{bar}</span>
+        </div>
+        <p className="mt-1.5 text-xs leading-relaxed text-text-secondary">
+          {hasData ? (
+            <>
+              지금 방문 100명당 결제 클릭{" "}
+              <b className="text-text">{payRate.toFixed(1)}명</b>. 7일 측정 뒤 이
+              합격선과 비교해 GO·보류·중단을 판정합니다.
+            </>
+          ) : (
+            <>
+              이 숫자는 광고 시작 전에 고정하고, 데이터를 본 뒤에는 저희도 바꾸지
+              않습니다. 그래야 판정이 공정합니다.
+            </>
+          )}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* 판정서 미리보기 — "예시"임을 명확히. 가짜 결과를 진짜처럼 보이지 않게 한다. */
+function VerdictSample() {
+  const rows = [
+    {
+      stamp: "GO",
+      c: "#06A86B",
+      bg: "#E4F7EF",
+      t: "합격선을 넘었습니다. 만들 근거가 확인됐어요.",
+    },
+    {
+      stamp: "PIVOT",
+      c: "#C77A00",
+      bg: "#FBF1DE",
+      t: "수요는 있지만 이 가격은 아니에요. 조건을 바꿔 다시 볼 가치가 있습니다.",
+    },
+    {
+      stamp: "NO-GO",
+      c: "#E8453C",
+      bg: "#FCEBE9",
+      t: "결제 의향이 약했어요. 만들기 전에 멈춰 비용을 아꼈습니다.",
+    },
+  ];
+  return (
+    <details className="cold-panel rounded-lg p-5">
+      <summary className="cursor-pointer text-sm font-bold text-text-secondary">
+        검증이 끝나면 이런 판정서를 받아요 (예시 보기)
+      </summary>
+      <div className="mt-3 space-y-2">
+        {rows.map((r) => (
+          <div
+            key={r.stamp}
+            className="flex items-center gap-3 rounded-[14px] border border-border bg-surface-light p-3"
+          >
+            <span
+              className="w-[72px] flex-shrink-0 rounded-full py-1.5 text-center text-xs font-black"
+              style={{ color: r.c, background: r.bg }}
+            >
+              {r.stamp}
+            </span>
+            <span className="text-[13px] leading-relaxed text-text-secondary">
+              {r.t}
+            </span>
+          </div>
+        ))}
+      </div>
+      <p className="mt-2 text-[11px] leading-relaxed text-text-tertiary">
+        실제 판정은 광고 7일 데이터로, 숫자 근거와 다음에 할 일까지 담아 남겨주신
+        번호 문자와 카카오톡으로 보내드립니다.
+      </p>
+    </details>
+  );
+}
+
 function ProgressStep({ lead, code }: { lead: PublicLead; code: string }) {
   const c = PROGRESS_COPY[lead.stage] ?? PROGRESS_COPY.paid;
   const confirmed = lead.brief?.confirmed;
@@ -1100,61 +1293,11 @@ function ProgressStep({ lead, code }: { lead: PublicLead; code: string }) {
         />
       )}
 
-      {/* 실측 숫자 — 광고 시작 후. 금액(광고비)은 어떤 형태로도 표시하지 않는다 */}
-      {lead.stats && (
-        <div className="cold-panel rounded-lg p-6">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
-              실시간 측정 숫자
-            </p>
-            {lead.stage === "live" && (
-              <span className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-500">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
-                측정 중
-              </span>
-            )}
-          </div>
-          <div className="mt-3 grid grid-cols-3 gap-2">
-            <div className="rounded-md border border-border bg-surface-light px-3 py-3 text-center">
-              <p className="text-[11px] font-semibold text-text-tertiary">방문</p>
-              <p className="mt-1 text-xl font-extrabold tracking-tight text-text">
-                {lead.stats.visits.toLocaleString()}
-              </p>
-            </div>
-            <div className="rounded-md border border-border bg-surface-light px-3 py-3 text-center">
-              <p className="text-[11px] font-semibold text-text-tertiary">
-                버튼 클릭
-              </p>
-              <p className="mt-1 text-xl font-extrabold tracking-tight text-text">
-                {lead.stats.clicks.toLocaleString()}
-              </p>
-            </div>
-            <div className="rounded-md border border-accent/40 bg-accent/5 px-3 py-3 text-center">
-              <p className="text-[11px] font-semibold text-accent">결제 클릭</p>
-              <p className="mt-1 text-xl font-extrabold tracking-tight text-accent">
-                {lead.stats.payClicks.toLocaleString()}
-              </p>
-            </div>
-          </div>
-          <p className="mt-3 text-xs leading-relaxed text-text-secondary">
-            {lead.stats.visits > 0 ? (
-              <>
-                방문 100명당 결제 클릭{" "}
-                <b className="text-text">
-                  {((lead.stats.payClicks / lead.stats.visits) * 100).toFixed(1)}명
-                </b>{" "}
-                · 합격선 {lead.brief?.confirmed?.pass_bar ?? lead.passBar.bar}
-              </>
-            ) : (
-              <>아직 집계된 방문이 없습니다. 광고가 돌기 시작하면 여기에 숫자가 쌓입니다.</>
-            )}
-          </p>
-          <p className="mt-1 text-xs text-text-tertiary">
-            이 페이지를 열어두시면 숫자가 자동으로 갱신됩니다. 광고 노출·클릭
-            등 채널 지표는 판정 리포트에 정리해 드립니다.
-          </p>
-        </div>
-      )}
+      {/* 실시간 대시보드 — 결제 후 전 단계에서 코크핏 노출. 광고 전엔 0/대기로
+          구조만 보여주고, 광고 시작 후 실제 숫자가 쌓인다. 가짜 숫자 없음. */}
+      <Cockpit lead={lead} />
+      <VerdictSample />
+
       {confirmed && (
         <div className="cold-panel rounded-lg p-6">
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
