@@ -4,12 +4,12 @@ import { BrandMark, Wordmark } from "@/components/Brand";
 
 /* 판정 컬러 시스템 — GO/NO-GO/PIVOT */
 const verdict = {
-  go: "#06A86B",
-  goBg: "#E4F7EF",
-  nogo: "#E8453C",
-  nogoBg: "#FCEBE9",
-  pivot: "#E08A00",
-  pivotBg: "#FBF1DE",
+  go: "var(--go)",
+  goBg: "var(--go-tint)",
+  nogo: "var(--nogo)",
+  nogoBg: "var(--nogo-tint)",
+  pivot: "var(--pivot)",
+  pivotBg: "var(--pivot-tint)",
 } as const;
 
 type HeroVariant = "a" | "b";
@@ -286,7 +286,7 @@ function HeroShot() {
               </p>
             </div>
             <span className="flex items-center gap-1.5 rounded-full bg-bg-alt px-3 py-1.5 text-xs font-bold text-text-secondary">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#06A86B]" />
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-go" />
               집행 5일차
             </span>
           </div>
@@ -491,7 +491,7 @@ function TourFakeDoor() {
           <div className="bg-surface p-6 text-left sm:p-8">
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-2 text-[15px] font-extrabold text-text">
-                <span className="grid h-5 w-5 place-items-center rounded-md bg-[#06A86B] text-[10px] font-black text-white">
+                <span className="grid h-5 w-5 place-items-center rounded-md bg-go text-[10px] font-black text-white">
                   S
                 </span>
                 샐러디클럽
@@ -500,7 +500,7 @@ function TourFakeDoor() {
                 <span>구성</span>
                 <span>후기</span>
                 <span>가격</span>
-                <span className="rounded-full bg-[#06A86B] px-3 py-1.5 font-bold text-white">
+                <span className="rounded-full bg-go px-3 py-1.5 font-bold text-white">
                   구독하기
                 </span>
               </span>
@@ -514,7 +514,7 @@ function TourFakeDoor() {
               월·수·금 아침 7시 전 문 앞에. 식단 고민 없이 받아보세요.
             </p>
             <div className="mt-2 flex items-center gap-1.5 text-[12px] font-semibold text-text-secondary">
-              <span style={{ color: "#E08A00" }}>★ 4.9</span>
+              <span style={{ color: "var(--pivot)" }}>★ 4.9</span>
               <span className="text-text-tertiary">· 후기 132개</span>
             </div>
             <div className="mt-5 grid grid-cols-3 gap-2">

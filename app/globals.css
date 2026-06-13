@@ -375,6 +375,17 @@ html.js .reveal-stagger:not(.in) > * {
   .bg-border { background-color: var(--border); }
   .bg-border-hover { background-color: var(--border-hover); }
 
+  /* Verdict (GO / PIVOT / NO-GO) — :root 토큰을 유틸로 노출 (raw hex 드리프트 차단) */
+  .bg-go { background-color: var(--go); }
+  .bg-go-tint { background-color: var(--go-tint); }
+  .text-go { color: var(--go); }
+  .bg-pivot { background-color: var(--pivot); }
+  .bg-pivot-tint { background-color: var(--pivot-tint); }
+  .text-pivot { color: var(--pivot); }
+  .bg-nogo { background-color: var(--nogo); }
+  .bg-nogo-tint { background-color: var(--nogo-tint); }
+  .text-nogo { color: var(--nogo); }
+
   /* Background opacity (common ones) */
   .bg-bg\/70 { background-color: rgba(var(--bg-rgb), 0.7); }
   .bg-bg-alt\/90 { background-color: rgba(255, 250, 244, 0.9); }

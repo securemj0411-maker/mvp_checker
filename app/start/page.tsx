@@ -13,7 +13,7 @@ export default function StartPage() {
   return (
     <main className="min-h-screen bg-bg">
       {/* 전용 헤더 — 메뉴 없음(이탈구 차단), 로고만 홈 링크 */}
-      <header className="sticky top-0 z-20 border-b border-border bg-bg/90 backdrop-blur">
+      <header className="sticky top-0 z-20 border-b border-border/70 bg-bg/85 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-2xl items-center justify-between px-4 sm:px-6">
           <a href="/" className="flex items-center gap-2">
             <BrandMark size={26} />

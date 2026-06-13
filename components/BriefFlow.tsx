@@ -1186,11 +1186,11 @@ function DepositStep({
 
           <div
             className="mt-3 rounded-2xl px-4 py-3"
-            style={{ background: "#FBF1DE" }}
+            style={{ background: "var(--pivot-tint)" }}
           >
             <p
               className="flex items-center gap-1.5 text-xs font-bold"
-              style={{ color: "#C77A00" }}
+              style={{ color: "var(--pivot)" }}
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden>
                 <path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" />
@@ -1199,7 +1199,7 @@ function DepositStep({
             </p>
             <p className="mt-1 text-sm font-bold text-text">
               반드시{" "}
-              <span style={{ color: "#C77A00" }}>&ldquo;{lead.name}&rdquo;</span>{" "}
+              <span style={{ color: "var(--pivot)" }}>&ldquo;{lead.name}&rdquo;</span>{" "}
               으로 입금해주세요
             </p>
           </div>
@@ -1401,10 +1401,10 @@ function TrendChart({
           <span className="flex items-center gap-1 text-accent">
             <span className="h-1 w-3 rounded-full bg-accent" />방문
           </span>
-          <span className="flex items-center gap-1" style={{ color: "#06A86B" }}>
+          <span className="flex items-center gap-1" style={{ color: "var(--go)" }}>
             <span
               className="h-1 w-3 rounded-full"
-              style={{ background: "#06A86B" }}
+              style={{ background: "var(--go)" }}
             />
             {payLabel}
           </span>
@@ -1428,7 +1428,7 @@ function TrendChart({
             <path
               d={line("pay")}
               fill="none"
-              stroke="#06A86B"
+              stroke="var(--go)"
               strokeWidth="2"
               vectorEffect="non-scaling-stroke"
             />
@@ -1513,12 +1513,12 @@ function Cockpit({ lead, preview = false }: { lead: PublicLead; preview?: boolea
         <span
           className={`flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold ${
             status.live
-              ? "bg-emerald-500/10 text-emerald-600"
+              ? "bg-go-tint text-go"
               : "bg-bg-alt text-text-tertiary"
           }`}
         >
           {status.live && (
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-go" />
           )}
           {status.t}
         </span>
@@ -1564,7 +1564,7 @@ function Cockpit({ lead, preview = false }: { lead: PublicLead; preview?: boolea
           {hasData && target != null ? (
             <span
               className="text-xs font-extrabold"
-              style={{ color: passing ? "#06A86B" : "#C77A00" }}
+              style={{ color: passing ? "var(--go)" : "var(--pivot)" }}
             >
               {passing ? "통과 중" : "미달"}
             </span>
@@ -1579,7 +1579,7 @@ function Cockpit({ lead, preview = false }: { lead: PublicLead; preview?: boolea
                 className="absolute inset-y-0 left-0 rounded-full transition-all duration-500"
                 style={{
                   width: `${fillPct}%`,
-                  background: passing ? "#06A86B" : "var(--accent)",
+                  background: passing ? "var(--go)" : "var(--accent)",
                 }}
               />
               <div
@@ -1617,20 +1617,20 @@ function VerdictSample() {
   const rows = [
     {
       stamp: "GO",
-      c: "#06A86B",
-      bg: "#E4F7EF",
+      c: "var(--go)",
+      bg: "var(--go-tint)",
       t: "합격선을 넘었습니다. 만들 근거가 확인됐습니다.",
     },
     {
       stamp: "PIVOT",
-      c: "#C77A00",
-      bg: "#FBF1DE",
+      c: "var(--pivot)",
+      bg: "var(--pivot-tint)",
       t: "수요는 있지만 이 가격은 아닙니다. 조건을 바꿔 다시 볼 가치가 있습니다.",
     },
     {
       stamp: "NO-GO",
-      c: "#E8453C",
-      bg: "#FCEBE9",
+      c: "var(--nogo)",
+      bg: "var(--nogo-tint)",
       t: "결제 의향이 약했습니다. 만들기 전에 멈춰 비용을 아꼈습니다.",
     },
   ];
@@ -1776,7 +1776,7 @@ function TagInstallCard({
     return (
       <div className="cold-panel rounded-lg p-6">
         <p className="flex items-center gap-2 text-sm font-bold text-text">
-          <span className="grid h-5 w-5 place-items-center rounded-full bg-emerald-500/15 text-xs text-emerald-500">
+          <span className="grid h-5 w-5 place-items-center rounded-full bg-go-tint text-xs text-go">
             ✓
           </span>
           측정 연결 완료

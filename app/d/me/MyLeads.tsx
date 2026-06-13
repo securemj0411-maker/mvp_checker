@@ -16,9 +16,9 @@ export type MyLead = {
 /* 메인페이지 판정 컬러 시스템과 동일한 팔레트를 상태 칩에 재사용 */
 const TONE_STYLE: Record<MyLead["tone"], { color: string; background: string }> =
   {
-    action: { color: "#E08A00", background: "#FBF1DE" },
+    action: { color: "var(--pivot)", background: "var(--pivot-tint)" },
     progress: { color: "var(--accent)", background: "var(--bg-light)" },
-    done: { color: "#06A86B", background: "#E4F7EF" },
+    done: { color: "var(--go)", background: "var(--go-tint)" },
     closed: { color: "var(--text-tertiary)", background: "var(--bg-alt)" },
     neutral: { color: "var(--text-secondary)", background: "var(--bg-alt)" },
   };
@@ -143,7 +143,7 @@ export default function MyLeads({
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="010-1234-5678"
-            className="min-w-0 flex-1 rounded-[14px] border border-border bg-bg px-4 py-3.5 text-text placeholder:text-text-tertiary outline-none transition focus:border-accent"
+            className="min-w-0 flex-1 rounded-md border border-border bg-bg px-4 py-3.5 text-text placeholder:text-text-tertiary outline-none transition focus:border-accent"
           />
           <button
             type="submit"
@@ -156,7 +156,7 @@ export default function MyLeads({
         {msg && (
           <p
             className="mt-3 text-[13px] leading-relaxed"
-            style={{ color: msg.ok ? "#06A86B" : "var(--text-tertiary)" }}
+            style={{ color: msg.ok ? "var(--go)" : "var(--text-tertiary)" }}
           >
             {msg.text}
           </p>

@@ -267,8 +267,8 @@ function BeatArt({ beat }: { beat: number }) {
           <text x="55" y="58" textAnchor="middle" fontSize="9" fontWeight="700" fill="var(--text-secondary)">결제 버튼 클릭</text>
           <text x="55" y="76" textAnchor="middle" fontSize="20" fontWeight="800" fill="var(--accent)">11</text>
           <g transform="rotate(8 268 140)">
-            <rect x="232" y="118" width="72" height="44" rx="10" fill="#E4F5EC" stroke="#06A86B" strokeWidth="2.5" />
-            <text x="268" y="148" textAnchor="middle" fontSize="24" fontWeight="800" fill="#06A86B">GO</text>
+            <rect x="232" y="118" width="72" height="44" rx="10" fill="var(--go-tint)" stroke="var(--go)" strokeWidth="2.5" />
+            <text x="268" y="148" textAnchor="middle" fontSize="24" fontWeight="800" fill="var(--go)">GO</text>
           </g>
         </>
       )}

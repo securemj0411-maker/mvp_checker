@@ -108,9 +108,9 @@ export default async function MyPage() {
 
   // 사이드바 검증 목록의 상태 도트 색 (MyLeads 칩 팔레트와 동일 계열)
   const TONE_DOT: Record<MyLead["tone"], string> = {
-    action: "#E08A00",
+    action: "var(--pivot)",
     progress: "var(--accent)",
-    done: "#06A86B",
+    done: "var(--go)",
     closed: "var(--text-tertiary)",
     neutral: "var(--text-tertiary)",
   };

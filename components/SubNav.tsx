@@ -1,24 +1,12 @@
-function VennMark() {
-  return (
-    <svg viewBox="0 0 100 100" width="30" height="30" aria-hidden style={{ flex: "none" }}>
-      <circle cx="37" cy="50" r="31" fill="#16233A" />
-      <circle cx="63" cy="50" r="31" fill="#3182F6" />
-      <path d="M50 21.9 A31 31 0 0 1 50 78.1 A31 31 0 0 1 50 21.9 Z" fill="#11328A" />
-      <path d="M41 51 L49 60 L64 39" fill="none" stroke="#fff" strokeWidth="8.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
+import { BrandMark, Wordmark } from "@/components/Brand";
 
 export function SubNav() {
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-bg/70 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5">
-        <a href="/" className="flex items-center gap-2.5 text-lg font-extrabold tracking-[-0.04em]">
-          <VennMark />
-          <span>
-            <span style={{ color: "var(--ink)" }}>비즈</span>
-            <span style={{ color: "var(--accent)" }}>필터</span>
-          </span>
+    <header className="sticky top-0 z-40 border-b border-border/70 bg-bg/85 backdrop-blur-xl">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-5">
+        <a href="/" className="flex items-center gap-2.5">
+          <BrandMark size={30} />
+          <Wordmark className="text-lg" />
         </a>
         <nav className="hidden items-center gap-7 text-sm font-medium text-text-secondary sm:flex">
           <a href="/blog" className="transition hover:text-text">
