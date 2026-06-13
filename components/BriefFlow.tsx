@@ -304,6 +304,9 @@ function BriefStep({
     { label: string; price: number; desc: string }[]
   >([]);
   const [notes, setNotes] = useState(""); // 전문가에게 하고 싶은 말 (자유)
+  // 전문가 사전 점검 — 질문별 답(칩 또는 직접입력), 질문별 직접입력 모드
+  const [intakeAns, setIntakeAns] = useState<string[]>([]);
+  const [intakeCustom, setIntakeCustom] = useState<boolean[]>([]);
   const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -430,6 +433,13 @@ function BriefStep({
       price_value: cleanPlans[0].price,
       plans: cleanPlans,
       notes: notes.trim() || undefined,
+      intake: (() => {
+        const qs = (draft!.intake_questions ?? []).slice(0, 3);
+        const ans = qs
+          .map((q, i) => ({ q: q.key, a: (intakeAns[i] ?? "").trim() }))
+          .filter((x) => x.a);
+        return ans.length > 0 ? ans : undefined;
+      })(),
       selling_points: draft!.selling_points,
       name: name.trim(),
       excluded: draft!.excluded,
@@ -493,6 +503,92 @@ function BriefStep({
           className={`${inputBase} min-h-[110px] resize-y leading-relaxed`}
         />
       </Card>
+
+      {/* 전문가 사전 점검 — AI가 빌드에 비는 것만 골라 되물음 (보기 미리 채움) */}
+      {draft.intake_questions && draft.intake_questions.length > 0 && (
+        <Card label="전문가 사전 점검">
+          <p className="mb-3 text-xs leading-relaxed text-text-tertiary">
+            담당 전문가가 페이지·광고를 더 정확히 만들기 위해, 이 아이디어에서
+            아직 모르는 것만 추려서 여쭤봐요. 해당되는 걸 고르거나 직접
+            적어주세요. 건너뛰셔도 됩니다.
+          </p>
+          <div className="space-y-4">
+            {draft.intake_questions.slice(0, 3).map((q, i) => (
+              <div key={i}>
+                <p className="text-[13px] font-bold text-text">{q.question}</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {q.suggestions.map((s) => {
+                    const selected = !intakeCustom[i] && intakeAns[i] === s;
+                    return (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => {
+                          setIntakeAns((a) => {
+                            const n = [...a];
+                            n[i] = s;
+                            return n;
+                          });
+                          setIntakeCustom((c) => {
+                            const n = [...c];
+                            n[i] = false;
+                            return n;
+                          });
+                        }}
+                        className={`rounded-full border px-3.5 py-2 text-[13px] font-semibold transition ${
+                          selected
+                            ? "border-accent bg-accent/10 text-text"
+                            : "border-border bg-surface-light text-text-secondary hover:border-accent/60"
+                        }`}
+                      >
+                        {s}
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIntakeCustom((c) => {
+                        const n = [...c];
+                        n[i] = true;
+                        return n;
+                      });
+                      setIntakeAns((a) => {
+                        const n = [...a];
+                        n[i] = "";
+                        return n;
+                      });
+                    }}
+                    className={`rounded-full border border-dashed px-3.5 py-2 text-[13px] font-semibold transition ${
+                      intakeCustom[i]
+                        ? "border-accent text-text"
+                        : "border-border text-text-tertiary hover:border-accent/60"
+                    }`}
+                  >
+                    직접 입력
+                  </button>
+                </div>
+                {intakeCustom[i] && (
+                  <input
+                    autoFocus
+                    value={intakeAns[i] ?? ""}
+                    onChange={(e) =>
+                      setIntakeAns((a) => {
+                        const n = [...a];
+                        n[i] = e.target.value;
+                        return n;
+                      })
+                    }
+                    maxLength={80}
+                    placeholder="직접 적어주세요"
+                    className={`${inputBase} mt-2 text-[13px]`}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {/* 1. 오퍼 핵심 문구 — 비즈필터가 뽑은 안 택1 OR 직접 수정 */}
       <Card label="광고와 사이트에 들어갈 한 줄 제목" required>

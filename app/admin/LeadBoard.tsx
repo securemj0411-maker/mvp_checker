@@ -612,6 +612,9 @@ function Modal({
                 {brief.notes && (
                   <Row k="고객 강조 요청" v={brief.notes} strong />
                 )}
+                {brief.intake?.map((x, i) => (
+                  <Row key={i} k={`점검·${x.q}`} v={x.a} strong />
+                ))}
                 <Row k="타깃" v={brief.target_line} />
                 <Row k="문제" v={brief.problem_line} />
                 {brief.pass_bar && <Row k="합격선" v={brief.pass_bar} />}

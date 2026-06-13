@@ -198,6 +198,32 @@ const BRIEF_SCHEMA = {
         "고객 제품 아이디어 중 이번 7일에 빼는 기능/타깃 1~3개 (내부 스코프 기록용, 고객에게 노출 안 됨). 반드시 고객 제품의 범위에 대한 것. '광고 채널 자동 집행', '연동 기능' 같은 비즈필터 검증 작업 관련 용어 절대 금지. 빈 배열 금지.",
       items: { type: "string" },
     },
+    intake_questions: {
+      type: "array",
+      description:
+        "전화 상담 없이 이 검증용 사이트·광고를 '만들기 위해' 아직 비는 정보를 고객에게 묻는 질문 정확히 2~3개. 앞 단계(아이디어·퀴즈·가격·대안)에서 이미 받은 건 묻지 말 것. 빌드에 바로 쓰이는 것만: 페이지에 넣을 신뢰 요소(실적·경력·자격·후기), 광고에서 꼭 강조할/절대 쓰면 안 될 표현, 비주얼 톤·느낌, 기존 대안 대비 한 줄 차별점(아직 불명확하면), 타깃이 검색할 법한 단어 등. 이 아이디어에 특정한 것만, 일반론 금지.",
+      items: {
+        type: "object",
+        properties: {
+          key: {
+            type: "string",
+            description: "짧은 한글 라벨. 예: 신뢰 요소, 광고 톤, 차별점, 검색어",
+          },
+          question: {
+            type: "string",
+            description: "고객에게 보일 질문 한 문장. 쉬운 말, 경어체.",
+          },
+          suggestions: {
+            type: "array",
+            description:
+              "그럴듯한 답 3~4개. 각 12자 안팎으로 짧고 구체적이며 서로 다르게.",
+            items: { type: "string" },
+          },
+        },
+        required: ["key", "question", "suggestions"],
+        additionalProperties: false,
+      },
+    },
   },
   required: [
     "offer_options",
@@ -208,6 +234,7 @@ const BRIEF_SCHEMA = {
     "selling_points",
     "name_candidates",
     "excluded",
+    "intake_questions",
   ],
   additionalProperties: false,
 } as const;
@@ -256,6 +283,8 @@ async function generateBrief(
       "- 가격은 고객이 답한 구간을 벗어나지 않고, 고객의 결제 방식(구독/단건/수수료)에 맞는 숫자로.",
       "- 모든 문장 경어체. 줄표(—) 금지. 과장 금지. '국내 최초', '최고' 같은 검증 안 된 수식어 금지.",
       "- 용어 규칙(설명문에만): price_rationale 처럼 창업자에게 설명하는 문장에서 업계 용어를 쓰면 처음 나올 때 괄호로 쉬운 설명을 병기합니다(영어 약자는 한글 풀이 괄호). 단, 오퍼 헤드라인은 최종 소비자용 광고 문구이므로 짧고 강하게 쓰고 괄호 설명을 넣지 않습니다.",
+      "",
+      "intake_questions(전문가 사전 점검): 위 초안을 실제 사이트·광고로 '전화 없이' 만들 때 당신(설계자)이 아직 모르는, 그래서 고객에게 직접 물어야 정확해지는 것 2~3개를 질문으로 만드세요. 이미 받은 정보(아이디어·타깃·가격·대안)는 다시 묻지 말고, 만들기에 바로 쓰이는 것만(신뢰 요소, 광고 강조/금지 표현, 비주얼 톤, 차별점, 검색어 등). 각 질문에 고객이 탭할 그럴듯한 보기 3~4개를 미리 채웁니다.",
     ].join("\n"),
     messages: [{ role: "user", content: facts }],
   });
@@ -366,6 +395,13 @@ export async function POST(request: Request) {
       `표시 가격·플랜 구성: ${planLine}`,
       `가칭: ${confirmed.name}`,
       ...(confirmed.notes ? [`고객 강조 요청: ${confirmed.notes}`] : []),
+      ...(confirmed.intake && confirmed.intake.length > 0
+        ? [
+            `전문가 사전 점검 답변:\n${confirmed.intake
+              .map((x) => `  - ${x.q}: ${x.a}`)
+              .join("\n")}`,
+          ]
+        : []),
       `판정 기준(합격선): ${pb.bar} (최소 표본 ${pb.minSample}, 미달 시 비율 환산 또는 1~2일 연장)`,
       `상품: ${TIER_INFO[tier].label} ${TIER_INFO[tier].priceLabel}`,
       `환불 규정: ${REFUND_POLICY.join(" | ")}`,

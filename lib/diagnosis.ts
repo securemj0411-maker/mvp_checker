@@ -293,6 +293,8 @@ export interface BriefDraft {
   selling_points: string[];
   name_candidates: string[];
   excluded: string[];
+  /** 전화 없이 빌드하려고 AI가 추가로 묻는 질문 2~3개 (보기 미리 채움) */
+  intake_questions?: { key: string; question: string; suggestions: string[] }[];
 }
 
 export interface ConfirmedBrief {
@@ -305,6 +307,8 @@ export interface ConfirmedBrief {
   plans?: { label: string; price: number; desc?: string }[];
   /** 고객이 더 강조하고 싶은 점 / 꼭 들어갔으면 하는 내용 (선택) */
   notes?: string;
+  /** 전문가 사전 점검 답변 (q=라벨, a=답). 빌드에 쓰이는 추가 정보 */
+  intake?: { q: string; a: string }[];
   selling_points: string[]; // 내부용 (고객 미노출)
   name: string;
   excluded: string[]; // 내부용 (고객 미노출)
