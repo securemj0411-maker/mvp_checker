@@ -67,7 +67,7 @@ const QUESTIONS: Question[] = [
       {
         value: "self",
         label: "직접 만들 수 있어요",
-        hint: "바이브코딩 · 노코드로 직접 만드실 수 있는 경우",
+        hint: "코딩을 도와주는 AI 도구나 노코드 툴로 직접 만드실 수 있는 경우",
       },
       {
         value: "need",
@@ -866,7 +866,9 @@ function ReportView({
   const [gate, setGate] = useState(false);
 
   const isEngine = path === "engine";
-  const priceLine = isEngine ? "엔진 29만원" : "Quick 50만원 · 7일";
+  const priceLine = isEngine
+    ? "엔진 (페이지는 직접, 검증만) 29만원"
+    : "Quick (전 과정 대행) 50만원 · 7일";
   const href = accessCode ? `/d/${accessCode}` : KAKAO_CHAT_URL;
 
   function fireStart(position: string) {
@@ -1110,7 +1112,7 @@ function ReportView({
           <p className="mt-2 text-sm leading-relaxed text-text-secondary">
             {isEngine
               ? "페이지를 직접 준비하시는 분께는 제작을 뺀 검증만. 광고 세팅과 7일 집행(광고비 포함), 측정, 판정까지. 재검증 30% 할인."
-              : "검증용 사이트 제작부터 광고 7일 집행, 측정, Go/No-Go 판정까지 전부. 분명한 판정을 못 드리면 전액 환불."}
+              : "검증용 사이트 제작부터 광고 7일 집행, 측정, 될지 안 될지(Go/No-Go) 판정까지 전부. 분명한 판정을 못 드리면 전액 환불."}
           </p>
         </div>
         <a
@@ -1166,7 +1168,7 @@ function NextSteps({
     "준비안 확정: 화면에서 승인만 하면 담당 검증 전문가가 1~2시간 안에 직접 검토하고 진행합니다. 통화 없습니다.",
     prepStep,
     "7일 광고 집행: 진행 대시보드를 상시 공개합니다.",
-    "판정 리포트: Go/No-Go와 다음 액션을 대시보드로 보내드립니다.",
+    "판정 리포트: 될지 안 될지(Go/No-Go)와 다음에 할 일을 대시보드로 보내드립니다.",
   ];
   void path;
   return (

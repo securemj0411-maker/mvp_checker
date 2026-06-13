@@ -105,7 +105,7 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
   const sub =
     variant === "a"
       ? "실제 서비스처럼 보이는 페이지에 진짜 광고비를 써서, 당신을 모르는 사람 수백 명을 불러옵니다. 48시간 안에 준비를 끝내 광고를 켜고, 클릭과 결제 버튼 반응(실제 결제는 없습니다)을 재서 7일 안에 살릴지 죽일지 판정합니다."
-      : "당신 아이디어로 진짜 광고를 돌려 모르는 사람 수백 명을 불러옵니다. 48시간 안에 광고를 켜고, 클릭률과 결제 의향(실제 결제는 없습니다)을 재서 7일 안에 Go/No-Go로 답합니다.";
+      : "당신 아이디어로 진짜 광고를 돌려 모르는 사람 수백 명을 불러옵니다. 48시간 안에 광고를 켜고, 클릭률과 결제 의향(실제 결제는 없습니다)을 재서 7일 안에 될지 안 될지(Go/No-Go) 답합니다.";
 
   const ctas = (
     <>
@@ -181,7 +181,7 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
           </p>
           <div className="mt-9 flex flex-wrap items-center gap-3">{ctas}</div>
           <p className="mt-7 text-sm font-medium text-text-tertiary">
-            광고비 별도 청구 없음 · 신청은 결제가 아닙니다 · Go/No-Go 판정 보장
+            광고비 별도 청구 없음 · 신청은 결제가 아닙니다 · 될지 안 될지 판정 보장
           </p>
         </div>
         <div className="reveal relative flex items-end justify-center self-stretch">
@@ -264,9 +264,9 @@ function HeroShot() {
           <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
               ["노출", "12,420", ""],
-              ["클릭", "398", "CTR 3.2%"],
-              ["결제 클릭", "13", "3.3%"],
-              ["CAC", "₩3,846", "고객 1명당"],
+              ["클릭", "398", "클릭률 3.2%"],
+              ["결제 버튼 클릭", "13", "실제 결제 아님"],
+              ["1명 데려온 값", "₩3,846", "광고비 ÷ 방문수"],
             ].map(([k, v, s]) => (
               <div key={k} className="rounded-[14px] bg-bg-alt px-4 py-3.5">
                 <p className="text-xs font-semibold text-text-tertiary">{k}</p>
@@ -335,9 +335,9 @@ function HeroShot() {
           <div className="mt-5 space-y-3">
             <div className="flex justify-between text-sm">
               <span className="font-medium text-text-tertiary">
-                사전 합격선
+                합격선 (광고 전 미리 정한 기준)
               </span>
-              <span className="font-bold text-text">결제 클릭률 3.0%</span>
+              <span className="font-bold text-text">결제 버튼 클릭률 3.0%</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="font-medium text-text-tertiary">실측</span>
@@ -361,8 +361,8 @@ function HeroShot() {
               {[
                 "시장 수요 분석",
                 "경쟁·가격대 조사",
-                "CAC 분석",
-                "다음 액션 권고",
+                "고객 1명 데려오는 값 분석",
+                "다음에 할 일 권고",
               ].map((c) => (
                 <span
                   key={c}
@@ -569,12 +569,12 @@ function TourAds() {
             {
               head: "주 3회 새벽배송 샐러드 | 아침 7시 전 문 앞 도착",
               hot: true,
-              ctr: "CTR 3.8%",
+              ctr: "클릭률 3.8%",
             },
             {
               head: "식단 고민 끝, 샐러드 정기구독 | 첫 주 구성 보기",
               hot: false,
-              ctr: "CTR 2.1%",
+              ctr: "클릭률 2.1%",
             },
           ].map((ad) => (
             <div
@@ -622,16 +622,16 @@ function TourDashboard() {
       label="라이브 대시보드"
       title={
         <>
-          노출부터 결제 클릭까지,
+          노출부터 결제 버튼 클릭까지,
           <br />
           실시간으로 같이 봅니다
         </>
       }
       body={
         <>
-          광고 계정 화면을 같은 링크로 함께 봅니다. 노출·클릭·결제 클릭이
+          광고 계정 화면을 같은 링크로 함께 봅니다. 노출·클릭·결제 버튼 클릭이
           쌓이는 과정을 숨기는 것 없이 그대로 공개합니다. 클릭은 약한
-          신호입니다. 저희는 가격을 본 뒤의 결제 클릭까지 측정합니다.
+          신호입니다. 저희는 가격을 본 뒤의 결제 버튼 클릭까지 측정합니다.
         </>
       }
       shot={
@@ -647,7 +647,7 @@ function TourDashboard() {
               { k: "클릭", v: "398", w: "100%", weak: true, sub: "약한 신호" },
               { k: "문의", v: "27", w: "38%", weak: true, sub: "중간 신호" },
               {
-                k: "결제 클릭",
+                k: "결제 버튼 클릭",
                 v: "13",
                 w: "16%",
                 weak: false,
@@ -839,9 +839,9 @@ function Cases() {
       color: verdict.go,
       bg: verdict.goBg,
       rows: [
-        ["CTR", "4.1%"],
-        ["결제 클릭률", "2.4%"],
-        ["CAC", "₩6,800"],
+        ["클릭률", "4.1%"],
+        ["결제버튼 클릭률", "2.4%"],
+        ["1명 데려온 값", "₩6,800"],
       ],
       take: "수요와 단가 모두 합격선을 넘었습니다. 개발을 진행할 근거가 확인된 사례입니다.",
     },
@@ -851,9 +851,9 @@ function Cases() {
       color: verdict.nogo,
       bg: verdict.nogoBg,
       rows: [
-        ["CTR", "1.4%"],
-        ["결제 클릭", "0건"],
-        ["CAC", "측정 불가"],
+        ["클릭률", "1.4%"],
+        ["결제버튼 클릭", "0건"],
+        ["1명 데려온 값", "측정 불가"],
       ],
       take: "클릭은 있었지만 결제 의향이 확인되지 않았습니다. 출시 전에 중단해 수개월의 개발 비용을 아낀 사례입니다.",
     },
@@ -863,9 +863,9 @@ function Cases() {
       color: verdict.pivot,
       bg: verdict.pivotBg,
       rows: [
-        ["CTR", "3.8%"],
-        ["결제 클릭률", "0.6%"],
-        ["CAC", "₩21,400"],
+        ["클릭률", "3.8%"],
+        ["결제버튼 클릭률", "0.6%"],
+        ["1명 데려온 값", "₩21,400"],
       ],
       take: "수요는 강하지만 이 가격으로는 수익 구조가 맞지 않습니다. 가격과 상품 구성 조정을 권고한 사례입니다.",
     },
@@ -920,9 +920,9 @@ function Cases() {
             <div className="mt-4 space-y-3.5">
               {[
                 ["관심 (클릭)", "높음", false],
-                ["결제 전환", "막힘", true],
+                ["결제까지 이어짐", "막힘", true],
                 ["광고 승인", "제한", false],
-                ["시장 포화", "레드", true],
+                ["경쟁 상태", "이미 포화", true],
               ].map(([k, v, bad]) => (
                 <div
                   key={k as string}
@@ -981,8 +981,10 @@ function Cases() {
           ))}
         </div>
         <p className="reveal mt-7 text-center text-[13px] text-text-tertiary">
-          위 3개 카드는 판정서 포맷을 보여드리기 위한 가상 예시입니다. 실제
-          검증 케이스가 쌓이는 대로 (고객 동의 하에) 실데이터로 교체됩니다.
+          ‘결제버튼 클릭’은 구매 버튼을 누른 수일 뿐, 실제 결제는 받지
+          않습니다. 위 3개 카드는 판정서 포맷을 보여드리기 위한 가상
+          예시이며, 실제 검증 케이스가 쌓이는 대로 (고객 동의 하에)
+          실데이터로 교체됩니다.
         </p>
       </div>
     </section>
@@ -996,12 +998,12 @@ function Pricing() {
       tag: "엔진",
       price: "29만원",
       period: "7일",
-      desc: "랜딩페이지를 직접 만들 수 있다면, 검증 엔진만 가져가세요.",
+      desc: "검증용 사이트를 직접 만들 수 있다면, 광고·측정·판정만 가져가세요.",
       lines: [
-        "직접 만든 페이지 진단: 전환을 막는 요소 점검 + 측정 이벤트 세팅",
+        "직접 만든 페이지 점검: 구매 버튼까지 못 가게 막는 부분 + 클릭 자동 기록 설치",
         "광고 문구 2종 제작 + 구글 또는 메타 7일 집행 (광고비 포함)",
         "합격선 사전 합의 + 라이브 대시보드 상시 공개",
-        "Go/No-Go 판정 리포트 + 다음 액션 제안",
+        "될지 안 될지(Go/No-Go) 판정 리포트 + 다음에 할 일 제안",
         "재검증 30% 할인: 조건 바꿔 다시 돌리면 회당 약 20만원",
       ],
       cta: "엔진으로 시작",
@@ -1016,10 +1018,10 @@ function Pricing() {
         "실서비스처럼 보이는 검증용 브랜드 사이트 제작 (종료 후 도메인·디자인 전부 고객 소유)",
         "미니 시장 리서치: 검색 수요·경쟁 광고·유사 서비스 가격대 조사",
         "광고 문구 2~3종 제작 + 구글 광고 7일 집행 · 기간 내 최적화 (광고비 포함)",
-        "GA4 + 전환 이벤트 + 결제 의향 측정",
+        "방문·클릭·결제버튼 행동 자동 기록 (구글 분석 도구)",
         "클릭 단가 · 고객 획득 비용(CAC) 1차 측정",
-        "실시간 진행 대시보드 + Go/No-Go 판정 리포트 + 다음 액션 권고",
-        "판정 보장: 분명한 Go/No-Go를 못 드리면 전액 환불",
+        "실시간 진행 대시보드 + 될지 안 될지(Go/No-Go) 판정 리포트 + 다음에 할 일 권고",
+        "판정 보장: 될지 안 될지 분명한 결론(Go/No-Go)을 못 드리면 전액 환불",
       ],
       cta: "Quick으로 시작",
       highlight: true,
@@ -1035,8 +1037,8 @@ function Pricing() {
         "경쟁사 · 비즈니스 모델 분석 리포트",
         "인스타·페이스북 광고 추가 (광고비 포함) + 콘텐츠 5~7개",
         "잠재고객 설문 + 인터뷰 5~10명",
-        "객단가(한 명이 내는 돈) · CAC · LTV · 손익 시뮬레이션",
-        "판정 보장: 분명한 Go/No-Go를 못 드리면 전액 환불",
+        "객단가(한 명이 내는 돈) · 고객 1명 데려오는 값(CAC) · 평생 가치(LTV) · 손익 시뮬레이션",
+        "판정 보장: 될지 안 될지 분명한 결론(Go/No-Go)을 못 드리면 전액 환불",
       ],
       cta: "Deep으로 시작",
       highlight: false,
@@ -1180,7 +1182,7 @@ function Pricing() {
 function Guarantee() {
   const items = [
     "데이터 근거가 첨부된 No-Go 판정서",
-    "제작한 랜딩페이지 · 도메인 · 디자인, 전부 가져가세요",
+    "제작한 검증용 사이트 · 도메인 · 디자인, 전부 가져가세요",
     "왜 안 됐는지 분석: 수요·타겟·메시지·가격 중 무엇인지",
     "피벗 방향 제안 + 재검증 시 할인",
     "가장 큰 것: 들어갈 뻔했던 몇 달과 수백만 원이 그대로 남습니다",

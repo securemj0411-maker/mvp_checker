@@ -291,10 +291,10 @@ function BriefStep({
 
   if (drafting || (!draft && !draftError)) {
     const steps = [
-      "광고에 쓸 헤드라인을 뽑고 있습니다",
+      "광고에 쓸 핵심 문구(첫 줄)를 뽑고 있습니다",
       "표시할 가격을 정하고 있습니다",
       "검증용 페이지 구성을 짜고 있습니다",
-      "서비스 가칭을 만들고 있습니다",
+      "서비스 임시 이름을 만들고 있습니다",
     ];
     return (
       <div className="cold-panel flex flex-col items-center rounded-lg p-8 text-center">
@@ -303,7 +303,7 @@ function BriefStep({
           검증 준비안을 짜고 있습니다
         </p>
         <p className="mt-1 text-sm text-text-secondary">
-          설계서를 바탕으로 광고 헤드라인, 표시 가격, 페이지 구성을
+          앞에서 받으신 검증 설계서를 바탕으로 광고 핵심 문구, 표시 가격, 페이지 구성을
           준비합니다. 10~20초 걸립니다.
         </p>
         <div className="mt-6 h-2 w-56 max-w-full overflow-hidden rounded-full bg-bg-alt">
@@ -395,7 +395,7 @@ function BriefStep({
         </p>
       </div>
 
-      {/* 1. 오퍼 헤드라인 — 2안 택1 + 수정 */}
+      {/* 1. 오퍼 핵심 문구 — 2안 택1 + 수정 */}
       <Card label="검증 페이지의 핵심 메시지" required>
         <div className="space-y-2">
           {draft.offer_options.map((o) => (
@@ -496,7 +496,7 @@ function BriefStep({
       </Card>
 
       {/* 3. 가칭 */}
-      <Card label="검증용 서비스 이름 (가칭)" required>
+      <Card label="검증용 서비스 이름 (정식 출시 전 임시 이름)" required>
         <div className="flex flex-wrap gap-2">
           {draft.name_candidates.map((n) => (
             <button
@@ -737,7 +737,7 @@ function DepositStep({ lead, code }: { lead: PublicLead; code: string }) {
           <div className="mt-3 space-y-2 text-sm">
             <Row k="핵심 메시지" v={confirmed.offer} />
             <Row k="표시 가격·플랜" v={planText(confirmed)} />
-            <Row k="가칭" v={confirmed.name} />
+            <Row k="임시 이름" v={confirmed.name} />
           </div>
         </div>
       )}
@@ -789,7 +789,7 @@ const PROGRESS_COPY: Record<string, { title: string; desc: string }> = {
   },
   verdict: {
     title: "판정이 나왔습니다.",
-    desc: "합격선 대비 Go/No-Go 판정 리포트를 남겨주신 번호 문자와 카카오톡 채널로 보내드립니다. 궁금한 점은 일주일간 카카오톡 채널로 답해드립니다.",
+    desc: "미리 정한 기준(합격선)과 비교해, 될지 안 될지(Go/No-Go) 판정 리포트를 남겨주신 번호 문자와 카카오톡 채널로 보내드립니다. 궁금한 점은 일주일간 카카오톡 채널로 답해드립니다.",
   },
   closed: {
     title: "검증이 완료됐습니다.",
@@ -885,7 +885,7 @@ function ProgressStep({ lead, code }: { lead: PublicLead; code: string }) {
           <div className="mt-3 space-y-2 text-sm">
             <Row k="핵심 메시지" v={confirmed.offer} />
             <Row k="표시 가격·플랜" v={planText(confirmed)} />
-            <Row k="가칭" v={confirmed.name} />
+            <Row k="임시 이름" v={confirmed.name} />
             {confirmed.pass_bar && <Row k="판정 기준" v={confirmed.pass_bar} />}
           </div>
         </div>
