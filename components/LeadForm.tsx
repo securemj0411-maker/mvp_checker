@@ -171,13 +171,86 @@ const QUESTIONS: Question[] = [
 
 const STORAGE_KEY = "bizfilter_quiz_v2";
 
-const GENERATING_MESSAGES = [
-  "아이디어 구조를 분해하고 있습니다",
-  "타깃과 첫 결제 장면을 좁히고 있습니다",
-  "광고 채널을 결정하고 있습니다",
-  "합격선 숫자를 계산하고 있습니다",
-  "리스크를 점검하고 있습니다",
+/* 설계서 생성(10~30초) 동안 보여줄 "이렇게 검증해요" 3비트 */
+const BEATS: { title: string; sub: string }[] = [
+  {
+    title: "진짜 같은 페이지를 만듭니다",
+    sub: "실제 서비스인 것처럼 보이는 한 장짜리 페이지에 가격과 ‘구매’ 버튼까지 넣습니다.",
+  },
+  {
+    title: "광고로 모르는 사람을 부릅니다",
+    sub: "지인 말고, 진짜 광고로 타깃 수백 명을 며칠 안에 데려옵니다.",
+  },
+  {
+    title: "결제 버튼 클릭으로 답을 냅니다",
+    sub: "몇 명이 ‘구매’를 누르는지로 판정합니다. 실제 결제는 받지 않습니다.",
+  },
 ];
+
+/* 비트별 목업 일러스트 — 같은 폰트 프레임 위에 단계별 주석을 얹어 한 흐름처럼 */
+function BeatArt({ beat }: { beat: number }) {
+  return (
+    <svg
+      viewBox="0 0 320 196"
+      className="h-44 w-full"
+      role="img"
+      aria-label={BEATS[beat]?.title}
+    >
+      {/* ── 폰 프레임 (공통) ── */}
+      <g transform={beat === 1 ? "translate(38 0)" : "translate(0 0)"}>
+        <rect x="110" y="14" width="100" height="168" rx="16" fill="#fff" stroke="var(--border)" strokeWidth="1.5" />
+        <circle cx="160" cy="26" r="2.5" fill="var(--border)" />
+        {/* 헤드라인 */}
+        <rect x="124" y="42" width="72" height="9" rx="3" fill="var(--accent)" opacity={beat === 0 ? 1 : 0.55} />
+        <rect x="124" y="58" width="72" height="5" rx="2" fill="var(--border)" />
+        <rect x="124" y="68" width="50" height="5" rx="2" fill="var(--border)" />
+        {/* 가격 칩 */}
+        <rect x="124" y="86" width="44" height="16" rx="8" fill="var(--bg-alt)" />
+        <text x="146" y="97" textAnchor="middle" fontSize="9" fontWeight="700" fill="var(--text-secondary)">9,900원</text>
+        {/* 구매 버튼 */}
+        <rect x="124" y="116" width="72" height="24" rx="9" fill="var(--accent)" />
+        <text x="160" y="131" textAnchor="middle" fontSize="11" fontWeight="800" fill="#fff">구매하기</text>
+        <rect x="124" y="152" width="60" height="5" rx="2" fill="var(--border)" />
+
+        {/* ── beat 2: 결제 버튼에 탭 ripple + 커서 ── */}
+        {beat === 2 && (
+          <>
+            <circle cx="160" cy="128" r="20" fill="none" stroke="var(--accent)" strokeWidth="2" opacity="0.35" />
+            <circle cx="160" cy="128" r="13" fill="none" stroke="var(--accent)" strokeWidth="2" opacity="0.6" />
+            <path d="M168 134 l3 13 l3 -6 l6 0 z" fill="var(--text)" stroke="#fff" strokeWidth="1.2" />
+          </>
+        )}
+      </g>
+
+      {/* ── beat 1: 광고 → 사람 유입 ── */}
+      {beat === 1 && (
+        <>
+          <rect x="14" y="30" width="62" height="26" rx="13" fill="var(--accent)" />
+          <text x="45" y="47" textAnchor="middle" fontSize="12" fontWeight="800" fill="#fff">광고</text>
+          <path d="M50 60 C 60 110, 110 120, 150 120" fill="none" stroke="var(--accent)" strokeWidth="2" strokeDasharray="4 4" opacity="0.7" />
+          {[0, 1, 2, 3].map((i) => (
+            <circle key={i} cx={64 + i * 22} cy={150 - i * 8} r="7" fill="var(--accent)" opacity={0.25 + i * 0.18} />
+          ))}
+          <rect x="18" y="166" width="120" height="22" rx="11" fill="var(--bg-alt)" />
+          <text x="78" y="181" textAnchor="middle" fontSize="11" fontWeight="800" fill="var(--text)">방문 320명</text>
+        </>
+      )}
+
+      {/* ── beat 2: 결제 클릭 카운터 + GO ── */}
+      {beat === 2 && (
+        <>
+          <rect x="18" y="40" width="74" height="44" rx="10" fill="var(--bg-alt)" />
+          <text x="55" y="58" textAnchor="middle" fontSize="9" fontWeight="700" fill="var(--text-secondary)">결제 버튼 클릭</text>
+          <text x="55" y="76" textAnchor="middle" fontSize="20" fontWeight="800" fill="var(--accent)">11</text>
+          <g transform="rotate(8 268 140)">
+            <rect x="232" y="118" width="72" height="44" rx="10" fill="#E4F5EC" stroke="#06A86B" strokeWidth="2.5" />
+            <text x="268" y="148" textAnchor="middle" fontSize="24" fontWeight="800" fill="#06A86B">GO</text>
+          </g>
+        </>
+      )}
+    </svg>
+  );
+}
 
 export default function LeadForm() {
   const [phase, setPhase] = useState<Phase>("idea");
@@ -272,15 +345,11 @@ export default function LeadForm() {
     }
   }, []);
 
-  /* 설계서 생성 중 메시지 순환 */
+  /* 설계서 생성 중 "이렇게 검증해요" 3비트 순환 (생성 끝날 때까지 루프) */
   useEffect(() => {
     if (phase !== "generating") return;
     setGenMsgIdx(0);
-    const t = setInterval(
-      () =>
-        setGenMsgIdx((i) => Math.min(i + 1, GENERATING_MESSAGES.length - 1)),
-      4500,
-    );
+    const t = setInterval(() => setGenMsgIdx((i) => i + 1), 3200);
     return () => clearInterval(t);
   }, [phase]);
 
@@ -449,46 +518,46 @@ export default function LeadForm() {
   }
 
   if (phase === "generating") {
+    const beat = genMsgIdx % BEATS.length;
     return (
-      <div className="cold-panel rounded-lg p-8 sm:p-10">
-        <div className="flex flex-col items-center py-8 text-center">
-          <div className="relative h-12 w-12">
-            <div className="absolute inset-0 animate-spin rounded-full border-[3px] border-border border-t-accent" />
+      <div className="cold-panel rounded-lg p-6 sm:p-8">
+        <p className="text-center text-sm font-medium text-text-secondary">
+          설계서를 만드는 동안, 저희가 어떻게 검증하는지 보여드릴게요
+        </p>
+
+        {/* 3비트 설명 — 자동으로 넘어감 */}
+        <div className="mt-5 rounded-xl border border-border bg-bg-alt/60 p-5">
+          <div key={beat} className="quiz-step-in">
+            <BeatArt beat={beat} />
+            <p className="mt-4 text-center text-base font-bold text-text">
+              <span className="text-accent">{beat + 1}</span> · {BEATS[beat].title}
+            </p>
+            <p className="mx-auto mt-1.5 max-w-sm text-center text-sm leading-relaxed text-text-secondary">
+              {BEATS[beat].sub}
+            </p>
           </div>
-          <p
-            key={genMsgIdx}
-            className="quiz-step-in mt-6 text-lg font-bold text-text"
-          >
-            {GENERATING_MESSAGES[genMsgIdx]}
-          </p>
-          <p className="mt-2 text-sm text-text-secondary">
-            이 아이디어를 어디에 광고로 걸고, 보통 며칠 안에 몇 명을 불러와,
-            어떤 숫자가 나오면 합격인지 계산하고 있습니다. 10~30초 걸립니다.
-          </p>
-          {/* 의사 진행률 바 — 24초에 걸쳐 90%까지, 완료 시 화면 전환 */}
-          <div className="mt-6 h-2 w-56 max-w-full overflow-hidden rounded-full bg-bg-alt">
-            <div className="gen-progress h-full rounded-full bg-accent" />
-          </div>
-          <ol className="mt-6 space-y-1.5 text-left text-sm text-text-tertiary">
-            {GENERATING_MESSAGES.map((m, i) => (
-              <li key={m} className="flex items-center gap-2">
-                <span
-                  className={`grid h-4 w-4 flex-shrink-0 place-items-center rounded-full text-[10px] ${
-                    i < genMsgIdx
-                      ? "bg-accent text-white"
-                      : i === genMsgIdx
-                        ? "border border-accent text-accent"
-                        : "border border-border"
-                  }`}
-                >
-                  {i < genMsgIdx ? "✓" : ""}
-                </span>
-                <span className={i <= genMsgIdx ? "text-text-secondary" : ""}>
-                  {m}
-                </span>
-              </li>
+          {/* 비트 인디케이터 */}
+          <div className="mt-4 flex items-center justify-center gap-1.5">
+            {BEATS.map((_, i) => (
+              <span
+                key={i}
+                className={`h-1.5 rounded-full transition-all ${
+                  i === beat ? "w-5 bg-accent" : "w-1.5 bg-border"
+                }`}
+              />
             ))}
-          </ol>
+          </div>
+        </div>
+
+        {/* 작업 중 표시 */}
+        <div className="mt-5 flex items-center justify-center gap-2.5">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-accent" />
+          <p className="text-sm font-medium text-text-secondary">
+            내 설계서를 만들고 있어요 · 10~30초
+          </p>
+        </div>
+        <div className="mx-auto mt-3 h-1.5 w-48 max-w-full overflow-hidden rounded-full bg-bg-alt">
+          <div className="gen-progress h-full rounded-full bg-accent" />
         </div>
       </div>
     );
