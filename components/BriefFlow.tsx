@@ -834,6 +834,34 @@ function DepositStep({ lead }: { lead: PublicLead }) {
           </p>
         </div>
 
+        {/* 신뢰 스트립 — 입금 직전, 우리가 실제로 가진 약속을 적시에 */}
+        <div className="mt-4 grid gap-2.5 rounded-xl border border-border bg-surface p-4 sm:grid-cols-3">
+          {[
+            "실명·얼굴 공개한 팀이 직접 운영",
+            "판정 못 드리면 검증비 전액 환불",
+            "검증용 사이트·데이터 전부 고객님 자산",
+          ].map((t) => (
+            <div
+              key={t}
+              className="flex items-start gap-1.5 text-xs font-semibold leading-relaxed text-text-secondary"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="var(--accent)"
+                strokeWidth="3"
+                className="mt-0.5 flex-shrink-0"
+                aria-hidden
+              >
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+              {t}
+            </div>
+          ))}
+        </div>
+
         <div className="mt-4 rounded-xl border border-border bg-bg-alt/60 p-5">
           <p className="text-sm font-bold text-text">입금하신 다음은요</p>
           <ol className="mt-3 space-y-3">

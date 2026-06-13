@@ -661,6 +661,7 @@ export default function LeadForm() {
             확인할지 담긴 검증 설계서를 그 자리에서 무료로 드립니다.
           </p>
         </div>
+        <FunnelRoadmap />
         <textarea
           value={idea}
           onChange={(e) => setIdea(e.target.value)}
@@ -828,6 +829,10 @@ export default function LeadForm() {
             placeholder="010-1234-5678"
             maxLength={13}
           />
+          <p className="mt-1.5 text-xs leading-relaxed text-text-tertiary">
+            검증 진행 상황을 문자로 보내는 데만 씁니다. 영업 전화나 광고 문자는
+            보내지 않고, 검증이 끝나면 파기합니다.
+          </p>
         </div>
 
         {errorMsg && (
@@ -1219,6 +1224,10 @@ function ReportView({
         <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
           저희라면 이렇게 검증합니다
         </p>
+        <p className="mt-1.5 text-sm leading-relaxed text-text-secondary">
+          적어주신 답변(업종·타깃·가격·지금 어떻게 하시는지)을 그대로 반영해
+          맞춘 설계입니다. 누구에게나 똑같이 나가는 양식이 아닙니다.
+        </p>
 
         <div className="mt-4 space-y-3">
           <div className="rounded-lg border border-border bg-surface-light p-4">
@@ -1447,6 +1456,43 @@ function Progress({ current, total }: { current: number; total: number }) {
           style={{ width: `${Math.max(pct, 6)}%` }}
         />
       </div>
+    </div>
+  );
+}
+
+/* 전체 흐름 미리보기 — "지금 결제되나?" 불안을 입력 전에 끈다 */
+function FunnelRoadmap() {
+  const steps = ["무료 설계서", "검토·플랜 선택", "결제", "검증 시작"];
+  return (
+    <div className="rounded-xl border border-border bg-bg-alt/60 p-3.5">
+      <div className="flex items-start justify-between gap-1">
+        {steps.map((label, i) => (
+          <div
+            key={label}
+            className="flex flex-1 flex-col items-center gap-1.5 text-center"
+          >
+            <span
+              className={`grid h-6 w-6 place-items-center rounded-full text-[11px] font-extrabold ${
+                i === 0 ? "bg-accent text-white" : "bg-bg-light text-text-tertiary"
+              }`}
+            >
+              {i + 1}
+            </span>
+            <span
+              className={`text-[10px] font-semibold leading-tight ${
+                i === 0 ? "text-accent" : "text-text-tertiary"
+              }`}
+            >
+              {label}
+            </span>
+          </div>
+        ))}
+      </div>
+      <p className="mt-2.5 text-center text-[11px] leading-relaxed text-text-tertiary">
+        지금은 1단계예요.{" "}
+        <b className="font-bold text-text-secondary">결제는 맨 마지막</b>이고, 그
+        전엔 한 푼도 빠지지 않습니다.
+      </p>
     </div>
   );
 }
