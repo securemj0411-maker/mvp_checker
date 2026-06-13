@@ -44,6 +44,8 @@ next-env.d.ts
 *.mp4
 *.srt
 *.mp3
+# 단, public/ 에 둔 웹 배포용 영상은 서빙돼야 하므로 추적한다
+!public/*.mp4
 /edit/
 /thumbnail/
 /video-v4/
