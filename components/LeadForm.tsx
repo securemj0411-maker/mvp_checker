@@ -195,6 +195,9 @@ const BEATS: { title: string; sub: string }[] = [
   },
 ];
 
+/* 비트별 자동 체류 시간(ms) — 글 양에 비례. 마지막 비트는 머무르며 순환하지 않는다. */
+const BEAT_MS = [6500, 6500, 11000];
+
 /* 비트별 목업 일러스트 — 같은 폰트 프레임 위에 단계별 주석을 얹어 한 흐름처럼 */
 function BeatArt({ beat }: { beat: number }) {
   return (
@@ -363,13 +366,15 @@ export default function LeadForm() {
     }
   }, [phase]);
 
-  /* "이렇게 검증해요" 3비트 자동 순환 — 읽을 시간 충분히(5초).
-     고객이 점/카드를 탭해 직접 넘기면 autoBeat=false 로 멈춘다. */
+  /* "이렇게 검증해요" 3비트 자동 진행 — 글 양에 맞춰 비트마다 체류 시간이 다르고,
+     마지막 비트(판정)에서 멈춘다(순환 안 함). 고객이 탭하면 autoBeat=false. */
   useEffect(() => {
     if (phase !== "generating" || !autoBeat) return;
-    const t = setInterval(() => setGenMsgIdx((i) => i + 1), 5000);
-    return () => clearInterval(t);
-  }, [phase, autoBeat]);
+    const beat = Math.min(genMsgIdx, BEATS.length - 1);
+    if (beat >= BEATS.length - 1) return; // 마지막 비트는 머문다
+    const t = setTimeout(() => setGenMsgIdx(beat + 1), BEAT_MS[beat]);
+    return () => clearTimeout(t);
+  }, [phase, autoBeat, genMsgIdx]);
 
   function getUtm(): string | null {
     try {
@@ -562,7 +567,8 @@ export default function LeadForm() {
   }
 
   if (phase === "generating") {
-    const beat = genMsgIdx % BEATS.length;
+    const beat = Math.min(genMsgIdx, BEATS.length - 1);
+    const isLastBeat = beat >= BEATS.length - 1;
     return (
       <div className="cold-panel rounded-lg p-6 sm:p-8">
         <p className="text-center text-sm font-medium text-text-secondary">
@@ -575,7 +581,7 @@ export default function LeadForm() {
           tabIndex={0}
           onClick={() => {
             setAutoBeat(false);
-            setGenMsgIdx((i) => i + 1);
+            setGenMsgIdx((i) => (i >= BEATS.length - 1 ? 0 : i + 1));
           }}
           className="mt-5 cursor-pointer select-none rounded-xl border border-border bg-bg-alt/60 p-5 transition hover:border-accent/40"
         >
@@ -588,8 +594,19 @@ export default function LeadForm() {
               {BEATS[beat].sub}
             </p>
           </div>
+          {/* 자동 진행 표시줄 — 다음 비트로 넘어가기까지 남은 시간을 보여준다.
+              수동 모드거나 마지막 비트면 표시하지 않는다(머문다). */}
+          <div className="mx-auto mt-4 h-1 w-24 overflow-hidden rounded-full bg-border/60">
+            {autoBeat && !isLastBeat && (
+              <div
+                key={beat}
+                className="beat-fill h-full rounded-full bg-accent/70"
+                style={{ animationDuration: `${BEAT_MS[beat]}ms` }}
+              />
+            )}
+          </div>
           {/* 비트 인디케이터 — 탭하면 그 단계로 */}
-          <div className="mt-4 flex items-center justify-center gap-2">
+          <div className="mt-3 flex items-center justify-center gap-2">
             {BEATS.map((_, i) => (
               <button
                 key={i}
@@ -607,7 +624,11 @@ export default function LeadForm() {
             ))}
           </div>
           <p className="mt-2.5 text-center text-[11px] text-text-tertiary">
-            {autoBeat ? "탭하면 직접 넘겨볼 수 있어요" : "탭해서 넘기는 중"}
+            {autoBeat
+              ? isLastBeat
+                ? "탭하면 단계를 다시 볼 수 있어요"
+                : "탭하면 직접 넘겨볼 수 있어요"
+              : "직접 넘겨보는 중 · 점을 눌러 이동"}
           </p>
         </div>
 

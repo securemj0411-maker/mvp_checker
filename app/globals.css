@@ -223,6 +223,16 @@ html.js .reveal-stagger:not(.in) > * {
   animation: genProgress 24s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
+/* 비트 자동 진행 표시줄 — 비트마다 animation-duration 을 인라인으로 준다 */
+@keyframes beatFill {
+  from { width: 0%; }
+  to   { width: 100%; }
+}
+.beat-fill {
+  width: 0%;
+  animation: beatFill linear forwards;
+}
+
 /* ─────────  Marquee (horizontal infinite scroll)  ───────── */
 @keyframes marqueeScroll {
   from { transform: translateX(0); }
