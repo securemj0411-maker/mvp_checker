@@ -282,6 +282,7 @@ export default function LeadForm() {
   const [policyFlag, setPolicyFlag] = useState<string>("none");
   const [policyLabel, setPolicyLabel] = useState<string | null>(null);
   const [genMsgIdx, setGenMsgIdx] = useState(0);
+  const [autoBeat, setAutoBeat] = useState(true); // 3비트 자동넘김 (탭하면 멈춤)
 
   const skippedInterpret = useRef(false);
   const interpretStatus = useRef<string>("original");
@@ -354,13 +355,21 @@ export default function LeadForm() {
     }
   }, []);
 
-  /* 설계서 생성 중 "이렇게 검증해요" 3비트 순환 (생성 끝날 때까지 루프) */
+  /* 생성 화면 진입 시 비트 리셋 + 자동넘김 켜기 */
   useEffect(() => {
-    if (phase !== "generating") return;
-    setGenMsgIdx(0);
-    const t = setInterval(() => setGenMsgIdx((i) => i + 1), 3200);
-    return () => clearInterval(t);
+    if (phase === "generating") {
+      setGenMsgIdx(0);
+      setAutoBeat(true);
+    }
   }, [phase]);
+
+  /* "이렇게 검증해요" 3비트 자동 순환 — 읽을 시간 충분히(5초).
+     고객이 점/카드를 탭해 직접 넘기면 autoBeat=false 로 멈춘다. */
+  useEffect(() => {
+    if (phase !== "generating" || !autoBeat) return;
+    const t = setInterval(() => setGenMsgIdx((i) => i + 1), 5000);
+    return () => clearInterval(t);
+  }, [phase, autoBeat]);
 
   function getUtm(): string | null {
     try {
@@ -560,8 +569,16 @@ export default function LeadForm() {
           설계서를 만드는 동안, 저희가 어떻게 검증하는지 보여드릴게요
         </p>
 
-        {/* 3비트 설명 — 자동으로 넘어감 */}
-        <div className="mt-5 rounded-xl border border-border bg-bg-alt/60 p-5">
+        {/* 3비트 설명 — 5초 자동, 카드/점 탭하면 직접 넘김(자동 멈춤) */}
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => {
+            setAutoBeat(false);
+            setGenMsgIdx((i) => i + 1);
+          }}
+          className="mt-5 cursor-pointer select-none rounded-xl border border-border bg-bg-alt/60 p-5 transition hover:border-accent/40"
+        >
           <div key={beat} className="quiz-step-in">
             <BeatArt beat={beat} />
             <p className="mt-4 text-center text-base font-bold text-text">
@@ -571,17 +588,27 @@ export default function LeadForm() {
               {BEATS[beat].sub}
             </p>
           </div>
-          {/* 비트 인디케이터 */}
-          <div className="mt-4 flex items-center justify-center gap-1.5">
+          {/* 비트 인디케이터 — 탭하면 그 단계로 */}
+          <div className="mt-4 flex items-center justify-center gap-2">
             {BEATS.map((_, i) => (
-              <span
+              <button
                 key={i}
-                className={`h-1.5 rounded-full transition-all ${
-                  i === beat ? "w-5 bg-accent" : "w-1.5 bg-border"
+                type="button"
+                aria-label={`${i + 1}단계 보기`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setAutoBeat(false);
+                  setGenMsgIdx(i);
+                }}
+                className={`h-2 rounded-full transition-all ${
+                  i === beat ? "w-5 bg-accent" : "w-2 bg-border hover:bg-accent/40"
                 }`}
               />
             ))}
           </div>
+          <p className="mt-2.5 text-center text-[11px] text-text-tertiary">
+            {autoBeat ? "탭하면 직접 넘겨볼 수 있어요" : "탭해서 넘기는 중"}
+          </p>
         </div>
 
         {/* 작업 중 표시 */}
