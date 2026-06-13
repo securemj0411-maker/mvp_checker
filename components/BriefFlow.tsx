@@ -210,6 +210,74 @@ function FounderVideo() {
   );
 }
 
+/* 실제 검증용 사이트가 어떻게 보일지 라이브 미리보기 (플랜 입력 즉시 반영) */
+function PagePreview({
+  name,
+  offer,
+  plans,
+}: {
+  name: string;
+  offer: string;
+  plans: { label: string; price: number; desc: string }[];
+}) {
+  const title = offer.trim() || name.trim() || "여기에 한 줄 제목이 들어가요";
+  const site = (name.trim() || "내서비스").replace(/\s/g, "").toLowerCase();
+  const shown = plans.filter((p) => p.label.trim() || p.price > 0);
+  const rows = shown.length ? shown : [{ label: "", price: 0, desc: "" }];
+  return (
+    <div className="mt-4">
+      <p className="mb-2 text-xs font-semibold text-text-tertiary">
+        실제 검증용 사이트엔 이렇게 보여요 (예시)
+      </p>
+      <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-[0_8px_24px_-12px_rgba(10,23,38,0.14)]">
+        <div className="flex items-center gap-1.5 border-b border-border-light bg-bg-alt px-3 py-2">
+          <span className="h-2 w-2 rounded-full bg-border" />
+          <span className="h-2 w-2 rounded-full bg-border" />
+          <span className="h-2 w-2 rounded-full bg-border" />
+          <span className="ml-2 truncate text-[10px] text-text-tertiary">
+            {site}.kr
+          </span>
+        </div>
+        <div className="p-4">
+          <p className="text-[15px] font-extrabold leading-snug text-text">
+            {title}
+          </p>
+          <div className="mt-3 space-y-2">
+            {rows.map((p, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between gap-2 rounded-lg border border-border bg-bg-alt px-3 py-2.5"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-[13px] font-bold text-text">
+                    {p.label.trim() || "플랜 이름"}
+                  </p>
+                  {p.desc.trim() && (
+                    <p className="truncate text-[11px] text-text-tertiary">
+                      {p.desc}
+                    </p>
+                  )}
+                </div>
+                <div className="flex flex-shrink-0 items-center gap-2">
+                  <span className="text-sm font-extrabold tracking-tight text-text">
+                    {p.price > 0 ? p.price.toLocaleString() : "0"}원
+                  </span>
+                  <span className="rounded-full bg-accent px-3 py-1.5 text-[11px] font-bold text-white">
+                    시작하기
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <p className="mt-1.5 text-[11px] leading-relaxed text-text-tertiary">
+        디자인은 담당 전문가가 더 보기 좋게 다듬어 만듭니다. 위는 구성 예시예요.
+      </p>
+    </div>
+  );
+}
+
 /* ───────── 1단계: 브리프 확정 ───────── */
 
 function BriefStep({
@@ -230,6 +298,7 @@ function BriefStep({
   // 확정 폼 상태 — 고객이 확인/수정하는 건 핵심 3개(오퍼·가격·가칭)뿐.
   // 타깃·문제·소구점·제외는 전문가가 정한 내부 자료로 보관만 한다.
   const [offer, setOffer] = useState("");
+  const [offerCustom, setOfferCustom] = useState(false); // "직접 쓸게요" 선택 여부
   // 플랜 1~3개 — 첫 플랜 가격이 대표 가격(price_value)이 된다. desc = 플랜 설명
   const [plans, setPlans] = useState<
     { label: string; price: number; desc: string }[]
@@ -397,11 +466,12 @@ function BriefStep({
           담당 전문가에게 넘기기 전, 마지막 확인이에요
         </p>
         <p className="mt-1 text-sm leading-relaxed text-text-secondary">
-          아래는 비즈필터가 먼저 잡아둔 출발점입니다. 여기에 적어주신 내용을
-          바탕으로 <b className="text-text">담당 검증 전문가가 페이지와 광고를
-          직접 만들고</b>, 시작 전에 한 번 더 검토합니다. 그대로 나가는 게
-          아니라, 가장 잘 먹히게 다듬습니다. 빠졌거나 애매한 게 있으면 먼저
-          연락드려요.
+          아래 내용은 비즈필터가 먼저 잡아본 초안이에요. 여기 적어주신 걸
+          바탕으로 <b className="text-text">담당 검증 전문가가 광고로 띄울
+          검증용 사이트(실제 서비스처럼 보이는 한 장짜리 웹사이트)와 광고를
+          직접 만듭니다.</b> 단순히 만들기만 하는 게 아니라, 사람들이 더 많이
+          누르고 결제까지 가도록 문구와 구성을 최적화해 드려요. 빠지거나 애매한
+          게 있으면 시작 전에 먼저 연락드릴게요.
         </p>
       </div>
 
@@ -410,7 +480,7 @@ function BriefStep({
         <p className="mb-2 text-xs leading-relaxed text-text-tertiary">
           카톡에 말하듯 편하게 적어주세요. 어떤 서비스인지, 누구한테 팔고
           싶은지, 꼭 강조하고 싶은 점, 원하는 느낌 등 뭐든 좋습니다. 담당
-          전문가가 다 읽고 페이지·광고에 반영하고, 궁금한 점은 연락드립니다.
+          전문가가 다 읽고 사이트와 광고에 반영하고, 궁금한 점은 연락드립니다.
           비워두셔도 괜찮습니다. 다만 한 줄이라도 더 적어주시면, 그만큼 더
           정확하게 맞춰 드려요.
         </p>
@@ -425,39 +495,72 @@ function BriefStep({
       </Card>
 
       {/* 1. 오퍼 핵심 문구 — 비즈필터가 뽑은 안 택1 OR 직접 수정 */}
-      <Card label="검증 페이지의 핵심 메시지" required>
+      <Card label="광고와 사이트에 들어갈 한 줄 제목" required>
         <p className="mb-2 text-xs leading-relaxed text-text-tertiary">
-          비즈필터가 뽑은 후보예요. 마음에 드는 걸 고르거나 직접 적어주세요.
-          이건 출발점이고, 최종 문구는 담당 전문가가 더 잘 먹히게 다듬습니다.
+          사람들이 가장 먼저 보게 될 한 줄이에요. 비즈필터가 먼저 뽑아본
+          후보를 고르거나, 직접 적으셔도 됩니다. 그대로 확정되는 게 아니라,
+          담당 전문가가 반응이 가장 좋게 다듬어 최종 결정합니다.
         </p>
         <div className="space-y-2">
-          {draft.offer_options.map((o) => (
+          {draft.offer_options.map((o) => {
+            const selected = !offerCustom && offer === o.headline;
+            return (
+              <button
+                key={o.headline}
+                type="button"
+                onClick={() => {
+                  setOffer(o.headline);
+                  setOfferCustom(false);
+                }}
+                className={`w-full rounded-md border px-4 py-3 text-left transition ${
+                  selected
+                    ? "border-accent bg-accent/10"
+                    : "border-border bg-surface-light hover:border-accent/60"
+                }`}
+              >
+                <span className="block text-[15px] font-semibold text-text">
+                  {o.headline}
+                </span>
+                <span className="mt-0.5 block text-xs text-text-tertiary">
+                  {o.angle}
+                </span>
+              </button>
+            );
+          })}
+          {offerCustom ? (
+            <div className="space-y-2">
+              <input
+                autoFocus
+                value={offer}
+                onChange={(e) => setOffer(e.target.value)}
+                maxLength={60}
+                className={`${inputBase} mt-0`}
+                placeholder="한 줄로 직접 적어주세요"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setOfferCustom(false);
+                  setOffer(draft.offer_options[0]?.headline ?? "");
+                }}
+                className="text-xs font-medium text-text-tertiary transition hover:text-text"
+              >
+                ← 후보에서 고를게요
+              </button>
+            </div>
+          ) : (
             <button
-              key={o.headline}
               type="button"
-              onClick={() => setOffer(o.headline)}
-              className={`w-full rounded-md border px-4 py-3 text-left transition ${
-                offer === o.headline
-                  ? "border-accent bg-accent/10"
-                  : "border-border bg-surface-light hover:border-accent/60"
-              }`}
+              onClick={() => {
+                setOfferCustom(true);
+                setOffer("");
+              }}
+              className="w-full rounded-md border border-dashed border-border px-4 py-3 text-left text-[15px] font-semibold text-text-secondary transition hover:border-accent/60"
             >
-              <span className="block text-[15px] font-semibold text-text">
-                {o.headline}
-              </span>
-              <span className="mt-0.5 block text-xs text-text-tertiary">
-                {o.angle}
-              </span>
+              직접 쓸게요
             </button>
-          ))}
+          )}
         </div>
-        <input
-          value={offer}
-          onChange={(e) => setOffer(e.target.value)}
-          maxLength={60}
-          className={inputBase}
-          placeholder="직접 고치셔도 됩니다"
-        />
       </Card>
 
       {/* 2. 표시 가격 · 플랜 — 고객이 직접 구성 (1~3개) */}
@@ -542,9 +645,10 @@ function BriefStep({
         )}
         <p className="mt-2 text-xs leading-relaxed text-text-tertiary">
           단건 옵션을 여러 개 보여주거나 구독 플랜을 나눠도 됩니다. 플랜마다
-          포함 내용을 적으면 그대로 페이지에 보여드립니다. 어떤 플랜이 많이
+          포함 내용을 적으면 그대로 사이트에 보여드립니다. 어떤 플랜이 많이
           눌리는지도 같이 측정해 드립니다.
         </p>
+        <PagePreview name={name} offer={offer} plans={plans} />
       </Card>
 
       {/* 3. 가칭 */}
