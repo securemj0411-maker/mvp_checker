@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { sendGAEvent } from "@next/third-parties/google";
 import { BANK_INFO, type BriefDraft, type ConfirmedBrief } from "@/lib/diagnosis";
 import { KAKAO_CHAT_URL } from "@/lib/site";
@@ -57,6 +57,8 @@ const STAGES: { key: Stage[]; label: string }[] = [
 export default function BriefFlow({ code }: { code: string }) {
   const [lead, setLead] = useState<PublicLead | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // 입금 전, 확정한 브리프를 다시 열어 수정하는 모드
+  const [editing, setEditing] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -145,8 +147,27 @@ export default function BriefFlow({ code }: { code: string }) {
         <StagePipeline stage={lead.stage} />
       </header>
 
-      {lead.stage === "brief" && <BriefStep code={code} lead={lead} onDone={load} />}
-      {lead.stage === "deposit" && <DepositStep lead={lead} />}
+      {(lead.stage === "brief" || editing) && (
+        <BriefStep
+          code={code}
+          lead={lead}
+          editing={editing}
+          onDone={() => {
+            setEditing(false);
+            load();
+          }}
+          onCancelEdit={() => setEditing(false)}
+        />
+      )}
+      {lead.stage === "deposit" && !editing && (
+        <DepositStep
+          lead={lead}
+          onEdit={() => {
+            setEditing(true);
+            window.scrollTo({ top: 0, behavior: "instant" });
+          }}
+        />
+      )}
       {(lead.stage === "paid" ||
         lead.stage === "build" ||
         lead.stage === "live" ||
@@ -284,10 +305,14 @@ function BriefStep({
   code,
   lead,
   onDone,
+  editing = false,
+  onCancelEdit,
 }: {
   code: string;
   lead: PublicLead;
   onDone: () => void;
+  editing?: boolean;
+  onCancelEdit?: () => void;
 }) {
   const [draft, setDraft] = useState<BriefDraft | null>(
     lead.brief?.draft ?? null,
@@ -343,6 +368,37 @@ function BriefStep({
     );
     setName((v) => v || draft.name_candidates[0] || "");
   }, [draft]);
+
+  // 수정 모드: 확정된 값으로 프리필 (초안 기본값 대신 고객이 정한 값). 1회만.
+  const editPrefilled = useRef(false);
+  useEffect(() => {
+    if (!editing || editPrefilled.current) return;
+    const c = lead.brief?.confirmed;
+    if (!c) return;
+    editPrefilled.current = true;
+    setOffer(c.offer || "");
+    if (c.plans && c.plans.length > 0) {
+      setPlans(
+        c.plans.map((p) => ({ label: p.label, price: p.price, desc: p.desc ?? "" })),
+      );
+    }
+    setName(c.name || "");
+    setNotes(c.notes || "");
+    const inOptions = (draft?.offer_options ?? []).some(
+      (o) => o.headline === c.offer,
+    );
+    if (c.offer && !inOptions) setOfferCustom(true);
+    const qs = (draft?.intake_questions ?? []).slice(0, 3);
+    if (c.intake && qs.length > 0) {
+      setIntakeAns(qs.map((q) => c.intake!.find((x) => x.q === q.key)?.a ?? ""));
+      setIntakeCustom(
+        qs.map((q) => {
+          const a = c.intake!.find((x) => x.q === q.key)?.a;
+          return !!a && !q.suggestions.includes(a);
+        }),
+      );
+    }
+  }, [editing, draft, lead.brief]);
 
   if (lead.policyFlag === "prohibited") {
     return (
@@ -471,9 +527,28 @@ function BriefStep({
       {/* 대표 인사 영상 — 영상 준비되면 되살리기 */}
       {/* <FounderVideo /> */}
 
+      {editing && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-accent/30 bg-accent/5 px-4 py-3">
+          <p className="text-sm font-semibold text-text">
+            수정 중이에요. 입금 전이라 자유롭게 고치실 수 있습니다.
+          </p>
+          {onCancelEdit && (
+            <button
+              type="button"
+              onClick={onCancelEdit}
+              className="flex-shrink-0 text-xs font-bold text-text-tertiary underline-offset-2 transition hover:text-text hover:underline"
+            >
+              취소
+            </button>
+          )}
+        </div>
+      )}
+
       <div className="cold-panel rounded-lg p-6">
         <p className="text-lg font-bold text-text">
-          담당 전문가에게 넘기기 전, 마지막 확인이에요
+          {editing
+            ? "확정 내용을 고치고 계세요"
+            : "담당 전문가에게 넘기기 전, 마지막 확인이에요"}
         </p>
         <p className="mt-1 text-sm leading-relaxed text-text-secondary">
           아래 내용은 비즈필터가 먼저 잡아본 초안이에요. 여기 적어주신 걸
@@ -869,12 +944,16 @@ function BriefStep({
         onClick={submit}
         className="w-full rounded-md bg-accent px-6 py-4 text-base font-bold text-white transition hover:bg-accent-hover disabled:opacity-50"
       >
-        {submitting ? "확정 중..." : "이대로 검증 시작하기"}
+        {submitting
+          ? "저장 중..."
+          : editing
+            ? "수정 내용 저장하기"
+            : "이대로 검증 시작하기"}
       </button>
       <p className="text-center text-xs text-text-tertiary">
-        확정하시면 담당 검증 전문가가 보통 1~2시간 안에(영업시간 기준) 설계를
-        직접 검토합니다. 문제가 없으면 그대로 진행하고, 보완할 점이 보이면
-        먼저 연락드립니다.
+        {editing
+          ? "고친 내용으로 다시 저장됩니다. 입금 전까지는 언제든 또 고치실 수 있어요."
+          : "확정하시면 담당 검증 전문가가 보통 1~2시간 안에(영업시간 기준) 설계를 직접 검토합니다. 문제가 없으면 그대로 진행하고, 보완할 점이 보이면 먼저 연락드립니다."}
       </p>
       <p className="text-center text-xs text-text-tertiary">
         다음 화면에서 입금 계좌를 안내드립니다 · 입금 전에는 비용이 발생하지
@@ -946,7 +1025,13 @@ function ConfirmRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function DepositStep({ lead }: { lead: PublicLead }) {
+function DepositStep({
+  lead,
+  onEdit,
+}: {
+  lead: PublicLead;
+  onEdit?: () => void;
+}) {
   const tier = lead.tiers[lead.tier === "engine" ? "engine" : "quick"];
   const confirmed = lead.brief?.confirmed;
   const due = lead.depositDueAt
@@ -1105,12 +1190,27 @@ function DepositStep({ lead }: { lead: PublicLead }) {
 
       {confirmed && (
         <div className="cold-panel rounded-lg p-6">
-          <p className="text-sm font-bold text-text">확정 내용</p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-bold text-text">확정 내용</p>
+            {onEdit && (
+              <button
+                type="button"
+                onClick={onEdit}
+                className="flex-shrink-0 rounded-full border border-border px-3 py-1.5 text-xs font-bold text-text-secondary transition hover:border-accent/60 hover:text-text"
+              >
+                수정하기
+              </button>
+            )}
+          </div>
           <dl className="mt-3 space-y-3">
             <ConfirmRow label="핵심 메시지" value={confirmed.offer} />
             <ConfirmRow label="표시 가격·플랜" value={planText(confirmed)} />
             <ConfirmRow label="임시 이름" value={confirmed.name} />
           </dl>
+          <p className="mt-3 text-xs leading-relaxed text-text-tertiary">
+            입금 전까지는 위 내용을 언제든 고치실 수 있어요. 입금 후에는 담당
+            전문가가 검토를 시작합니다.
+          </p>
         </div>
       )}
 

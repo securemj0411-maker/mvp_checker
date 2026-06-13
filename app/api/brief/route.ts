@@ -366,8 +366,14 @@ export async function POST(request: Request) {
     if (!confirmed || (tier !== "engine" && tier !== "quick")) {
       return Response.json({ error: "missing fields" }, { status: 400 });
     }
-    if (lead.brief_confirmed_at) {
-      return Response.json({ lead: publicLead(lead) }); // 이미 확정됨 (중복 클릭)
+    // 입금 전(deposit)까지는 재수정(고객이 '수정하기')을 허용한다.
+    // 입금/제작 이후(paid·build·live·verdict·closed)에는 잠금 — 중복 클릭 포함.
+    const stage = deriveStage(
+      lead as { status: string | null; brief_confirmed_at: string | null },
+    );
+    const isEdit = !!lead.brief_confirmed_at;
+    if (isEdit && stage !== "deposit") {
+      return Response.json({ lead: publicLead(lead) });
     }
 
     const now = new Date();
@@ -421,9 +427,14 @@ export async function POST(request: Request) {
       .update({
         brief: { ...(existing ?? {}), confirmed: fullConfirmed },
         tier,
-        brief_confirmed_at: now.toISOString(),
-        pass_bar_agreed_at: now.toISOString(),
-        deposit_due_at: due.toISOString(),
+        // 최초 확정에만 타임스탬프/입금기한을 찍는다. 수정 시엔 기한을 늘리지 않음.
+        ...(isEdit
+          ? {}
+          : {
+              brief_confirmed_at: now.toISOString(),
+              pass_bar_agreed_at: now.toISOString(),
+              deposit_due_at: due.toISOString(),
+            }),
       })
       .eq("id", lead.id as string);
     if (updateError) {
@@ -434,7 +445,7 @@ export async function POST(request: Request) {
     const { error: consentError } = await admin.from("consent_events").insert([
       {
         lead_id: lead.id as string,
-        event_type: "brief_confirmed",
+        event_type: isEdit ? "brief_edited" : "brief_confirmed",
         content: snapshot,
         ip,
         user_agent: ua,
