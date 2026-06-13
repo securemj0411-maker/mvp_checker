@@ -303,6 +303,8 @@ interface DiagnoseBody {
   utm?: string | null;
   userAgent?: string | null;
   interpretStatus?: string;
+  /** 재해석 재생성 시 기존 리드 코드 (있으면 insert 대신 update) */
+  code?: string;
 }
 
 export async function POST(request: Request) {
@@ -340,42 +342,75 @@ export async function POST(request: Request) {
     }
     answers.idea = answers.idea.trim().slice(0, 2000);
 
-    // 1) 리드부터 저장 — AI가 실패해도 리드는 남는다. 텔레그램 알림 트리거도 여기서 발화.
+    // 1) 리드 저장 — AI가 실패해도 리드는 남는다. 텔레그램 알림 트리거도 여기서.
     const admin = getSupabaseAdmin();
-    const accessCode = generateAccessCode();
     const path = recommendPath(answers);
     const measurable = isPageMeasurable(answers.pageUrl);
-    const { data: lead, error: insertError } = await admin
-      .from("o2o_leads")
-      .insert({
-        name: name.trim().slice(0, 100),
-        email: contact.trim().slice(0, 254),
-        phone: body.phone?.trim().slice(0, 20) || null,
-        idea: answers.idea,
-        idea_refined: answers.ideaRefined?.slice(0, 500) ?? null,
-        source: "landing-quiz-v2",
-        utm_source: body.utm?.slice(0, 50) ?? null,
-        service_type: answers.service,
-        audience: answers.audience,
-        revenue_model: answers.revenue,
-        build_status: answers.build,
-        price_band: answers.price,
-        alternative: answers.alternative,
-        region: answers.region ?? null,
-        location: answers.location?.slice(0, 200) ?? null,
-        page_url: answers.pageUrl?.slice(0, 500) ?? null,
-        page_measurable: measurable,
-        interpret_status: body.interpretStatus?.slice(0, 30) ?? null,
-        access_code: accessCode,
-        tier: path,
-        user_agent: body.userAgent?.slice(0, 500) ?? null,
-      })
-      .select("id")
-      .single();
+    // 답변/업종 기반 필드 (신규·재해석 갱신 공통)
+    const fields = {
+      idea: answers.idea,
+      idea_refined: answers.ideaRefined?.slice(0, 500) ?? null,
+      service_type: answers.service,
+      audience: answers.audience,
+      revenue_model: answers.revenue,
+      build_status: answers.build,
+      price_band: answers.price,
+      alternative: answers.alternative,
+      region: answers.region ?? null,
+      location: answers.location?.slice(0, 200) ?? null,
+      page_url: answers.pageUrl?.slice(0, 500) ?? null,
+      page_measurable: measurable,
+      interpret_status: body.interpretStatus?.slice(0, 30) ?? null,
+      tier: path,
+    };
 
-    if (insertError) {
-      console.error("[diagnose insert]", insertError);
-      return Response.json({ error: "insert failed" }, { status: 500 });
+    let accessCode = "";
+    let leadId = "";
+
+    // 재해석("다르게 이해했어요") — 확정 전이면 기존 리드를 갱신, 중복 리드를 안 만든다
+    const reviseCode =
+      typeof body.code === "string"
+        ? body.code.toUpperCase().replace(/\s/g, "").slice(0, 12)
+        : "";
+    if (reviseCode.length >= 8) {
+      const { data: existing } = await admin
+        .from("o2o_leads")
+        .select("id, brief_confirmed_at")
+        .eq("access_code", reviseCode)
+        .maybeSingle();
+      if (existing?.id && !existing.brief_confirmed_at) {
+        const { error: updErr } = await admin
+          .from("o2o_leads")
+          .update({ ...fields, policy_flag: "none" })
+          .eq("id", existing.id);
+        if (!updErr) {
+          accessCode = reviseCode;
+          leadId = existing.id as string;
+        }
+      }
+    }
+
+    if (!leadId) {
+      accessCode = generateAccessCode();
+      const { data: lead, error: insertError } = await admin
+        .from("o2o_leads")
+        .insert({
+          ...fields,
+          name: name.trim().slice(0, 100),
+          email: contact.trim().slice(0, 254),
+          phone: body.phone?.trim().slice(0, 20) || null,
+          source: "landing-quiz-v2",
+          utm_source: body.utm?.slice(0, 50) ?? null,
+          access_code: accessCode,
+          user_agent: body.userAgent?.slice(0, 500) ?? null,
+        })
+        .select("id")
+        .single();
+      if (insertError) {
+        console.error("[diagnose insert]", insertError);
+        return Response.json({ error: "insert failed" }, { status: 500 });
+      }
+      leadId = lead.id as string;
     }
 
     // 2) 정책 분류를 먼저 — 차단 업종이면 설계서 생성을 스킵(토큰 0)하고 짧게 거절
@@ -384,7 +419,7 @@ export async function POST(request: Request) {
       await admin
         .from("o2o_leads")
         .update({ policy_flag: "prohibited", tier: null })
-        .eq("id", lead.id);
+        .eq("id", leadId);
       return Response.json({
         report: null,
         path,
@@ -420,7 +455,7 @@ export async function POST(request: Request) {
     const { error: updateError } = await admin
       .from("o2o_leads")
       .update({ ai_report: { ...report, source }, policy_flag: "none" })
-      .eq("id", lead.id);
+      .eq("id", leadId);
     if (updateError) console.error("[diagnose update]", updateError);
 
     return Response.json({

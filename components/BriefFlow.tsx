@@ -135,8 +135,7 @@ export default function BriefFlow({ code }: { code: string }) {
               {lead.name}님의 검증 현황
             </p>
             <p className="mt-0.5 text-xs text-text-tertiary">
-              진행 코드 <b className="font-mono text-text-secondary">{code}</b>{" "}
-              · 이 페이지를 즐겨찾기 해두시면 언제든 다시 보실 수 있습니다
+              진행 코드 <b className="font-mono text-text-secondary">{code}</b>
             </p>
             <p className="mt-1 text-xs text-text-tertiary">
               진행 현황이 바뀔 때마다 남겨주신 번호로 문자를 드립니다.

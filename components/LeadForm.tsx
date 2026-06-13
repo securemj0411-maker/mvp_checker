@@ -171,6 +171,14 @@ const QUESTIONS: Question[] = [
 
 const STORAGE_KEY = "bizfilter_quiz_v2";
 
+/** 휴대폰 번호 입력 시 자동으로 하이픈 삽입 (010-1234-5678) */
+function formatPhone(v: string): string {
+  const d = v.replace(/\D/g, "").slice(0, 11);
+  if (d.length <= 3) return d;
+  if (d.length <= 7) return `${d.slice(0, 3)}-${d.slice(3)}`;
+  return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`;
+}
+
 /* 설계서 생성(10~30초) 동안 보여줄 "이렇게 검증해요" 3비트 */
 const BEATS: { title: string; sub: string }[] = [
   {
@@ -278,6 +286,7 @@ export default function LeadForm() {
   const skippedInterpret = useRef(false);
   const interpretStatus = useRef<string>("original");
   const restored = useRef(false);
+  const reviseRef = useRef(false); // 리포트에서 "다르게 이해했어요"로 되물음 재진입
 
   /* 이탈 후 복귀 — 진행 상태를 로컬에 저장하고, 재방문 시 이어서 진행 */
   useEffect(() => {
@@ -403,7 +412,14 @@ export default function LeadForm() {
     sendGAEvent("event", "quiz_interpret_pick", {
       picked: detail ? "candidate" : "original",
     });
-    setPhase("quiz");
+    if (reviseRef.current) {
+      // 리포트에서 "다르게 이해했어요"로 돌아온 경우: 퀴즈 재탕 없이
+      // 기존 리드를 갱신해 바로 재생성한다 (중복 리드 X)
+      reviseRef.current = false;
+      runGenerate(detail, accessCode);
+    } else {
+      setPhase("quiz");
+    }
   }
 
   /* ── 객관식: 탭 한 번이면 다음 청크 ── */
@@ -422,16 +438,19 @@ export default function LeadForm() {
     else setPhase("idea");
   }
 
-  /* ── 제출 → 설계서 생성 ── */
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  /* ── 설계서 생성 (신규 제출 + 재해석 재생성 공통) ──
+     existingCode가 있으면 새 리드를 만들지 않고 그 리드를 갱신해 재생성한다 */
+  async function runGenerate(
+    refined: string | null,
+    existingCode: string | null,
+  ) {
     setSubmitting(true);
     setErrorMsg(null);
     setPhase("generating");
 
     const quizAnswers: QuizAnswers = {
       idea: idea.trim(),
-      ideaRefined,
+      ideaRefined: refined,
       service: (answers.service ?? "unknown") as QuizAnswers["service"],
       build: (answers.build ?? "need") as QuizAnswers["build"],
       audience: (answers.audience ?? "unknown") as QuizAnswers["audience"],
@@ -458,6 +477,7 @@ export default function LeadForm() {
           phone: contact.trim() || undefined,
           utm: getUtm(),
           interpretStatus: interpretStatus.current,
+          code: existingCode ?? undefined,
           userAgent:
             typeof navigator !== "undefined" ? navigator.userAgent : null,
         }),
@@ -488,14 +508,24 @@ export default function LeadForm() {
       }
     } catch (err) {
       console.error("[lead submit error]", err);
-      setErrorMsg(
-        "설계서 생성 중 문제가 생겼습니다. 잠시 후 다시 시도해주세요. 계속 문제가 생기면 카톡 채널로 문의해주세요.",
-      );
-      setPhase("contact");
+      if (existingCode) {
+        // 재해석 재생성 실패 — 기존 설계서를 그대로 다시 보여준다
+        setPhase("done");
+      } else {
+        setErrorMsg(
+          "설계서 생성 중 문제가 생겼습니다. 잠시 후 다시 시도해주세요. 계속 문제가 생기면 카톡 채널로 문의해주세요.",
+        );
+        setPhase("contact");
+      }
     } finally {
       clearTimeout(timeout);
       setSubmitting(false);
     }
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    await runGenerate(ideaRefined, null);
   }
 
   /* ───────────────────── 화면 ───────────────────── */
@@ -512,6 +542,11 @@ export default function LeadForm() {
           build={(answers.build ?? "need") as QuizAnswers["build"]}
           accessCode={accessCode}
           answers={answers}
+          onRevise={() => {
+            reviseRef.current = true;
+            setCustomMode(false);
+            setPhase(interp ? "interpret" : "idea");
+          }}
         />
       );
     }
@@ -740,10 +775,10 @@ export default function LeadForm() {
             type="tel"
             inputMode="tel"
             value={contact}
-            onChange={(e) => setContact(e.target.value)}
+            onChange={(e) => setContact(formatPhone(e.target.value))}
             className={inputBase}
             placeholder="010-1234-5678"
-            maxLength={20}
+            maxLength={13}
           />
         </div>
 
@@ -921,12 +956,14 @@ function ReportView({
   build,
   accessCode,
   answers,
+  onRevise,
 }: {
   report: Report;
   path: RecommendedPath;
   build: QuizAnswers["build"];
   accessCode: string | null;
   answers: Partial<Record<QuizKey, string>>;
+  onRevise: () => void;
 }) {
   useEffect(() => {
     sendGAEvent("event", "report_view", { path });
@@ -1111,6 +1148,13 @@ function ReportView({
         <p className="mt-2 text-center text-xs text-text-tertiary">
           눌러도 바로 시작되지 않습니다 · 세부 내용을 확인하고 동의해야 시작
         </p>
+        <button
+          type="button"
+          onClick={onRevise}
+          className="mt-3 block w-full text-center text-sm font-semibold text-text-secondary underline-offset-2 transition hover:text-accent hover:underline"
+        >
+          이해가 다른가요? 다시 알려주기
+        </button>
         <a
           href="#how-we-validate"
           className="mt-2 block text-center text-sm font-medium text-text-tertiary transition hover:text-text"
