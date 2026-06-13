@@ -396,7 +396,7 @@ function PagePreview({
         </div>
       </div>
       <p className="mt-1.5 text-[11px] leading-relaxed text-text-tertiary">
-        디자인은 담당 전문가가 더 보기 좋게 다듬어 만듭니다. 위는 구성 예시예요.
+        디자인은 담당 전문가가 더 보기 좋게 다듬어 만듭니다. 위는 구성 예시입니다.
       </p>
     </div>
   );
@@ -523,7 +523,7 @@ function BriefStep({
     const steps = [
       "광고에 쓸 핵심 문구(첫 줄)를 뽑고 있습니다",
       "표시할 가격을 정하고 있습니다",
-      "검증용 페이지 구성을 짜고 있습니다",
+      "검증용 사이트 구성을 짜고 있습니다",
       "서비스 임시 이름을 만들고 있습니다",
     ];
     return (
@@ -633,7 +633,7 @@ function BriefStep({
       {editing && (
         <div className="flex items-center justify-between gap-3 rounded-xl border border-accent/30 bg-accent/5 px-4 py-3">
           <p className="text-sm font-semibold text-text">
-            수정 중이에요. 입금 전이라 자유롭게 고치실 수 있습니다.
+            수정 중입니다. 입금 전이라 자유롭게 고치실 수 있습니다.
           </p>
           {onCancelEdit && (
             <button
@@ -650,11 +650,11 @@ function BriefStep({
       <div className="cold-panel rounded-lg p-6">
         <p className="text-lg font-bold text-text">
           {editing
-            ? "확정 내용을 고치고 계세요"
-            : "담당 전문가에게 넘기기 전, 마지막 확인이에요"}
+            ? "확정 내용을 고치고 계십니다"
+            : "담당 전문가에게 넘기기 전, 마지막으로 확인합니다"}
         </p>
         <p className="mt-1 text-sm leading-relaxed text-text-secondary">
-          아래 내용은 비즈필터가 먼저 잡아본 초안이에요. 여기 적어주신 걸
+          아래 내용은 비즈필터가 먼저 잡아본 초안입니다. 여기 적어주신 걸
           바탕으로 <b className="text-text">담당 검증 전문가가 광고로 띄울
           검증용 사이트(실제 서비스처럼 보이는 한 장짜리 웹사이트)와 광고를
           직접 만듭니다.</b> 단순히 만들기만 하는 게 아니라, 사람들이 더 많이
@@ -753,7 +753,7 @@ function BriefStep({
       {/* 1. 오퍼 핵심 문구 — 비즈필터가 뽑은 안 택1 OR 직접 수정 */}
       <Card label="광고와 사이트에 들어갈 한 줄 제목" required>
         <p className="mb-2 text-xs leading-relaxed text-text-tertiary">
-          사람들이 가장 먼저 보게 될 한 줄이에요. 비즈필터가 먼저 뽑아본
+          사람들이 가장 먼저 보게 될 한 줄입니다. 비즈필터가 먼저 뽑아본
           후보를 고르거나, 직접 적으셔도 됩니다. 그대로 확정되는 게 아니라,
           담당 전문가가 반응이 가장 좋게 다듬어 최종 결정합니다.
         </p>
@@ -947,16 +947,16 @@ function BriefStep({
           const bullets = [
             isEngine
               ? "이미 갖고 계신 페이지에 측정 장치를 붙입니다"
-              : "실제 서비스처럼 보이는 검증용 페이지를 전문가가 직접 만듭니다",
+              : "실제 서비스처럼 보이는 검증용 사이트를 전문가가 직접 만듭니다",
             "실제 구글·메타 광고로 모르는 사람 수백 명을 데려옵니다 (광고비 포함)",
             "누가 들어와서 결제 버튼까지 눌렀는지 숫자로 집계합니다",
             "7일 안에 살 사람이 있는지, 될 사업인지 판정해 드립니다",
           ];
           const why = isEngine
-            ? "페이지를 이미 갖고 계셔서, 페이지 제작은 빼고 측정·광고·판정만 진행하는 방식이에요."
+            ? "페이지를 이미 갖고 계셔서, 페이지 제작은 빼고 측정·광고·판정만 진행하는 방식입니다."
             : engineBlocked
-              ? "입력하신 페이지는 측정 장치를 붙일 수 없는 플랫폼이라, 검증용 페이지부터 저희가 새로 만듭니다."
-              : "보여줄 페이지가 아직 없으셔서, 검증용 페이지 제작부터 전부 저희가 맡습니다.";
+              ? "입력하신 페이지는 측정 장치를 붙일 수 없는 플랫폼이라, 검증용 사이트부터 저희가 새로 만듭니다."
+              : "보여줄 페이지가 아직 없으셔서, 검증용 사이트 제작부터 전부 저희가 맡습니다.";
           return (
             <div className="rounded-xl border-2 border-accent bg-accent/5 p-5 shadow-[0_8px_24px_-12px_var(--accent-glow)]">
               <div className="flex items-baseline justify-between gap-3">
@@ -969,7 +969,7 @@ function BriefStep({
               </div>
               <p className="mt-1 text-xs leading-relaxed text-text-tertiary">
                 {why} 답변에 맞춰 자동으로 정해졌고, 광고비까지 포함된
-                금액이에요.
+                금액입니다.
               </p>
               <ul className="mt-3 space-y-2 border-t border-border/60 pt-3">
                 {bullets.map((b) => (
@@ -1055,7 +1055,7 @@ function BriefStep({
       </button>
       <p className="text-center text-xs text-text-tertiary">
         {editing
-          ? "고친 내용으로 다시 저장됩니다. 입금 전까지는 언제든 또 고치실 수 있어요."
+          ? "고친 내용으로 다시 저장됩니다. 입금 전까지는 언제든 또 고치실 수 있습니다."
           : "확정하시면 담당 검증 전문가가 보통 1~2시간 안에(영업시간 기준) 설계를 직접 검토합니다. 문제가 없으면 그대로 진행하고, 보완할 점이 보이면 먼저 연락드립니다."}
       </p>
       <p className="text-center text-xs text-text-tertiary">
@@ -1246,7 +1246,7 @@ function DepositStep({
         </div>
 
         <div className="mt-4 rounded-xl border border-border bg-bg-alt/60 p-5">
-          <p className="text-sm font-bold text-text">입금하신 다음은요</p>
+          <p className="text-sm font-bold text-text">입금 후 진행 순서</p>
           <ol className="mt-3 space-y-3">
             {[
               "담당 검증 전문가가 확정하신 준비안을 직접 검토합니다 (보통 1~2시간, 영업시간 기준). 문제가 없으면 그대로 진행하고, 보완할 점이 보이면 먼저 연락드립니다.",
@@ -1311,7 +1311,7 @@ function DepositStep({
             <ConfirmRow label="임시 이름" value={confirmed.name} />
           </dl>
           <p className="mt-3 text-xs leading-relaxed text-text-tertiary">
-            입금 전까지는 위 내용을 언제든 고치실 수 있어요. 입금 후에는 담당
+            입금 전까지는 위 내용을 언제든 고치실 수 있습니다. 입금 후에는 담당
             전문가가 검토를 시작합니다.
           </p>
         </div>
@@ -1559,7 +1559,7 @@ function Cockpit({ lead, preview = false }: { lead: PublicLead; preview?: boolea
       <div className="mt-6 rounded-2xl border border-border bg-bg-alt/40 px-4 py-4">
         <div className="flex items-center justify-between gap-3">
           <span className="text-xs font-semibold text-text-tertiary">
-            합격선 (광고 전 못박은 목표)
+            합격선 (광고 전에 정한 통과선)
           </span>
           {hasData && target != null ? (
             <span
@@ -1595,10 +1595,10 @@ function Cockpit({ lead, preview = false }: { lead: PublicLead; preview?: boolea
                     <b className="text-text">{payRate.toFixed(1)}</b>
                   </>
                 ) : (
-                  "측정 시작 후 목표선과 비교해 드려요"
+                  "측정 시작 후 합격선과 비교해 드립니다"
                 )}
               </span>
-              <span>목표 {target}</span>
+              <span>합격선 {target}</span>
             </div>
           </>
         ) : (
@@ -1619,19 +1619,19 @@ function VerdictSample() {
       stamp: "GO",
       c: "#06A86B",
       bg: "#E4F7EF",
-      t: "합격선을 넘었습니다. 만들 근거가 확인됐어요.",
+      t: "합격선을 넘었습니다. 만들 근거가 확인됐습니다.",
     },
     {
       stamp: "PIVOT",
       c: "#C77A00",
       bg: "#FBF1DE",
-      t: "수요는 있지만 이 가격은 아니에요. 조건을 바꿔 다시 볼 가치가 있습니다.",
+      t: "수요는 있지만 이 가격은 아닙니다. 조건을 바꿔 다시 볼 가치가 있습니다.",
     },
     {
       stamp: "NO-GO",
       c: "#E8453C",
       bg: "#FCEBE9",
-      t: "결제 의향이 약했어요. 만들기 전에 멈춰 비용을 아꼈습니다.",
+      t: "결제 의향이 약했습니다. 만들기 전에 멈춰 비용을 아꼈습니다.",
     },
   ];
   return (

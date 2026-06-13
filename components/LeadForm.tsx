@@ -62,7 +62,7 @@ const QUESTIONS: Question[] = [
   {
     id: "build",
     title: "이 아이디어를 보여줄 웹페이지, 지금 있으세요?",
-    sub: "한 장짜리 소개 페이지(랜딩페이지)면 됩니다. 답에 따라 가장 싼 경로를 추천해 드립니다.",
+    sub: "한 장짜리 소개 페이지면 됩니다. 답에 따라 가장 싼 경로를 추천해 드립니다.",
     options: [
       {
         value: "self",
@@ -72,7 +72,7 @@ const QUESTIONS: Question[] = [
       {
         value: "need",
         label: "비즈필터가 만들어 주세요",
-        hint: "실제 서비스처럼 보이는 소개 페이지를 저희가 대신 만들어 드립니다",
+        hint: "실제 서비스처럼 보이는 검증용 사이트를 저희가 대신 만들어 드립니다",
       },
       {
         value: "built",
@@ -142,7 +142,7 @@ const QUESTIONS: Question[] = [
   {
     id: "price",
     title: "고객이 한 번 결제할 때, 얼마 정도인가요?",
-    sub: "검증 페이지의 결제 버튼에 표시할 금액이에요(평생 쓰는 총액이 아니라 한 번 낼 때 기준). 구독·회원제면 한 달 요금, 방문형이면 1회 비용, 회사 대상이면 회사 하나 기준. 주력 플랜 하나로 골라주시면 됩니다.",
+    sub: "검증용 사이트에 1회 기준으로 보여줄 금액입니다(평생 쓰는 총액이 아니라 한 번 낼 때 기준). 구독·회원제면 한 달 요금, 방문형이면 1회 비용, 회사 대상이면 회사 하나 기준. 주력 플랜 하나로 골라주시면 됩니다.",
     options: [
       { value: "under10k", label: "1만원 미만" },
       { value: "10kto50k", label: "1~5만원" },
@@ -655,7 +655,7 @@ export default function LeadForm() {
     return (
       <div className="cold-panel rounded-lg p-6 sm:p-8">
         <p className="text-center text-sm font-medium text-text-secondary">
-          설계서를 만드는 동안, 저희가 어떻게 검증하는지 보여드릴게요
+          설계서를 만드는 동안, 저희가 어떻게 검증하는지 보여드립니다
         </p>
 
         {/* 3비트 설명 — 5초 자동, 카드/점 탭하면 직접 넘김(자동 멈춤) */}
@@ -719,7 +719,7 @@ export default function LeadForm() {
         <div className="mt-5 flex items-center justify-center gap-2.5">
           <div className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-accent" />
           <p className="text-sm font-medium text-text-secondary">
-            내 설계서를 만들고 있어요 · 10~30초
+            내 설계서를 만들고 있습니다 · 10~30초
           </p>
         </div>
         <div className="mx-auto mt-3 h-1.5 w-48 max-w-full overflow-hidden rounded-full bg-bg-alt">
@@ -780,7 +780,7 @@ export default function LeadForm() {
               AI가 아이디어를 분석하고 있습니다
             </p>
             <p className="mt-1 text-sm text-text-secondary">
-              이 문장이 광고 문구와 검증용 페이지의 출발점이 됩니다. 그래서
+              이 문장이 광고 문구와 검증용 사이트의 출발점이 됩니다. 그래서
               뜻을 한 번 더 확인합니다. 실제 광고는 모든 내용을 직접 확인하고
               동의하신 뒤에만 나갑니다.
             </p>
@@ -856,7 +856,7 @@ export default function LeadForm() {
                 <div className="flex items-center justify-between">
                   <BackButton onClick={() => setPhase("idea")} />
                   <p className="text-xs text-text-tertiary">
-                    맞다고 누르면 몇 가지만 더 여쭤봐요
+                    맞다고 누르면 몇 가지만 더 여쭙니다
                   </p>
                 </div>
               </>
@@ -871,7 +871,7 @@ export default function LeadForm() {
                         <span>
                           맞춤 질문 {gapIdx + 1} / {gaps.length}
                         </span>
-                        <span>AI가 보기를 미리 채워뒀어요</span>
+                        <span>AI가 보기를 미리 채웠습니다</span>
                       </div>
                       <div className="mt-2 h-1 overflow-hidden rounded-full bg-bg-alt">
                         <div
@@ -885,7 +885,7 @@ export default function LeadForm() {
                     <div>
                       <p className="text-xl font-bold text-text">{g.question}</p>
                       <p className="mt-1 text-sm leading-relaxed text-text-secondary">
-                        이 답이 검증용 페이지와 광고 문구에 그대로 반영됩니다.
+                        이 답이 검증용 사이트와 광고 문구에 그대로 반영됩니다.
                         해당되는 걸 다 고르셔도 되고(여러 개 가능), 직접 적으셔도
                         됩니다.
                       </p>
@@ -965,7 +965,7 @@ export default function LeadForm() {
                         }}
                       />
                       <p className="text-xs text-text-tertiary">
-                        고를수록 설계서가 정확해져요
+                        고를수록 설계서가 정확해집니다
                       </p>
                     </div>
                   </>
@@ -988,7 +988,7 @@ export default function LeadForm() {
         <Progress current={chunkIndex} total={totalChunks} />
         <div>
           <p className="text-xl font-bold text-text">
-            거의 다 됐어요. 연락받을 곳만 남겨주세요.
+            거의 다 왔습니다. 연락받을 곳만 남겨 주세요.
           </p>
           <p className="mt-1 text-sm text-text-secondary">
             검증 설계서는 바로 다음 화면에 뜹니다. 전화를 드리는 일은 없고,

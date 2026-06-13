@@ -364,7 +364,7 @@ function HeroShot() {
           <div className="mt-5 space-y-3">
             <div className="flex justify-between text-sm">
               <span className="font-medium text-text-tertiary">
-                합격선 (광고 전 미리 정한 기준)
+                합격선 (광고 전에 정한 통과선)
               </span>
               <span className="font-bold text-text">결제 버튼 클릭률 3.0%</span>
             </div>
@@ -475,7 +475,7 @@ function TourFakeDoor() {
         <>
           진짜 서비스처럼 보이는
           <br />
-          페이지를 띄웁니다
+          사이트를 띄웁니다
         </>
       }
       body={
@@ -730,7 +730,7 @@ function TourVerdict() {
       label="판정"
       title={
         <>
-          7일 뒤, Go / No-Go
+          7일 뒤, Go/No-Go
           <br />
           판정서를 받습니다
         </>
@@ -807,7 +807,7 @@ function Process() {
       n: "3",
       d: "DAY 7",
       h: "판정 리포트",
-      p: "Go / No-Go 판정서를 보내드립니다. 숫자의 해석과 다음 액션까지 정리하고, 질문은 일주일간 답해드립니다.",
+      p: "Go/No-Go 판정서를 보내드립니다. 숫자의 해석과 다음 액션까지 정리하고, 질문은 일주일간 답해드립니다.",
     },
   ];
   return (
