@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, LayoutGrid, Plus } from "lucide-react";
 import { getSupabaseServer } from "@/lib/supabaseServer";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { BrandMark, Wordmark } from "@/components/Brand";
+import { KAKAO_CHAT_URL } from "@/lib/site";
 import MyLeads, { type MyLead } from "./MyLeads";
 
 export const dynamic = "force-dynamic";
@@ -105,66 +106,173 @@ export default async function MyPage() {
     done: rows.filter((l) => ["won", "lost"].includes(status(l))).length,
   };
 
+  // 사이드바 검증 목록의 상태 도트 색 (MyLeads 칩 팔레트와 동일 계열)
+  const TONE_DOT: Record<MyLead["tone"], string> = {
+    action: "#E08A00",
+    progress: "var(--accent)",
+    done: "#06A86B",
+    closed: "var(--text-tertiary)",
+    neutral: "var(--text-tertiary)",
+  };
+
+  // 요약 타일 — 코크핏과 같은 톤 (3 화이트 + 진행 중 accent 히어로)
+  const tiles: { k: string; v: number; hero?: boolean }[] = [
+    { k: "전체", v: overview.total },
+    { k: "진행 중", v: overview.active, hero: true },
+    { k: "입금 대기", v: overview.awaiting },
+    { k: "완료", v: overview.done },
+  ];
+
   return (
     <main className="min-h-screen bg-bg">
-      <header className="border-b border-border/70 bg-bg/85 backdrop-blur-xl">
-        <div className="mx-auto flex h-[64px] max-w-2xl items-center justify-between px-5 sm:px-6">
-          <a href="/" className="flex items-center gap-2.5 text-[19px]">
+      <div className="lg:flex">
+        {/* ── 데스크탑 좌측 사이드바 (계정 네비) ── */}
+        <aside className="sticky top-0 hidden h-screen w-64 flex-shrink-0 flex-col border-r border-border bg-surface px-5 py-6 lg:flex">
+          <a href="/" className="flex items-center gap-2 text-[18px]">
             <BrandMark />
             <Wordmark />
           </a>
-          <form action="/api/auth/logout" method="post">
-            <button className="text-[15px] font-semibold text-text-tertiary transition hover:text-text">
-              로그아웃
-            </button>
-          </form>
-        </div>
-      </header>
-
-      <div className="mx-auto max-w-2xl px-5 py-10 sm:px-6 sm:py-12">
-        <p className="text-[15px] font-bold text-accent">내 검증 현황</p>
-        <h1 className="mt-2 text-[28px] font-extrabold leading-[1.2] tracking-[-0.03em] text-text">
-          {displayName ? `${displayName}님` : "반갑습니다"}
-        </h1>
-        <p className="mt-2.5 text-[15px] leading-[1.65] text-text-secondary">
-          신청하신 검증을 한곳에서 보고, 이어서 진행하실 수 있습니다.
-        </p>
-
-        {overview.total > 0 && (
-          <div className="mt-7 grid grid-cols-4 gap-2">
-            {[
-              { k: "전체", v: overview.total, accent: false },
-              { k: "진행 중", v: overview.active, accent: true },
-              { k: "입금 대기", v: overview.awaiting, accent: false },
-              { k: "완료", v: overview.done, accent: false },
-            ].map((c) => (
-              <div key={c.k} className="rounded-[14px] bg-bg-alt px-3 py-3.5">
-                <p className="text-[11px] font-semibold text-text-tertiary">
-                  {c.k}
-                </p>
-                <p
-                  className={`mt-1 text-2xl font-extrabold tracking-tight ${
-                    c.accent && c.v > 0 ? "text-accent" : "text-text"
-                  }`}
-                >
-                  {c.v}
-                </p>
-              </div>
-            ))}
+          <div className="mt-7">
+            <p className="text-[15px] font-bold text-text">
+              {displayName ? `${displayName}님` : "내 계정"}
+            </p>
+            <p className="mt-0.5 text-[11px] text-text-tertiary">내 검증 현황</p>
           </div>
-        )}
 
-        <div className="mt-6">
-          <MyLeads leads={leads} hasPhone={hasPhone} />
+          <p className="mt-6 text-[11px] font-bold uppercase tracking-wider text-text-tertiary">
+            메뉴
+          </p>
+          <nav className="mt-2.5 space-y-0.5">
+            <span className="flex items-center gap-2.5 rounded-lg bg-accent/10 px-2.5 py-2 text-[13px] font-bold text-accent">
+              <LayoutGrid className="h-4 w-4 flex-shrink-0" strokeWidth={2.5} />
+              전체 현황
+            </span>
+            <a
+              href="/start"
+              className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium text-text-tertiary transition hover:bg-bg-alt hover:text-text"
+            >
+              <Plus className="h-4 w-4 flex-shrink-0" strokeWidth={2.5} />
+              새 검증 신청
+            </a>
+          </nav>
+
+          {leads.length > 0 && (
+            <>
+              <p className="mt-6 text-[11px] font-bold uppercase tracking-wider text-text-tertiary">
+                검증 {leads.length}건
+              </p>
+              <nav className="mt-2.5 max-h-[38vh] space-y-0.5 overflow-y-auto">
+                {leads.map((l) => (
+                  <a
+                    key={l.code}
+                    href={`/d/${l.code}`}
+                    title={l.idea || l.code}
+                    className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition hover:bg-bg-alt"
+                  >
+                    <span
+                      className="h-1.5 w-1.5 flex-shrink-0 rounded-full"
+                      style={{ background: TONE_DOT[l.tone] }}
+                    />
+                    <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-text-secondary">
+                      {l.idea || l.code}
+                    </span>
+                  </a>
+                ))}
+              </nav>
+            </>
+          )}
+
+          <div className="mt-auto space-y-2 pt-6">
+            <a
+              href={KAKAO_CHAT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-xs font-bold transition hover:brightness-95"
+              style={{ background: "#FEE500", color: "#191600" }}
+            >
+              카카오톡 문의
+            </a>
+            <form action="/api/auth/logout" method="post">
+              <button className="block w-full rounded-lg px-3 py-2 text-center text-xs font-semibold text-text-tertiary transition hover:text-text">
+                로그아웃
+              </button>
+            </form>
+          </div>
+        </aside>
+
+        {/* ── 콘텐츠 영역 ── */}
+        <div className="min-w-0 flex-1">
+          <div className="mx-auto max-w-3xl space-y-6 px-4 py-7 sm:px-6 sm:py-9">
+            {/* 모바일 상단 — 사이드바 대체 */}
+            <div className="flex items-center justify-between lg:hidden">
+              <a href="/" className="flex items-center gap-2">
+                <BrandMark size={24} />
+                <Wordmark className="text-base" />
+              </a>
+              <form action="/api/auth/logout" method="post">
+                <button className="text-xs font-semibold text-text-tertiary transition hover:text-text">
+                  로그아웃
+                </button>
+              </form>
+            </div>
+
+            {/* 헤더 */}
+            <div>
+              <p className="text-[13px] font-bold text-accent">내 검증 현황</p>
+              <h1 className="mt-1.5 text-[26px] font-extrabold leading-[1.2] tracking-[-0.03em] text-text sm:text-[28px]">
+                {displayName ? `${displayName}님` : "반갑습니다"}
+              </h1>
+              <p className="mt-2 text-[14px] leading-[1.6] text-text-secondary">
+                신청하신 검증을 한곳에서 보고, 이어서 진행하실 수 있습니다.
+              </p>
+            </div>
+
+            {/* 요약 타일 */}
+            {overview.total > 0 && (
+              <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+                {tiles.map((t) =>
+                  t.hero ? (
+                    <div
+                      key={t.k}
+                      className="rounded-2xl bg-accent px-4 py-4 text-white shadow-[0_12px_28px_-12px_var(--accent-glow)]"
+                    >
+                      <p className="text-[12px] font-semibold text-white/85">
+                        {t.k}
+                      </p>
+                      <p className="mt-1.5 text-[26px] font-extrabold leading-none tracking-tight">
+                        {t.v}
+                      </p>
+                    </div>
+                  ) : (
+                    <div
+                      key={t.k}
+                      className="rounded-2xl border border-border bg-surface px-4 py-4"
+                    >
+                      <p className="text-[12px] font-semibold text-text-tertiary">
+                        {t.k}
+                      </p>
+                      <p className="mt-1.5 text-[26px] font-extrabold leading-none tracking-tight text-text">
+                        {t.v}
+                      </p>
+                    </div>
+                  ),
+                )}
+              </div>
+            )}
+
+            {/* 검증 목록 + 불러오기 폼 */}
+            <MyLeads leads={leads} hasPhone={hasPhone} />
+
+            {/* 새 검증 신청 CTA */}
+            <a
+              href="/start"
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-accent px-7 py-4 text-base font-bold text-white shadow-[0_10px_24px_-8px_var(--accent-glow)] transition hover:-translate-y-0.5 hover:bg-accent-hover"
+            >
+              새 아이디어 검증 신청
+              <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
+            </a>
+          </div>
         </div>
-
-        <a
-          href="/start"
-          className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-accent px-7 py-4 text-base font-bold text-white shadow-[0_10px_24px_-8px_var(--accent-glow)] transition hover:-translate-y-0.5 hover:bg-accent-hover"
-        >
-          새 아이디어 검증 신청
-          <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
-        </a>
       </div>
     </main>
   );
