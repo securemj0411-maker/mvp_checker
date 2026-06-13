@@ -13,7 +13,12 @@ export type ServiceType =
   | "unknown";
 export type BuildStatus = "self" | "need" | "built";
 export type Audience = "b2c" | "b2b" | "both" | "unknown";
-export type Revenue = "once" | "subscription" | "fee" | "undecided";
+export type Revenue =
+  | "once"
+  | "subscription"
+  | "usage"
+  | "fee"
+  | "undecided";
 export type PriceBand =
   | "under10k"
   | "10kto50k"
@@ -335,7 +340,7 @@ const PRICE_LABEL: Record<PriceBand, string> = {
 };
 
 const ALT_LABEL: Record<Alternative, string> = {
-  competitor: "비슷한 서비스나 앱",
+  competitor: "비슷한 서비스나 업체",
   manual: "공짜·임시방편으로 아쉬운 대로 때우는 방식",
   none: "마땅한 게 없어 그냥 안 하거나 참는 것",
   unaware: "아직 있는 줄도 모르는 상태",

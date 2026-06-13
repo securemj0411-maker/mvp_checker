@@ -184,8 +184,9 @@ const LABELS: Record<string, Record<string, string>> = {
   },
   revenue: {
     once: "한 번 결제",
-    subscription: "월 구독",
-    fee: "광고나 수수료",
+    subscription: "정기 결제(구독·회원제·월 회비)",
+    usage: "쓸 때마다 결제(방문·이용마다)",
+    fee: "수수료나 광고",
     undecided: "미정",
   },
   price: {

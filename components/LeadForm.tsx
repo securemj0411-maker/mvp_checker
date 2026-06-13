@@ -124,16 +124,25 @@ const QUESTIONS: Question[] = [
     title: "이 서비스의 고객은 어떻게 돈을 내나요?",
     sub: "주력 한 가지 기준으로 골라주세요. 플랜을 여러 개 보여주고 싶으면(구독 플랜 추가 등) 시작 전 확정 화면에서 직접 추가할 수 있습니다.",
     options: [
-      { value: "once", label: "한 번 결제", hint: "단건 구매" },
-      { value: "subscription", label: "월 구독" },
-      { value: "fee", label: "광고 · 수수료" },
+      { value: "once", label: "한 번 결제", hint: "한 번 사면 끝 (단건 구매·이벤트·시공 등)" },
+      {
+        value: "subscription",
+        label: "정기 결제",
+        hint: "월 구독·회원제·월 회비 (헬스장·구독 서비스·실버타운 등)",
+      },
+      {
+        value: "usage",
+        label: "쓸 때마다 결제",
+        hint: "방문·이용할 때마다 (식당·미용실·병원·과외·택배 등)",
+      },
+      { value: "fee", label: "수수료 · 광고", hint: "중개·플랫폼 수수료, 광고 수익" },
       { value: "undecided", label: "아직 안 정했어요" },
     ],
   },
   {
     id: "price",
     title: "고객이 한 번 결제할 때, 얼마 정도인가요?",
-    sub: "검증 페이지의 결제 버튼에 표시할 금액이에요(평생 쓰는 총액이 아니라 한 번 낼 때 기준). 구독이면 한 달 요금, 회사 대상이면 회사 하나 기준. 주력 플랜 하나로 골라주시면 됩니다.",
+    sub: "검증 페이지의 결제 버튼에 표시할 금액이에요(평생 쓰는 총액이 아니라 한 번 낼 때 기준). 구독·회원제면 한 달 요금, 방문형이면 1회 비용, 회사 대상이면 회사 하나 기준. 주력 플랜 하나로 골라주시면 됩니다.",
     options: [
       { value: "under10k", label: "1만원 미만" },
       { value: "10kto50k", label: "1~5만원" },
@@ -152,11 +161,15 @@ const QUESTIONS: Question[] = [
     title: "고객은 지금 이걸 어떻게 하고 있나요?",
     sub: "비슷한 욕구나 필요를 지금은 무엇으로 채우는지 골라주세요. 꼭 ‘문제 해결’이 아니어도 됩니다. 재미·취향 서비스도 포함이에요.",
     options: [
-      { value: "competitor", label: "비슷한 서비스·앱을 이미 쓰고 있어요" },
+      {
+        value: "competitor",
+        label: "비슷한 데를 이미 이용하고 있어요",
+        hint: "경쟁 서비스·앱, 또는 동네 다른 매장·업체·시설",
+      },
       {
         value: "manual",
-        label: "공짜·임시방편으로 아쉬운 대로 때워요",
-        hint: "무료 도구, 직접 하기 등",
+        label: "직접 하거나 임시방편으로 때워요",
+        hint: "무료 도구·직접 하기, 발품·전화·입소문으로 해결",
       },
       { value: "none", label: "마땅한 게 없어 그냥 안 하거나 참고 있어요" },
       {
@@ -1134,9 +1147,10 @@ const ECHO_LABELS: Record<string, Record<string, string>> = {
   },
   audience: { b2c: "일반 소비자", b2b: "회사 · 사장님", both: "둘 다" },
   revenue: {
-    once: "단건 결제",
-    subscription: "월 구독",
-    fee: "광고 · 수수료",
+    once: "한 번 결제",
+    subscription: "정기 결제(구독·회원제)",
+    usage: "쓸 때마다 결제",
+    fee: "수수료 · 광고",
     undecided: "미정",
   },
   price: {

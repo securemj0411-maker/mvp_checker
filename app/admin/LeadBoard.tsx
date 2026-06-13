@@ -62,9 +62,10 @@ const LABEL = {
     unknown: "미정",
   } as Record<string, string>,
   revenue: {
-    once: "단건 결제",
-    subscription: "구독",
-    fee: "광고·수수료",
+    once: "한 번 결제",
+    subscription: "정기(구독·회원제)",
+    usage: "쓸 때마다",
+    fee: "수수료·광고",
     undecided: "미정",
     unknown: "미정",
   } as Record<string, string>,
