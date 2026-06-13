@@ -28,6 +28,9 @@ function generateAccessCode(): string {
 export const maxDuration = 60;
 
 const MODEL = "claude-opus-4-8";
+// 초반 되물음(interpret)은 분류·보기추천 수준이라 더 빠른 Sonnet으로.
+// 설계서·브리프·정책분류는 품질/안전 위해 Opus 유지.
+const INTERPRET_MODEL = "claude-sonnet-4-6";
 
 function getClient(): Anthropic | null {
   if (!process.env.ANTHROPIC_API_KEY) return null;
@@ -80,7 +83,7 @@ async function interpret(idea: string): Promise<InterpretResult | null> {
   if (!client) return null;
 
   const response = await client.messages.create({
-    model: MODEL,
+    model: INTERPRET_MODEL,
     max_tokens: 2000,
     output_config: {
       effort: "low",
