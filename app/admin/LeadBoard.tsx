@@ -43,6 +43,12 @@ export type Lead = {
   ai_report: (Report & { source?: string }) | null;
   policy_flag: string | null;
   interpret_status: string | null;
+  ad_stats: {
+    impressions: number;
+    clicks: number;
+    spend: number;
+    updated_at?: string;
+  } | null;
 };
 
 /* ── 라벨 ── */
@@ -186,11 +192,21 @@ export default function LeadBoard({ leads: initial }: { leads: Lead[] }) {
 
   const fromYoutube = leads.filter((l) => l.utm_source === "youtube").length;
 
-  async function save(id: string, status: string, memo: string) {
+  async function save(
+    id: string,
+    status: string,
+    memo: string,
+    ad?: { impressions: string; clicks: string; spend: string },
+  ) {
     const fd = new FormData();
     fd.set("id", id);
     fd.set("status", status);
     fd.set("memo", memo);
+    if (ad) {
+      fd.set("ad_impressions", ad.impressions);
+      fd.set("ad_clicks", ad.clicks);
+      fd.set("ad_spend", ad.spend);
+    }
     setLeads((ls) =>
       ls.map((l) => (l.id === id ? { ...l, status, memo } : l)),
     );
@@ -393,11 +409,19 @@ function Modal({
 }: {
   lead: Lead;
   onClose: () => void;
-  onSave: (id: string, status: string, memo: string) => void;
+  onSave: (
+    id: string,
+    status: string,
+    memo: string,
+    ad?: { impressions: string; clicks: string; spend: string },
+  ) => void;
   onDelete: (id: string, name: string) => void;
 }) {
   const [status, setStatus] = useState(lead.status ?? "new");
   const [memo, setMemo] = useState(lead.memo ?? "");
+  const [adImp, setAdImp] = useState(String(lead.ad_stats?.impressions ?? ""));
+  const [adClk, setAdClk] = useState(String(lead.ad_stats?.clicks ?? ""));
+  const [adSpend, setAdSpend] = useState(String(lead.ad_stats?.spend ?? ""));
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -681,6 +705,46 @@ function Modal({
             </p>
           </div>
 
+          {/* 구글 애즈 실측 — 수동 입력 → 고객 대시보드 동기화 */}
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-text-tertiary">
+              구글 애즈 실측 (고객 대시보드 동기화)
+            </p>
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              {(
+                [
+                  ["노출", adImp, setAdImp, "12420"],
+                  ["광고 클릭", adClk, setAdClk, "398"],
+                  ["광고비(원)", adSpend, setAdSpend, "1530000"],
+                ] as [string, string, (v: string) => void, string][]
+              ).map(([label, val, set, ph]) => (
+                <label key={label} className="block">
+                  <span className="text-[11px] font-semibold text-text-tertiary">
+                    {label}
+                  </span>
+                  <input
+                    inputMode="numeric"
+                    value={val}
+                    onChange={(e) => set(e.target.value)}
+                    placeholder={ph}
+                    className="mt-1 w-full rounded-md border border-border bg-bg px-2.5 py-2 text-right font-mono text-sm outline-none transition focus:border-accent"
+                  />
+                </label>
+              ))}
+            </div>
+            <p className="mt-1.5 text-[11px] leading-relaxed text-text-tertiary">
+              노출·광고클릭은 고객 코크핏 퍼널에 표시됩니다. 광고비는 내부 전용(고객
+              화면 노출 안 함). 비워두면 미변경.
+              {lead.ad_stats?.updated_at && (
+                <>
+                  {" "}
+                  · 마지막 입력{" "}
+                  {new Date(lead.ad_stats.updated_at).toLocaleString("ko-KR")}
+                </>
+              )}
+            </p>
+          </div>
+
           {/* 메모 */}
           <div>
             <p className="text-xs font-bold uppercase tracking-wide text-text-tertiary">
@@ -712,7 +776,13 @@ function Modal({
               닫기
             </button>
             <button
-              onClick={() => onSave(lead.id, status, memo)}
+              onClick={() =>
+                onSave(lead.id, status, memo, {
+                  impressions: adImp,
+                  clicks: adClk,
+                  spend: adSpend,
+                })
+              }
               className="rounded-lg bg-accent px-5 py-2 text-sm font-bold text-white transition hover:bg-accent-hover"
             >
               저장

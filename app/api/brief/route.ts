@@ -117,6 +117,17 @@ function publicLead(lead: Record<string, unknown>) {
     pageMeasurable: lead.page_measurable,
     hasPageUrl: !!lead.page_url,
     tagVerified: !!lead.page_tag_verified_at,
+    // 구글애즈 실측 — 노출·클릭만 고객에게. 광고비(spend)는 절대 노출 금지.
+    adStats: (() => {
+      const a = lead.ad_stats as
+        | { impressions?: number; clicks?: number }
+        | null;
+      if (!a) return null;
+      return {
+        impressions: Number(a.impressions ?? 0),
+        clicks: Number(a.clicks ?? 0),
+      };
+    })(),
     passBar,
     tiers: TIER_INFO,
     refundPolicy: REFUND_POLICY,

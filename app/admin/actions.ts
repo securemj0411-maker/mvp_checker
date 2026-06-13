@@ -51,11 +51,36 @@ export async function updateLead(formData: FormData) {
   const memo = String(formData.get("memo") ?? "").slice(0, 2000);
   if (!id || !ALLOWED_STATUSES.includes(status as never)) redirect("/admin");
 
+  // 구글애즈 실측 수동 입력 (선택). 비우면 ad_stats 미변경.
+  const numOrNull = (k: string) => {
+    const raw = String(formData.get(k) ?? "").trim();
+    if (raw === "") return null;
+    const n = Number(raw.replace(/[, ]/g, ""));
+    return Number.isFinite(n) && n >= 0 ? Math.round(n) : null;
+  };
+  const imp = numOrNull("ad_impressions");
+  const clk = numOrNull("ad_clicks");
+  const spend = numOrNull("ad_spend");
+  const hasAdInput =
+    formData.has("ad_impressions") ||
+    formData.has("ad_clicks") ||
+    formData.has("ad_spend");
+
+  const update: Record<string, unknown> = { status, memo: memo || null };
+  if (hasAdInput) {
+    update.ad_stats =
+      imp === null && clk === null && spend === null
+        ? null
+        : {
+            impressions: imp ?? 0,
+            clicks: clk ?? 0,
+            spend: spend ?? 0,
+            updated_at: new Date().toISOString(),
+          };
+  }
+
   const { getSupabaseAdmin } = await import("@/lib/supabaseAdmin");
-  await getSupabaseAdmin()
-    .from("o2o_leads")
-    .update({ status, memo: memo || null })
-    .eq("id", id);
+  await getSupabaseAdmin().from("o2o_leads").update(update).eq("id", id);
 
   const { revalidatePath } = await import("next/cache");
   revalidatePath("/admin");

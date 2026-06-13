@@ -37,6 +37,8 @@ interface PublicLead {
   tagVerified: boolean;
   /** 광고 시작 후 실측 숫자 (금액 정보 없음) */
   stats?: { visits: number; clicks: number; payClicks: number } | null;
+  /** 관리자가 입력한 구글애즈 실측 (노출·클릭만, 광고비 없음) */
+  adStats?: { impressions: number; clicks: number } | null;
   passBar: { bar: string; reason: string; minSample: string };
   tiers: Record<
     "engine" | "quick",
@@ -1285,22 +1287,29 @@ function Cockpit({ lead, preview = false }: { lead: PublicLead; preview?: boolea
       ? { noun: "문의", click: "문의" }
       : { noun: "결제 클릭", click: "결제 클릭" };
   const payRate = hasData ? (s.payClicks / s.visits) * 100 : 0;
-  const maxV = Math.max(s.visits, 1);
-  const funnel = [
-    { k: "방문", v: s.visits, w: hasData ? 100 : 6, tone: "var(--border-hover)" },
-    {
-      k: "버튼 클릭",
-      v: s.clicks,
-      w: hasData ? Math.max((s.clicks / maxV) * 100, 4) : 6,
-      tone: "var(--accent-soft)",
-    },
-    {
-      k: intent.click,
-      v: s.payClicks,
-      w: hasData ? Math.max((s.payClicks / maxV) * 100, 4) : 6,
-      tone: "var(--accent)",
-    },
-  ];
+  // 관리자가 구글애즈 노출·클릭을 입력하면 퍼널 맨 위에 광고 단을 붙인다.
+  const ad =
+    lead.adStats && (lead.adStats.impressions > 0 || lead.adStats.clicks > 0)
+      ? lead.adStats
+      : null;
+  const anyData = hasData || !!ad;
+  const rows = ad
+    ? [
+        { k: "광고 노출", v: ad.impressions, tone: "var(--bg-light)" },
+        { k: "광고 클릭", v: ad.clicks, tone: "var(--border-hover)" },
+        { k: "사이트 방문", v: s.visits, tone: "var(--accent-soft)" },
+        { k: intent.click, v: s.payClicks, tone: "var(--accent)" },
+      ]
+    : [
+        { k: "방문", v: s.visits, tone: "var(--border-hover)" },
+        { k: "버튼 클릭", v: s.clicks, tone: "var(--accent-soft)" },
+        { k: intent.click, v: s.payClicks, tone: "var(--accent)" },
+      ];
+  const maxRow = Math.max(...rows.map((r) => r.v), 1);
+  const funnel = rows.map((r) => ({
+    ...r,
+    w: anyData ? Math.max((r.v / maxRow) * 100, r.v > 0 ? 4 : 2) : 6,
+  }));
   const status = live
     ? { t: "측정 중", live: true }
     : done
@@ -1372,7 +1381,7 @@ function Cockpit({ lead, preview = false }: { lead: PublicLead; preview?: boolea
               <div className="flex items-baseline justify-between text-xs">
                 <span className="font-semibold text-text-secondary">{f.k}</span>
                 <span className="font-extrabold text-text">
-                  {hasData ? f.v.toLocaleString() : "—"}
+                  {anyData ? f.v.toLocaleString() : "—"}
                 </span>
               </div>
               <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-bg-alt">
