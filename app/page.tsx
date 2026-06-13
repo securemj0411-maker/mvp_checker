@@ -23,6 +23,7 @@ export default function Home({
     <main className="flex-1">
       <Nav />
       <Hero variant={heroVariant} />
+      <ExplainerFilm />
       <Statement />
       <TourFakeDoor />
       <TourAds />
@@ -198,6 +199,34 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
             src="/team/founders.png"
             alt="비즈필터 창업자"
             className="relative max-h-[540px] w-auto object-contain"
+          />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────  40초 익스플레이너 영상 (히어로 직후)  ───────────── */
+function ExplainerFilm() {
+  return (
+    <section className="bg-bg">
+      <div className="mx-auto max-w-3xl px-6 pb-10 pt-2 sm:pb-16">
+        <p className="mb-4 text-center text-[15px] font-bold text-accent">
+          40초로 보는 비즈필터
+        </p>
+        <div className="overflow-hidden rounded-[20px] border border-border bg-surface shadow-[0_8px_24px_-8px_rgba(10,23,38,0.08),0_36px_80px_-32px_rgba(16,42,86,0.25)]">
+          {/* HEVC/4K 원본을 웹용 1080p H.264로 변환해 박음. 화면 텍스트가
+              메시지를 다 담으므로 음소거 자동재생, 컨트롤로 소리/탐색 가능. */}
+          <video
+            className="block aspect-video w-full"
+            src="/business-explainer.mp4"
+            poster="/business-explainer-poster.jpg"
+            autoPlay
+            muted
+            loop
+            playsInline
+            controls
+            preload="metadata"
           />
         </div>
       </div>
