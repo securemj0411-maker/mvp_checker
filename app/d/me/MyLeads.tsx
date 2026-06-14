@@ -119,7 +119,7 @@ export default function MyLeads({
             아직 연결된 검증 신청이 없습니다
           </p>
           <p className="mt-1.5 text-[13px] leading-relaxed text-text-tertiary">
-            아래에 신청 때 입력한 번호를 넣어 불러오거나, 새 아이디어로 검증을
+            아래에 신청 때 입력한 번호를 넣어 불러오거나, 새 강의로 검증을
             시작해보세요.
           </p>
         </div>

@@ -37,7 +37,7 @@ export function SubFooter() {
   return (
     <footer className="section-dark mt-auto text-text-tertiary">
       <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-4 px-5 py-10 text-sm sm:flex-row sm:items-center">
-        <p>© 2026 비즈필터 · 사업 아이디어 검증 서비스</p>
+        <p>© 2026 비즈필터 · 온라인 강의 수요 검증 서비스</p>
         <div className="flex gap-5">
           <a href="/" className="hover:text-accent">
             홈

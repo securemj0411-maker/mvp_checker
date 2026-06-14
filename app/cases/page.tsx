@@ -165,7 +165,7 @@ function CaseBlock({ c, idx }: { c: CaseData; idx: number }) {
         <div>
           <div className="flex items-center gap-2">
             <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-tertiary">
-              광고 집행 결과 · 7일
+              광고 집행 결과
             </p>
             <span className="rounded-full bg-bg-alt px-2 py-0.5 text-[10px] font-bold text-text-tertiary">
               시연 데이터
@@ -287,17 +287,17 @@ export default function CasesPage() {
           {/* CTA */}
           <div className="section-dark mt-14 overflow-hidden rounded-[24px] px-7 py-12 text-center sm:px-12">
             <h2 className="text-[26px] font-extrabold leading-[1.25] tracking-[-0.02em] text-text sm:text-[32px]">
-              당신 아이디어는 셋 중 어디일까요?
+              당신 강의는 셋 중 어디일까요?
             </h2>
             <p className="mx-auto mt-4 max-w-md text-[15px] leading-[1.7] text-text-secondary">
-              아이디어 한 줄이면 시작됩니다. 광고 채널과 합격선이 담긴 검증
+              강의 주제 한 줄이면 시작됩니다. 광고 채널과 합격선이 담긴 검증
               설계서를 그 자리에서 무료로 받아보세요.
             </p>
             <a
               href="/start"
               className="mt-7 inline-flex items-center gap-2 rounded-full bg-accent px-8 py-4 text-base font-bold text-white shadow-[0_10px_24px_-8px_var(--accent-glow)] transition hover:-translate-y-0.5 hover:bg-accent-hover"
             >
-              내 아이디어 검증 신청
+              내 강의 검증 신청
             </a>
             <p className="mt-4 text-sm font-medium text-text-tertiary">
               신청은 결제가 아닙니다 · 설계서 무료

@@ -77,7 +77,7 @@ const STAGES: { key: Stage[]; label: string }[] = [
   { key: ["deposit"], label: "입금" },
   { key: ["paid"], label: "제작 준비" },
   { key: ["build"], label: "제작" },
-  { key: ["live"], label: "광고 7일" },
+  { key: ["live"], label: "광고 집행" },
   { key: ["verdict", "closed"], label: "판정" },
 ];
 
@@ -480,6 +480,10 @@ function BriefStep({
     { label: string; price: number; desc: string }[]
   >([]);
   const [notes, setNotes] = useState(""); // 전문가에게 하고 싶은 말 (자유)
+  // 페이지를 '진짜 운영 중인 강의'처럼 보이게 하는 고객 입력 (Skool식 about)
+  const [credential, setCredential] = useState(""); // 강사 소개/실적 한 줄
+  const [introVideo, setIntroVideo] = useState(""); // 소개 영상 URL(유튜브/비메오)
+  const [prologue, setPrologue] = useState(""); // 강의 소개 본문(프롤로그)
   // 전문가 사전 점검 — 질문별 답(칩 또는 직접입력), 질문별 직접입력 모드
   const [intakeAns, setIntakeAns] = useState<string[]>([]);
   const [intakeCustom, setIntakeCustom] = useState<boolean[]>([]);
@@ -535,6 +539,9 @@ function BriefStep({
     }
     setName(c.name || "");
     setNotes(c.notes || "");
+    setCredential(c.credential || "");
+    setIntroVideo(c.intro_video || "");
+    setPrologue(c.prologue || "");
     const inOptions = (draft?.offer_options ?? []).some(
       (o) => o.headline === c.offer,
     );
@@ -640,6 +647,9 @@ function BriefStep({
       price_value: cleanPlans[0].price,
       plans: cleanPlans,
       notes: notes.trim() || undefined,
+      credential: credential.trim() || undefined,
+      intro_video: introVideo.trim() || undefined,
+      prologue: prologue.trim() || undefined,
       intake: (() => {
         const qs = (draft!.intake_questions ?? []).slice(0, 3);
         const ans = qs
@@ -748,8 +758,8 @@ function BriefStep({
       {draft.intake_questions && draft.intake_questions.length > 0 && (
         <Card label="전문가 사전 점검">
           <p className="mb-3 text-xs leading-relaxed text-text-tertiary">
-            담당 전문가가 페이지·광고를 더 정확히 만들기 위해, 이 아이디어에서
-            아직 모르는 것만 추려서 여쭤봐요. 해당되는 걸 고르거나 직접
+            담당 전문가가 수강신청 페이지·광고를 더 정확히 만들기 위해, 이
+            강의에서 아직 모르는 것만 추려서 여쭤봐요. 해당되는 걸 고르거나 직접
             적어주세요. 건너뛰셔도 됩니다.
           </p>
           <div className="space-y-4">
@@ -988,10 +998,10 @@ function BriefStep({
       </Card>
 
       {/* 3. 가칭 */}
-      <Card label="검증용 서비스 이름" required>
+      <Card label="검증용 강의 이름" required>
         <p className="mb-2 text-xs leading-relaxed text-text-tertiary">
-          검증에만 쓰는 임시 이름이에요. 정식 출시할 진짜 이름과 달라도 전혀
-          상관없습니다. 지금 중요한 건 이름이 아니라, 이 아이디어에 사람들이
+          검증에만 쓰는 임시 이름이에요. 정식 오픈할 진짜 이름과 달라도 전혀
+          상관없습니다. 지금 중요한 건 이름이 아니라, 이 강의에 사람들이
           돈을 내느냐니까요.
         </p>
         <div className="flex flex-wrap gap-2">
@@ -1030,7 +1040,7 @@ function BriefStep({
               : "실제 서비스처럼 보이는 검증용 사이트를 전문가가 직접 만듭니다",
             "실제 구글·메타 광고로 모르는 사람 수백 명을 데려옵니다 (광고비 포함)",
             "누가 들어와서 결제 버튼까지 눌렀는지 숫자로 집계합니다",
-            "7일 안에 살 사람이 있는지, 될 사업인지 판정해 드립니다",
+            "신청 당일 시작, 보통 2~3일 안에 살 사람이 있는지, 될 사업인지 판정해 드립니다",
           ];
           const why = isEngine
             ? "페이지를 이미 갖고 계셔서, 페이지 제작은 빼고 측정·광고·판정만 진행하는 방식입니다."
@@ -1074,6 +1084,57 @@ function BriefStep({
             </div>
           );
         })()}
+      </Card>
+
+      {/* 강의 소개 — Skool식 about처럼 '진짜 운영 중인 강의'로 보이게 (선택, 전부 고객 입력) */}
+      <Card label="강의 소개 페이지 꾸미기 (선택)">
+        <p className="mb-3 text-xs leading-relaxed text-text-tertiary">
+          검증 페이지를 실제로 열려 있는 강의처럼 보이게 하는 요소예요. 적으신
+          그대로 페이지에 들어가고, 비워두면 기본형으로 나갑니다.
+        </p>
+        <div className="space-y-4">
+          <div>
+            <label className="mb-1.5 block text-xs font-bold text-text-secondary">
+              강사 소개 한 줄 (실적·경력)
+            </label>
+            <input
+              value={credential}
+              onChange={(e) => setCredential(e.target.value)}
+              maxLength={80}
+              placeholder="예: 구독 1.2만 유튜버 · 노션 5년차 · 수강생 300명"
+              className={inputBase}
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-bold text-text-secondary">
+              소개 영상 (유튜브·비메오 링크)
+            </label>
+            <input
+              value={introVideo}
+              onChange={(e) => setIntroVideo(e.target.value)}
+              maxLength={200}
+              inputMode="url"
+              placeholder="예: https://youtu.be/xxxxxxxx"
+              className={inputBase}
+            />
+            <p className="mt-1 text-[11px] text-text-tertiary">
+              링크만 붙이면 페이지 상단에 영상이 박힙니다.
+            </p>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-bold text-text-secondary">
+              강의 소개 (프롤로그)
+            </label>
+            <textarea
+              value={prologue}
+              onChange={(e) => setPrologue(e.target.value)}
+              maxLength={1500}
+              rows={4}
+              placeholder="누구를 위한 강의인지, 뭘 배워가는지, 왜 당신이 가르치는지 편하게 적어주세요. 줄을 바꾸면 문단이 나뉩니다."
+              className={`${inputBase} min-h-[96px] resize-y leading-relaxed`}
+            />
+          </div>
+        </div>
       </Card>
 
       {/* 그 외 한마디 — 자유 입력(가볍게, 맨 끝). 위 점검과 안 겹치게 '그 외'로 한정 */}
@@ -1283,7 +1344,7 @@ function DepositStep({
           준비안이 확정됐습니다. 입금만 남았습니다.
         </p>
         <p className="mt-1 text-sm leading-relaxed text-text-secondary">
-          입금이 확인되면 48시간 안에 검증 준비가 끝나고, 진행 상황은 이
+          입금이 확인되면 신청 당일 곧바로 검증 준비가 시작되고, 진행 상황은 이
           페이지에서 계속 보실 수 있습니다.
         </p>
 
@@ -1582,7 +1643,7 @@ function DepositStep({
 const PROGRESS_COPY: Record<string, { title: string; desc: string }> = {
   paid: {
     title: "입금이 확인됐습니다. 제작을 준비하고 있습니다.",
-    desc: "확정된 준비안 그대로 검증용 사이트와 광고 문구를 만듭니다. 48시간 안에 준비가 끝납니다.",
+    desc: "확정된 준비안 그대로 검증용 사이트와 광고 문구를 만듭니다. 신청 당일 곧바로 시작해 빠르게 준비가 끝납니다.",
   },
   build: {
     title: "검증용 사이트를 만들고 있습니다.",
@@ -1590,7 +1651,7 @@ const PROGRESS_COPY: Record<string, { title: string; desc: string }> = {
   },
   live: {
     title: "광고가 돌아가고 있습니다.",
-    desc: "7일 동안 실제 광고비를 써서 수요를 측정합니다. 중간 숫자는 해석 없이 남겨주신 번호 문자로 그대로 공유드립니다.",
+    desc: "신청 당일부터 광고비를 써서 표본이 찰 때까지(보통 2~3일) 수요를 측정합니다. 중간 숫자는 해석 없이 남겨주신 번호 문자로 그대로 공유드립니다.",
   },
   verdict: {
     title: "판정이 나왔습니다.",
@@ -1894,7 +1955,7 @@ function VerdictSample() {
         ))}
       </div>
       <p className="mt-2 text-[11px] leading-relaxed text-text-tertiary">
-        실제 판정은 광고 7일 데이터로, 숫자 근거와 다음에 할 일까지 담아 남겨주신
+        실제 판정은 광고 데이터로, 숫자 근거와 다음에 할 일까지 담아 남겨주신
         번호 문자와 카카오톡으로 보내드립니다.
       </p>
     </details>

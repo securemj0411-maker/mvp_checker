@@ -320,7 +320,7 @@ export default function LeadBoard({ leads: initial }: { leads: Lead[] }) {
                 <th className="px-4 py-3">유입</th>
                 <th className="px-4 py-3">이름</th>
                 <th className="px-4 py-3">연락처</th>
-                <th className="px-4 py-3">아이디어</th>
+                <th className="px-4 py-3">강의 주제</th>
                 <th className="px-4 py-3">플랜</th>
                 <th className="px-4 py-3">상태</th>
               </tr>
@@ -761,10 +761,10 @@ function Modal({
             ))}
           </div>
 
-          {/* 아이디어 + 좁힌 해석 */}
+          {/* 강의 주제 + 좁힌 해석 */}
           <div>
             <p className="text-xs font-bold uppercase tracking-wide text-text-tertiary">
-              아이디어
+              강의 주제
             </p>
             <p className="mt-2 whitespace-pre-wrap rounded-lg border border-border bg-bg p-4 text-sm leading-relaxed text-text">
               {lead.idea}

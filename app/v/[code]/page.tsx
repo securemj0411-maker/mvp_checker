@@ -29,6 +29,9 @@ async function loadLead(code: string) {
           accent?: string;
           offer?: string;
           sub?: string;
+          credential?: string;
+          intro_video?: string;
+          prologue?: string;
         } | null;
       }
     | null;
@@ -95,6 +98,9 @@ export default async function ValidationPage({
     plans,
     sellingPoints: Array.isArray(c.selling_points) ? c.selling_points : [],
     intent: intentOf(c.pass_bar ?? ""),
+    credential: ov.credential || c.credential || undefined,
+    introVideo: ov.intro_video || c.intro_video || undefined,
+    prologue: ov.prologue || c.prologue || c.notes || undefined,
     heroImage: ov.hero_image || undefined,
     accent: ov.accent || undefined,
   };

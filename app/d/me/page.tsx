@@ -268,7 +268,7 @@ export default async function MyPage() {
               href="/start"
               className="flex w-full items-center justify-center gap-2 rounded-full bg-accent px-7 py-4 text-base font-bold text-white shadow-[0_10px_24px_-8px_var(--accent-glow)] transition hover:-translate-y-0.5 hover:bg-accent-hover"
             >
-              새 아이디어 검증 신청
+              새 강의 검증 신청
               <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
             </a>
           </div>

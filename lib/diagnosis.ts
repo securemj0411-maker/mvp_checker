@@ -167,13 +167,13 @@ export const TIER_INFO: Record<
     label: "엔진 (페이지는 내가)",
     price: 290000,
     priceLabel: "29만원",
-    desc: "이 아이디어를 보여줄 웹페이지가 이미 있으신 분. 그 페이지에 진짜 광고를 걸어 수백 명을 불러오고, 클릭과 결제 의향(결제 버튼 클릭률)을 재서 될지 안 될지(Go/No-Go)까지 판정합니다. 광고비 포함.",
+    desc: "이 강의의 수강신청 페이지가 이미 있으신 분. 그 페이지에 진짜 광고를 걸어 잠재 수강생 수백 명을 불러오고, 클릭과 수강 의향(수강신청 클릭률)을 재서 될지 안 될지(Go/No-Go)까지 판정합니다. 광고비 포함.",
   },
   quick: {
     label: "Quick (처음부터 전부)",
     price: 500000,
     priceLabel: "50만원",
-    desc: "실제 서비스처럼 보이는 한 장짜리 검증용 사이트부터 저희가 만들어 드립니다. 실제 광고 집행, 수백 명 유입, 측정, 될지 안 될지(Go/No-Go) 판정까지 전부. 광고비 포함.",
+    desc: "실제 강의처럼 보이는 한 장짜리 수강신청 페이지부터 저희가 만들어 드립니다. 실제 광고 집행, 잠재 수강생 수백 명 유입, 측정, 될지 안 될지(Go/No-Go) 판정까지 전부. 광고비 포함.",
   },
 };
 
@@ -214,21 +214,21 @@ export function decideChannel(a: QuizAnswers): {
     return {
       channel: `메타(인스타) ${radius} 광고`,
       reason:
-        "오프라인 사업은 상권 안의 사람에게만 노출돼야 신호가 깨끗합니다. 사전예약 제출을 결제 의향 신호로 측정합니다.",
+        "오프라인 강의는 상권 안의 사람에게만 노출돼야 신호가 깨끗합니다. 사전예약 신청을 수강 의향 신호로 측정합니다.",
     };
   }
   if (a.service === "commerce") {
     return {
       channel: "메타(인스타) 피드 광고",
       reason:
-        "커머스는 검색보다 피드에서 발견되는 비중이 큽니다. 구매버튼 클릭과 클릭당 비용이 마진 안에 들어오는지를 함께 봅니다.",
+        "전자책·자료형 상품은 검색보다 피드에서 발견되는 비중이 큽니다. 수강신청(구매) 클릭과 클릭당 비용이 수강료 마진 안에 들어오는지를 함께 봅니다.",
     };
   }
   if (a.service === "app") {
     return {
       channel: "메타(인스타) 피드 광고",
       reason:
-        "앱은 출시 전 검색 수요가 거의 없어 피드 노출이 기본입니다. 무료 알림이 아니라 유료 플랜 선택이 포함된 사전등록을 신호로 잡습니다.",
+        "멤버십·구독형은 출시 전 검색 수요가 적어 피드 노출이 기본입니다. 무료 알림이 아니라 유료 가입 의향이 포함된 사전신청을 신호로 잡습니다.",
     };
   }
   if (a.alternative === "unaware") {
@@ -262,34 +262,34 @@ export function decidePassBar(a: QuizAnswers): {
     return {
       bar: "방문 100명당 사전예약 3명",
       reason:
-        "오프라인은 결제 버튼 클릭 대신 사전예약 제출을 신호로 씁니다. 상권 반경 안의 클릭만 집계합니다.",
+        "오프라인 강의는 수강신청 클릭 대신 사전예약 신청을 신호로 씁니다. 상권 반경 안의 클릭만 집계합니다.",
       minSample: "상권 반경 내 방문 70명",
     };
   }
   if (a.audience === "b2b") {
     return {
-      bar: "7일 안에 조건 맞는 진짜 문의 2~3건",
+      bar: "기준 기간 내 조건 맞는 진짜 교육 문의 2~3건",
       reason:
-        "B2B는 대상 수가 적어 비율 대신 건수로 판정합니다. 즉시 결제보다 진짜 문의의 질이 신호입니다.",
+        "B2B 교육은 대상 수가 적어 비율 대신 건수로 판정합니다. 즉시 결제보다 진짜 문의의 질이 신호입니다.",
       minSample: "광고 클릭 30회",
     };
   }
   if (a.price === "over100k") {
     return {
-      bar: "방문 100명당 결제 버튼 클릭 2명",
-      reason: "한 번 결제 금액이 10만원 이상이면 클릭 문턱이 높아 기준을 한 단계 낮춥니다.",
+      bar: "방문 100명당 수강신청 클릭 2명",
+      reason: "수강료가 10만원 이상이면 클릭 문턱이 높아 기준을 한 단계 낮춥니다.",
       minSample: "방문 70명",
     };
   }
   if (a.price === "under10k") {
     return {
-      bar: "방문 100명당 결제 버튼 클릭 4명",
+      bar: "방문 100명당 수강신청 클릭 4명",
       reason: "1만원 미만은 클릭 문턱이 낮은 만큼 기준을 올려서 봅니다.",
       minSample: "방문 70명",
     };
   }
   return {
-    bar: "방문 100명당 결제 버튼 클릭 3명",
+    bar: "방문 100명당 수강신청 클릭 3명",
     reason:
       "표준 기준입니다. 광고 시작 전에 숫자를 확정하고, 데이터를 본 뒤에는 어느 쪽도 기준을 바꾸지 않습니다.",
     minSample: "방문 70명",
@@ -321,6 +321,12 @@ export interface ConfirmedBrief {
   plans?: { label: string; price: number; desc?: string }[];
   /** 고객이 더 강조하고 싶은 점 / 꼭 들어갔으면 하는 내용 (선택) */
   notes?: string;
+  /** 고객 입력 — 강사 소개/실적 한 줄 (히어로 신뢰 라인) */
+  credential?: string;
+  /** 고객 입력 — 소개 영상 URL (유튜브/비메오) */
+  intro_video?: string;
+  /** 고객 입력 — 프롤로그(강의 소개 본문, 줄바꿈=문단) */
+  prologue?: string;
   /** 전문가 사전 점검 답변 (q=라벨, a=답). 빌드에 쓰이는 추가 정보 */
   intake?: { q: string; a: string }[];
   selling_points: string[]; // 내부용 (고객 미노출)
@@ -333,19 +339,19 @@ export interface ConfirmedBrief {
 }
 
 const SERVICE_LABEL: Record<ServiceType, string> = {
-  web: "웹 서비스",
-  app: "모바일 앱",
-  commerce: "온라인 판매",
-  offline: "오프라인 · 지역 서비스",
-  content: "콘텐츠 · 교육",
-  unknown: "형태 미정 서비스",
+  web: "VOD 녹화 강의",
+  app: "멤버십 · 구독 클래스",
+  commerce: "전자책 · PDF · 자료",
+  offline: "오프라인 강의 · 워크숍",
+  content: "라이브 · 실시간 클래스",
+  unknown: "형태 미정",
 };
 
 const AUDIENCE_LABEL: Record<Audience, string> = {
-  b2c: "일반 소비자",
-  b2b: "회사와 사장님",
-  both: "소비자와 사업자 양쪽",
-  unknown: "아직 좁혀지지 않은 고객",
+  b2c: "개인 수강생",
+  b2b: "기업·기관(B2B 교육)",
+  both: "개인과 기업 양쪽",
+  unknown: "아직 좁혀지지 않은 수강 대상",
 };
 
 const PRICE_LABEL: Record<PriceBand, string> = {
@@ -358,10 +364,10 @@ const PRICE_LABEL: Record<PriceBand, string> = {
 };
 
 const ALT_LABEL: Record<Alternative, string> = {
-  competitor: "비슷한 서비스나 업체",
-  manual: "공짜·임시방편으로 아쉬운 대로 때우는 방식",
-  none: "마땅한 게 없어 그냥 안 하거나 참는 것",
-  unaware: "아직 있는 줄도 모르는 상태",
+  competitor: "비슷한 유료 강의나 학원",
+  manual: "유튜브·블로그·책으로 알아서 독학하는 방식",
+  none: "마땅한 게 없어 그냥 안 배우고 참는 것",
+  unaware: "이런 걸 배울 수 있는 줄도 모르는 상태",
   unknown: "확인되지 않은 대안",
 };
 
@@ -398,6 +404,6 @@ export function buildFallbackReport(a: QuizAnswers): Report {
           ? "가격을 표시하지 않으면 수요가 아니라 호기심을 측정하게 됩니다. 검증 전에 가격 숫자부터 못박아야 합니다."
           : "기존 대안에서 갈아탈 만큼의 차이를 광고 문구 한 줄로 보여줘야 합니다. 그게 안 되면 클릭이 안 옵니다.",
     blind_spot:
-      "7일 광고는 첫 결제 의향까지만 봅니다. 재구매율이나 입소문은 이 기간으로 답을 못 냅니다.",
+      "7일 광고는 첫 수강 의향까지만 봅니다. 재수강률이나 완강률, 입소문은 이 기간으로 답을 못 냅니다.",
   };
 }

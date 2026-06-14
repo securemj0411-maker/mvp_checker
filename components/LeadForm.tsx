@@ -13,7 +13,7 @@ import type {
 
 /* ─────────────────────────────────────────────────────────────
    토스식 인앱 퀴즈 — 한 화면에 질문 하나.
-   아이디어 입력 → AI 인테이크(이해 확인 + 아이디어별 맞춤 빈칸 1~2개,
+   강의 주제 입력 → AI 인테이크(이해 확인 + 주제별 맞춤 빈칸 1~2개,
    AI가 보기 미리 채움) → 객관식 청크 → 연락처 → 무료 AI 검증 설계서.
    ───────────────────────────────────────────────────────────── */
 
@@ -49,20 +49,20 @@ interface Question {
 const QUESTIONS: Question[] = [
   {
     id: "service",
-    title: "어떤 형태의 서비스인가요?",
+    title: "어떤 형태의 강의인가요?",
     options: [
-      { value: "web", label: "웹 서비스", hint: "브라우저로 쓰는 사이트 · 서비스" },
-      { value: "app", label: "모바일 앱" },
-      { value: "commerce", label: "온라인 판매", hint: "쇼핑몰 · 스마트스토어 · 브랜드" },
-      { value: "offline", label: "오프라인 매장 · 지역 서비스" },
-      { value: "content", label: "콘텐츠 · 교육 · 클래스" },
+      { value: "web", label: "VOD 녹화 강의", hint: "미리 찍어 올리는 온라인 강의 (클래스101·인프런·자사몰 등)" },
+      { value: "content", label: "라이브 · 실시간 클래스", hint: "줌 등으로 정해진 시간에 진행" },
+      { value: "commerce", label: "전자책 · PDF · 자료", hint: "글·템플릿·자료로 파는 지식 상품" },
+      { value: "app", label: "멤버십 · 구독 클래스", hint: "월 구독 커뮤니티 · 강의 멤버십" },
+      { value: "offline", label: "오프라인 강의 · 워크숍 · 원데이클래스" },
       { value: "unknown", label: "아직 형태를 못 정했어요" },
     ],
   },
   {
     id: "build",
-    title: "이 아이디어를 보여줄 웹페이지, 지금 있으세요?",
-    sub: "한 장짜리 소개 페이지면 됩니다. 답에 따라 가장 싼 경로를 추천해 드립니다.",
+    title: "수강신청 페이지, 지금 있으세요?",
+    sub: "한 장짜리 강의 소개 페이지면 됩니다. 답에 따라 가장 싼 경로를 추천해 드립니다.",
     options: [
       {
         value: "self",
@@ -72,33 +72,33 @@ const QUESTIONS: Question[] = [
       {
         value: "need",
         label: "비즈필터가 만들어 주세요",
-        hint: "실제 서비스처럼 보이는 검증용 사이트를 저희가 대신 만들어 드립니다",
+        hint: "실제 강의처럼 보이는 수강신청 페이지를 저희가 대신 만들어 드립니다",
       },
       {
         value: "built",
         label: "이미 있어요",
-        hint: "이 아이디어를 위한 페이지가 이미 있고, 직접 고칠 수 있는 경우",
+        hint: "이 강의를 위한 수강신청·소개 페이지가 이미 있고, 직접 고칠 수 있는 경우",
       },
     ],
   },
   {
     id: "audience",
-    title: "이 서비스에 돈을 낼 사람은 누구인가요?",
-    sub: "비즈필터 비용 얘기가 아니라, 고객님 서비스의 결제 고객을 묻는 질문입니다. 여러 부류라면 첫 결제를 낼 한 부류만 골라주세요.",
+    title: "이 강의를 돈 내고 들을 사람은 누구인가요?",
+    sub: "비즈필터 비용 얘기가 아니라, 고객님 강의의 수강료를 낼 사람을 묻는 질문입니다. 여러 부류라면 첫 수강료를 낼 한 부류만 골라주세요.",
     options: [
-      { value: "b2c", label: "일반 소비자" },
-      { value: "b2b", label: "회사 · 사장님" },
+      { value: "b2c", label: "개인 수강생" },
+      { value: "b2b", label: "기업 · 기관", hint: "B2B 교육 · 연수 · 임직원 교육" },
       { value: "both", label: "둘 다, 또는 아직 모르겠어요" },
     ],
   },
   {
     id: "region",
-    title: "주 고객은 어디서 오나요?",
+    title: "주 수강생은 어디서 오나요?",
     when: (a) => a.service === "offline",
     options: [
-      { value: "local", label: "동네 상권", hint: "반경 3~5km 안에서 오는 손님" },
+      { value: "local", label: "동네 상권", hint: "반경 3~5km 안에서 오는 수강생" },
       { value: "city", label: "도시 전체" },
-      { value: "nationwide", label: "전국", hint: "배송이나 예약으로 전국 대상" },
+      { value: "nationwide", label: "전국", hint: "원정·숙박까지 감수하고 오는 수강생" },
     ],
   },
   {
@@ -115,34 +115,34 @@ const QUESTIONS: Question[] = [
     title: "만들어 둔 페이지 주소를 알려주세요.",
     sub: "측정 장치를 설치할 수 있는 페이지인지 미리 확인해 드립니다.",
     kind: "text",
-    placeholder: "예: https://my-service.com",
+    placeholder: "예: https://my-class.com",
     skipLabel: "지금은 못 알려드려요",
     when: (a) => a.build === "built",
   },
   {
     id: "revenue",
-    title: "이 서비스의 고객은 어떻게 돈을 내나요?",
-    sub: "주력 한 가지 기준으로 골라주세요. 플랜을 여러 개 보여주고 싶으면(구독 플랜 추가 등) 시작 전 확정 화면에서 직접 추가할 수 있습니다.",
+    title: "수강료는 어떻게 받나요?",
+    sub: "주력 한 가지 기준으로 골라주세요. 플랜을 여러 개 보여주고 싶으면(예: 단강 + 패키지) 시작 전 확정 화면에서 직접 추가할 수 있습니다.",
     options: [
-      { value: "once", label: "한 번 결제", hint: "한 번 사면 끝 (단건 구매·이벤트·시공 등)" },
+      { value: "once", label: "한 번 결제", hint: "한 번 사면 끝 (단강·패키지 일시불·전자책)" },
       {
         value: "subscription",
         label: "정기 결제",
-        hint: "월 구독·회원제·월 회비 (헬스장·구독 서비스·실버타운 등)",
+        hint: "월 구독·멤버십·월 회비 (구독 클래스·커뮤니티)",
       },
       {
         value: "usage",
-        label: "쓸 때마다 결제",
-        hint: "방문·이용할 때마다 (식당·미용실·병원·과외·택배 등)",
+        label: "들을 때마다 결제",
+        hint: "회차·세션마다 (1:1 코칭·오프라인 클래스 등)",
       },
-      { value: "fee", label: "수수료 · 광고", hint: "중개·플랫폼 수수료, 광고 수익" },
+      { value: "fee", label: "수수료 · 광고", hint: "플랫폼 중개 수수료, 광고 수익" },
       { value: "undecided", label: "아직 안 정했어요" },
     ],
   },
   {
     id: "price",
-    title: "고객이 한 번 결제할 때, 얼마 정도인가요?",
-    sub: "검증용 사이트에 1회 기준으로 보여줄 금액입니다(평생 쓰는 총액이 아니라 한 번 낼 때 기준). 구독·회원제면 한 달 요금, 방문형이면 1회 비용, 회사 대상이면 회사 하나 기준. 주력 플랜 하나로 골라주시면 됩니다.",
+    title: "수강료, 한 번 결제 기준 얼마인가요?",
+    sub: "검증용 수강신청 페이지에 1회 기준으로 보여줄 금액입니다. 구독·멤버십이면 한 달 요금, 단강이면 1강 가격, 패키지면 패키지 가격. 주력 플랜 하나로 골라주시면 됩니다.",
     options: [
       { value: "under10k", label: "1만원 미만" },
       { value: "10kto50k", label: "1~5만원" },
@@ -151,30 +151,30 @@ const QUESTIONS: Question[] = [
       {
         value: "multi",
         label: "플랜이 여러 개예요",
-        hint: "단건·구독 등 가격이 여러 개라 하나로 못 정하는 경우. 다음에 다 추가할 수 있어요",
+        hint: "단강·패키지·구독 등 가격이 여러 개라 하나로 못 정하는 경우. 다음에 다 추가할 수 있어요",
       },
       { value: "unknown", label: "아직 모르겠어요" },
     ],
   },
   {
     id: "alternative",
-    title: "고객은 지금 이걸 어떻게 하고 있나요?",
-    sub: "비슷한 욕구나 필요를 지금은 무엇으로 채우는지 골라주세요. 꼭 ‘문제 해결’이 아니어도 됩니다. 재미·취향 서비스도 포함이에요.",
+    title: "지금 사람들은 이걸 어떻게 배우고 있나요?",
+    sub: "비슷한 걸 지금은 무엇으로 채우는지 골라주세요. 꼭 ‘학습’이 아니어도 됩니다. 취미·자기계발도 포함이에요.",
     options: [
       {
         value: "competitor",
-        label: "비슷한 데를 이미 이용하고 있어요",
-        hint: "경쟁 서비스·앱, 또는 동네 다른 매장·업체·시설",
+        label: "비슷한 유료 강의·클래스를 듣고 있어요",
+        hint: "클래스101·인프런·탈잉 등 경쟁 강의, 또는 다른 학원·강사",
       },
       {
         value: "manual",
-        label: "직접 하거나 임시방편으로 때워요",
-        hint: "무료 도구·직접 하기, 발품·전화·입소문으로 해결",
+        label: "유튜브·블로그·책으로 알아서 독학해요",
+        hint: "무료 자료·검색으로 그때그때 해결",
       },
-      { value: "none", label: "마땅한 게 없어 그냥 안 하거나 참고 있어요" },
+      { value: "none", label: "마땅한 게 없어 그냥 안 배우고 참고 있어요" },
       {
         value: "unaware",
-        label: "이런 게 있는지조차 몰라요",
+        label: "이런 걸 배울 수 있는지조차 몰라요",
         hint: "필요성을 먼저 알려줘야 하는 시장",
       },
       { value: "unknown", label: "잘 모르겠어요" },
@@ -195,16 +195,16 @@ function formatPhone(v: string): string {
 /* 설계서 생성(10~30초) 동안 보여줄 "이렇게 검증해요" 3비트 */
 const BEATS: { title: string; sub: string }[] = [
   {
-    title: "진짜 같은 페이지를 만듭니다",
-    sub: "실제 서비스인 것처럼 보이는 한 장짜리 페이지에 가격과 ‘구매’ 버튼까지 넣습니다.",
+    title: "진짜 같은 수강신청 페이지를 만듭니다",
+    sub: "실제 강의인 것처럼 보이는 한 장짜리 페이지에 수강료와 ‘수강신청’ 버튼까지 넣습니다.",
   },
   {
     title: "광고로 모르는 사람을 부릅니다",
-    sub: "지인 말고, 진짜 광고로 타깃 수백 명을 며칠 안에 데려옵니다.",
+    sub: "지인 말고, 진짜 광고로 잠재 수강생 수백 명을 며칠 안에 데려옵니다.",
   },
   {
-    title: "될 사업인지 숫자로 판정합니다",
-    sub: "방문자 100명 중 몇 명이 ‘구매’를 누르는지가 진짜 수요 신호입니다. 미리 정한 기준을 넘으면 만들 가치가 있는 사업(GO), 못 넘으면 멈추거나 방향 수정. 실제 결제는 받지 않습니다.",
+    title: "될 강의인지 숫자로 판정합니다",
+    sub: "방문자 100명 중 몇 명이 ‘수강신청’을 누르는지가 진짜 수요 신호입니다. 미리 정한 기준을 넘으면 만들 가치가 있는 강의(GO), 못 넘으면 멈추거나 방향 수정. 실제 결제는 받지 않습니다.",
   },
 ];
 
@@ -230,10 +230,10 @@ function BeatArt({ beat }: { beat: number }) {
         <rect x="124" y="68" width="50" height="5" rx="2" fill="var(--border)" />
         {/* 가격 칩 */}
         <rect x="124" y="86" width="44" height="16" rx="8" fill="var(--bg-alt)" />
-        <text x="146" y="97" textAnchor="middle" fontSize="9" fontWeight="700" fill="var(--text-secondary)">9,900원</text>
-        {/* 구매 버튼 */}
+        <text x="146" y="97" textAnchor="middle" fontSize="9" fontWeight="700" fill="var(--text-secondary)">89,000원</text>
+        {/* 수강신청 버튼 */}
         <rect x="124" y="116" width="72" height="24" rx="9" fill="var(--accent)" />
-        <text x="160" y="131" textAnchor="middle" fontSize="11" fontWeight="800" fill="#fff">구매하기</text>
+        <text x="160" y="131" textAnchor="middle" fontSize="11" fontWeight="800" fill="#fff">수강신청</text>
         <rect x="124" y="152" width="60" height="5" rx="2" fill="var(--border)" />
 
         {/* ── beat 2: 결제 버튼에 탭 ripple + 커서 ── */}
@@ -264,7 +264,7 @@ function BeatArt({ beat }: { beat: number }) {
       {beat === 2 && (
         <>
           <rect x="18" y="40" width="74" height="44" rx="10" fill="var(--bg-alt)" />
-          <text x="55" y="58" textAnchor="middle" fontSize="9" fontWeight="700" fill="var(--text-secondary)">결제 버튼 클릭</text>
+          <text x="55" y="58" textAnchor="middle" fontSize="9" fontWeight="700" fill="var(--text-secondary)">수강신청 클릭</text>
           <text x="55" y="76" textAnchor="middle" fontSize="20" fontWeight="800" fill="var(--accent)">11</text>
           <g transform="rotate(8 268 140)">
             <rect x="232" y="118" width="72" height="44" rx="10" fill="var(--go-tint)" stroke="var(--go)" strokeWidth="2.5" />
@@ -740,11 +740,11 @@ export default function LeadForm() {
         <Progress current={chunkIndex} total={totalChunks} />
         <div>
           <p className="text-xl font-bold text-text">
-            검증하고 싶은 아이디어, 편하게 적어주세요
+            검증하고 싶은 강의 주제, 편하게 적어주세요
           </p>
           <p className="mt-1 text-sm text-text-secondary">
             지금은 짧아도 괜찮습니다. 한 줄로 시작하면 다음 화면에서 같이
-            구체화해 드립니다. 끝까지 답하시면 이 아이디어가 팔릴지 어떻게
+            구체화해 드립니다. 끝까지 답하시면 이 강의가 팔릴지 어떻게
             확인할지 담긴 검증 설계서를 그 자리에서 무료로 드립니다.
           </p>
         </div>
@@ -754,7 +754,7 @@ export default function LeadForm() {
           onChange={(e) => setIdea(e.target.value)}
           className={`${inputBase} min-h-[96px] resize-y leading-relaxed`}
           rows={3}
-          placeholder={"예: 직장인 점심 단체주문을 자동화하는 서비스"}
+          placeholder={"예: 노션으로 업무 자동화하는 법, 직장인 대상 온라인 강의"}
           maxLength={2000}
         />
         <button
@@ -781,10 +781,10 @@ export default function LeadForm() {
           <div className="flex flex-col items-center py-10 text-center">
             <div className="h-12 w-12 animate-spin rounded-full border-[3px] border-border border-t-accent" />
             <p className="mt-5 text-base font-bold text-text">
-              AI가 아이디어를 분석하고 있습니다
+              AI가 강의 주제를 분석하고 있습니다
             </p>
             <p className="mt-1 text-sm text-text-secondary">
-              이 문장이 광고 문구와 검증용 사이트의 출발점이 됩니다. 그래서
+              이 문장이 광고 문구와 수강신청 페이지의 출발점이 됩니다. 그래서
               뜻을 한 번 더 확인합니다. 실제 광고는 모든 내용을 직접 확인하고
               동의하신 뒤에만 나갑니다.
             </p>
@@ -809,7 +809,7 @@ export default function LeadForm() {
                   value={customRefine}
                   onChange={(e) => setCustomRefine(e.target.value)}
                   className={`${inputBase} min-h-[80px] resize-y leading-relaxed`}
-                  placeholder="예: 1인 미용실 원장이 노쇼 손님 때문에 매출이 비는 문제를 예약금으로 막아주는 서비스"
+                  placeholder="예: 엑셀이 막막한 사회초년생에게 실무 함수만 골라 가르치는 VOD 강의"
                   maxLength={300}
                 />
                 <button
@@ -889,7 +889,7 @@ export default function LeadForm() {
                     <div>
                       <p className="text-xl font-bold text-text">{g.question}</p>
                       <p className="mt-1 text-sm leading-relaxed text-text-secondary">
-                        이 답이 검증용 사이트와 광고 문구에 그대로 반영됩니다.
+                        이 답이 수강신청 페이지와 광고 문구에 그대로 반영됩니다.
                         해당되는 걸 다 고르셔도 되고(여러 개 가능), 직접 적으셔도
                         됩니다.
                       </p>
@@ -1176,7 +1176,7 @@ const ECHO_LABELS: Record<string, Record<string, string>> = {
     need: "검증용 사이트는 비즈필터가 제작",
     built: "이미 있는 페이지로",
   },
-  audience: { b2c: "일반 소비자", b2b: "회사 · 사장님", both: "둘 다" },
+  audience: { b2c: "개인 수강생", b2b: "기업 · 기관", both: "둘 다" },
   revenue: {
     once: "한 번 결제",
     subscription: "정기 결제(구독·회원제)",
@@ -1193,9 +1193,9 @@ const ECHO_LABELS: Record<string, Record<string, string>> = {
     unknown: "미정",
   },
   alternative: {
-    competitor: "비슷한 서비스·앱 사용",
-    manual: "임시방편으로 때움",
-    none: "안 하거나 참는 중",
+    competitor: "비슷한 유료 강의 수강",
+    manual: "유튜브·책으로 독학",
+    none: "안 배우고 참는 중",
     unaware: "있는 줄도 모름",
     unknown: "모름",
   },
@@ -1225,7 +1225,7 @@ function ReportView({
   const isEngine = path === "engine";
   const priceLine = isEngine
     ? "엔진 (페이지는 직접, 검증만) 29만원"
-    : "Quick (전 과정 대행) 50만원 · 7일";
+    : "Quick (전 과정 대행) 50만원 · 보통 2~3일";
   const href = accessCode ? `/d/${accessCode}` : KAKAO_CHAT_URL;
 
   function fireStart(position: string) {
@@ -1252,12 +1252,12 @@ function ReportView({
         k === "build"
           ? "페이지"
           : k === "audience"
-            ? "결제 고객"
+            ? "수강 고객"
             : k === "revenue"
-              ? "과금 방식"
+              ? "수강료 방식"
               : k === "price"
-                ? "가격대"
-                : "현재 대안",
+                ? "수강료대"
+                : "지금 배우는 법",
       value: ECHO_LABELS[k]?.[answers[k] ?? ""] ?? null,
     }))
     .filter((r) => r.value);
@@ -1423,8 +1423,8 @@ function ReportView({
           저희라면 이렇게 검증합니다
         </p>
         <p className="mt-1.5 text-sm leading-relaxed text-text-secondary">
-          적어주신 답변(업종·타깃·가격·지금 어떻게 하시는지)을 그대로 반영해
-          맞춘 설계입니다. 누구에게나 똑같이 나가는 양식이 아닙니다.
+          적어주신 답변(강의 형태·타깃·수강료·지금 어떻게 배우는지)을 그대로
+          반영해 맞춘 설계입니다. 누구에게나 똑같이 나가는 양식이 아닙니다.
         </p>
 
         <div className="mt-4 space-y-3">
@@ -1484,8 +1484,8 @@ function ReportView({
           </p>
           <p className="mt-2 text-sm leading-relaxed text-text-secondary">
             {isEngine
-              ? "페이지를 직접 준비하시는 분께는 제작을 뺀 검증만. 광고 세팅과 7일 집행(광고비 포함), 측정, 판정까지. 재검증 30% 할인."
-              : "검증용 사이트 제작부터 광고 7일 집행, 측정, 될지 안 될지(Go/No-Go) 판정까지 전부. 분명한 판정을 못 드리면 전액 환불."}
+              ? "수강신청 페이지를 직접 준비하시는 분께는 제작을 뺀 검증만. 광고 세팅과 집행(광고비 포함), 측정, 판정까지. 재검증 30% 할인."
+              : "수강신청 페이지 제작부터 광고 집행, 측정, 될지 안 될지(Go/No-Go) 판정까지 전부. 분명한 판정을 못 드리면 전액 환불."}
           </p>
         </div>
         <a
@@ -1493,7 +1493,7 @@ function ReportView({
           onClick={(e) => onStart(e, "bottom")}
           className="mt-3 flex items-center justify-center gap-2 rounded-lg bg-accent px-6 py-4 text-base font-bold text-white transition hover:bg-accent-hover"
         >
-          진짜 사람들로 이 아이디어 테스트 시작하기
+          진짜 사람들로 이 강의 테스트 시작하기
           <ArrowRightMini />
         </a>
         <p className="mt-3 text-center text-xs text-text-tertiary">
@@ -1532,15 +1532,15 @@ function NextSteps({
   // 3단계는 path가 아니라 build로 분기 (self=아직 페이지 없음)
   const prepStep =
     build === "built"
-      ? "48시간 안에 준비 완료: 만드신 페이지에 측정 스크립트 한 줄만 붙이시면(채널톡 설치와 같은 방식) 연결이 자동 확인됩니다."
+      ? "신청 당일 준비 시작: 만드신 페이지에 측정 스크립트 한 줄만 붙이시면(채널톡 설치와 같은 방식) 연결이 자동 확인됩니다."
       : build === "self"
-        ? "48시간 안에 준비 완료: 직접 만드실 페이지 가이드와 측정 스크립트 한 줄을 드립니다. 붙이시면 연결이 자동 확인됩니다."
-        : "48시간 안에 준비 완료: 실서비스처럼 보이는 검증용 사이트를 제작합니다.";
+        ? "신청 당일 준비 시작: 직접 만드실 페이지 가이드와 측정 스크립트 한 줄을 드립니다. 붙이시면 연결이 자동 확인됩니다."
+        : "신청 당일 준비 시작: 공장형 템플릿이라 실제 강의처럼 보이는 수강신청 페이지가 바로 만들어집니다.";
   const steps = [
     "이 방향으로 검증 준비안 초안(핵심 메시지, 표시 가격, 가칭)을 잡아 드립니다.",
     "준비안 확정: 화면에서 승인만 하면 담당 검증 전문가가 1~2시간 안에 직접 검토하고 진행합니다. 통화 없습니다.",
     prepStep,
-    "7일 광고 집행: 진행 대시보드를 상시 공개합니다.",
+    "광고 집행: 표본이 찰 때까지(보통 2~3일) 돌립니다. 진행 대시보드를 상시 공개합니다.",
     "판정 리포트: 될지 안 될지(Go/No-Go)와 다음에 할 일을 대시보드로 보내드립니다.",
   ];
   void path;

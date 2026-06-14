@@ -3,9 +3,9 @@ import LeadForm from "@/components/LeadForm";
 import { BrandMark, Wordmark } from "@/components/Brand";
 
 export const metadata: Metadata = {
-  title: "내 아이디어 검증 신청 | 비즈필터",
+  title: "내 강의 검증 신청 | 비즈필터",
   description:
-    "아이디어 한 줄이면 시작됩니다. 광고 채널과 합격선이 담긴 검증 설계서를 무료로 받아보세요.",
+    "강의 주제 한 줄이면 시작됩니다. 광고 채널과 합격선이 담긴 검증 설계서를 무료로 받아보세요.",
   robots: { index: false, follow: false },
 };
 
@@ -29,12 +29,12 @@ export default function StartPage() {
         {/* 후크 스트립 — 우리가 뭐 하는 곳인지 폼 위에 고정 */}
         <div className="mb-6 text-center">
           <h1 className="text-2xl font-extrabold leading-tight tracking-[-0.02em] text-text sm:text-3xl">
-            이 사업이 될지 안 될지,
+            이 강의가 팔릴지 안 팔릴지,
             <br />
-            진짜 살 사람으로 확인합니다
+            진짜 수강할 사람으로 확인합니다
           </h1>
           <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-text-secondary">
-            아이디어를 적으면, 이 아이디어가 팔릴지 어떻게 확인할지 담긴 검증
+            강의 주제를 적으면, 이 강의가 팔릴지 어떻게 확인할지 담긴 검증
             설계서를 그 자리에서 무료로 드립니다.
           </p>
         </div>
