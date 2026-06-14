@@ -73,7 +73,7 @@ async function leadStats(
   admin: ReturnType<typeof getSupabaseAdmin>,
   leadId: string,
 ) {
-  const [pv, clicks, pay] = await Promise.all([
+  const [pv, clicks, pay, signups] = await Promise.all([
     admin
       .from("o2o_events")
       .select("id", { count: "exact", head: true })
@@ -90,11 +90,17 @@ async function leadStats(
       .eq("lead_id", leadId)
       .eq("type", "click")
       .or(PAY_LABEL_OR),
+    // 검증 사이트 사전등록 제출 = 진짜 전환 신호 (모달 열기 클릭과 별개)
+    admin
+      .from("o2o_signups")
+      .select("id", { count: "exact", head: true })
+      .eq("lead_id", leadId),
   ]);
   return {
     visits: pv.count ?? 0,
     clicks: clicks.count ?? 0,
     payClicks: pay.count ?? 0,
+    signups: signups.count ?? 0,
   };
 }
 
@@ -104,32 +110,55 @@ async function leadSeries(
   leadId: string,
 ): Promise<{ d: string; visits: number; pay: number }[]> {
   const PAY_WORDS = ["구매", "결제", "주문", "신청", "시작", "예약", "구독", "등록"];
-  const { data } = await admin
-    .from("o2o_events")
-    .select("created_at, type, label")
-    .eq("lead_id", leadId)
-    .order("created_at", { ascending: true })
-    .limit(5000);
-  const byDay = new Map<string, { visits: number; pay: number }>();
-  for (const e of data ?? []) {
-    const dt = new Date(e.created_at as string);
-    // KST 기준 일자 키 (MM/DD)
-    const k = new Intl.DateTimeFormat("ko-KR", {
+  const [ev, sg] = await Promise.all([
+    admin
+      .from("o2o_events")
+      .select("created_at, type, label")
+      .eq("lead_id", leadId)
+      .order("created_at", { ascending: true })
+      .limit(5000),
+    admin
+      .from("o2o_signups")
+      .select("created_at")
+      .eq("lead_id", leadId)
+      .order("created_at", { ascending: true })
+      .limit(5000),
+  ]);
+  const dayKey = (ts: string) =>
+    new Intl.DateTimeFormat("ko-KR", {
       timeZone: "Asia/Seoul",
       month: "2-digit",
       day: "2-digit",
-    }).format(dt);
-    const row = byDay.get(k) ?? { visits: 0, pay: 0 };
-    if (e.type === "pageview") row.visits += 1;
+    }).format(new Date(ts));
+  const byDay = new Map<
+    string,
+    { visits: number; clickPay: number; signups: number }
+  >();
+  const row = (k: string) =>
+    byDay.get(k) ?? { visits: 0, clickPay: 0, signups: 0 };
+  for (const e of ev.data ?? []) {
+    const k = dayKey(e.created_at as string);
+    const r = row(k);
+    if (e.type === "pageview") r.visits += 1;
     else if (
       e.type === "click" &&
       e.label &&
       PAY_WORDS.some((w) => (e.label as string).includes(w))
     )
-      row.pay += 1;
-    byDay.set(k, row);
+      r.clickPay += 1;
+    byDay.set(k, r);
   }
-  return [...byDay.entries()].map(([d, v]) => ({ d, ...v }));
+  const hasSignups = (sg.data ?? []).length > 0;
+  for (const s of sg.data ?? []) {
+    const k = dayKey(s.created_at as string);
+    const r = row(k);
+    r.signups += 1;
+    byDay.set(k, r);
+  }
+  // pay = 실제 사전등록 제출(있으면), 없으면 t.js 결제성 클릭(외부 페이지 호환)
+  return [...byDay.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([d, v]) => ({ d, visits: v.visits, pay: hasSignups ? v.signups : v.clickPay }));
 }
 
 function publicLead(lead: Record<string, unknown>) {
@@ -378,7 +407,12 @@ export async function POST(request: Request) {
   /* 대시보드 상태 조회 */
   if (body.action === "get") {
     const pub = publicLead(lead) as ReturnType<typeof publicLead> & {
-      stats?: { visits: number; clicks: number; payClicks: number } | null;
+      stats?: {
+        visits: number;
+        clicks: number;
+        payClicks: number;
+        signups: number;
+      } | null;
       series?: { d: string; visits: number; pay: number }[] | null;
     };
     // 광고가 켜진 뒤에는 실측 숫자 + 일자별 추세를 같이 내려보낸다 (금액 제외)

@@ -36,7 +36,12 @@ interface PublicLead {
   hasPageUrl: boolean;
   tagVerified: boolean;
   /** 광고 시작 후 실측 숫자 (금액 정보 없음) */
-  stats?: { visits: number; clicks: number; payClicks: number } | null;
+  stats?: {
+    visits: number;
+    clicks: number;
+    payClicks: number;
+    signups: number;
+  } | null;
   /** 관리자가 입력한 구글애즈 실측 (광고비 제외). 방문·전환은 비면 0 → t.js 사용 */
   adStats?: {
     impressions: number;
@@ -1453,11 +1458,17 @@ function TrendChart({
 /* 검증 코크핏 — 광고 전이라도 "여기가 내 실시간 대시보드"임을 보여준다.
    실제 데이터(없으면 0/대기) + 합격선(목표)만 쓰고, 가짜 숫자는 절대 넣지 않는다. */
 function Cockpit({ lead, preview = false }: { lead: PublicLead; preview?: boolean }) {
-  const s = lead.stats ?? { visits: 0, clicks: 0, payClicks: 0 };
+  const s = lead.stats ?? { visits: 0, clicks: 0, payClicks: 0, signups: 0 };
   const av = lead.adStats;
   // 관리자가 방문/전환을 직접 넣었으면 그 값을, 아니면 t.js 자동측정값을 쓴다.
   const visits = av && av.visits > 0 ? av.visits : s.visits;
-  const payClicks = av && av.conversions > 0 ? av.conversions : s.payClicks;
+  // 전환 = 관리자 실측 > 실제 사전등록 제출 > t.js 결제성 클릭(외부 페이지) 순
+  const payClicks =
+    av && av.conversions > 0
+      ? av.conversions
+      : s.signups > 0
+        ? s.signups
+        : s.payClicks;
   const hasData = visits > 0;
   const live = lead.stage === "live";
   const done = lead.stage === "verdict" || lead.stage === "closed";

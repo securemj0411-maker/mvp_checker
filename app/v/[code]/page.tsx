@@ -98,11 +98,15 @@ export default async function ValidationPage({
     accent: ov.accent || undefined,
   };
 
+  // 게시된 실제 노출에서만 측정한다. 미리보기(preview=1)·미게시 트래픽이
+  // 코크핏·판정 신호를 오염시키지 않도록 t.js를 빼고 렌더한다.
+  const measure = !!lead.site_published_at && preview !== "1";
+
   return (
     <>
       <ValidationSite data={data} />
-      {/* 측정 — 방문·CTA 클릭이 o2o_events로(코크핏 실시간 반영) */}
-      <script defer src="/t.js" data-code={lead.access_code} />
+      {/* 측정 — 게시된 노출에서만. 방문·CTA 클릭이 o2o_events로(코크핏 실시간 반영) */}
+      {measure && <script defer src="/t.js" data-code={lead.access_code} />}
     </>
   );
 }

@@ -26,18 +26,25 @@ export async function POST(request: Request) {
   const admin = getSupabaseAdmin();
   const { data: lead } = await admin
     .from("o2o_leads")
-    .select("id")
+    .select("id, site_published_at")
     .eq("access_code", code)
     .maybeSingle();
   if (!lead?.id) return Response.json({ ok: false }, { status: 404 });
+  // 게시된(광고 노출 중) 사이트에서만 신청을 받는다 — 미게시·미리보기 제출은 거부.
+  if (!lead.site_published_at)
+    return Response.json({ ok: false }, { status: 403 });
 
-  await admin.from("o2o_signups").insert({
-    lead_id: lead.id,
-    code,
-    name: name || null,
-    contact,
-    plan, // 어느 플랜에서 신청했는지 (선택)
-  });
+  // (lead_id, contact) 유니크 — 같은 사람 중복 제출은 조용히 무시(명단·전환 부풀림 방지)
+  await admin.from("o2o_signups").upsert(
+    {
+      lead_id: lead.id,
+      code,
+      name: name || null,
+      contact,
+      plan, // 어느 플랜에서 신청했는지 (선택)
+    },
+    { onConflict: "lead_id,contact", ignoreDuplicates: true },
+  );
 
   return Response.json({ ok: true });
 }
