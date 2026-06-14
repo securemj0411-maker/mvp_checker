@@ -69,7 +69,56 @@ function embedUrl(raw?: string): string | null {
   return null;
 }
 
-export default function ValidationSite({ data }: { data: ValidationSiteData }) {
+type EditHandlers = {
+  field: (k: "offer" | "credential" | "prologue", v: string) => void;
+  plan: (i: number, k: "label" | "desc", v: string) => void;
+  planPrice: (i: number, v: number) => void;
+  point: (i: number, v: string) => void;
+};
+
+/** 페이지 위에서 글자처럼 보이는 인라인 편집 입력 (윅스/아임웹식) */
+function EditText({
+  value,
+  onChange,
+  className = "",
+  multiline = false,
+  placeholder,
+  rows = 3,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  className?: string;
+  multiline?: boolean;
+  placeholder?: string;
+  rows?: number;
+}) {
+  const ring =
+    "rounded-md bg-accent/[0.04] outline-none ring-1 ring-accent/25 transition placeholder:text-text-tertiary/60 focus:bg-accent/[0.08] focus:ring-2 focus:ring-accent";
+  return multiline ? (
+    <textarea
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      rows={rows}
+      className={`${className} ${ring} w-full resize-y px-2.5 py-1.5`}
+    />
+  ) : (
+    <input
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className={`${className} ${ring} w-full px-2.5 py-1`}
+    />
+  );
+}
+
+export default function ValidationSite({
+  data,
+  edit,
+}: {
+  data: ValidationSiteData;
+  edit?: EditHandlers;
+}) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [contact, setContact] = useState("");
@@ -80,6 +129,7 @@ export default function ValidationSite({ data }: { data: ValidationSiteData }) {
   const [imgError, setImgError] = useState(false);
 
   const cta = CTA_LABEL[data.intent];
+  const editable = !!edit;
   const video = embedUrl(data.introVideo);
   const prologueParas = (data.prologue ?? "")
     .split(/\n+/)
@@ -99,6 +149,7 @@ export default function ValidationSite({ data }: { data: ValidationSiteData }) {
     : undefined;
 
   function openModal(planLabel?: string) {
+    if (editable) return; // 편집 모드(미리보기)에서는 신청 모달을 띄우지 않는다
     setPlan(planLabel ?? null);
     setDone(false);
     setErr(false);
@@ -173,21 +224,41 @@ export default function ValidationSite({ data }: { data: ValidationSiteData }) {
               {data.targetLine}
             </p>
           )}
-          <h1 className="text-[32px] font-extrabold leading-[1.18] tracking-[-0.03em] text-text sm:text-[46px]">
-            {data.offer}
-          </h1>
+          {editable ? (
+            <EditText
+              value={data.offer}
+              onChange={(v) => edit!.field("offer", v)}
+              placeholder="여기에 한 줄 제목 (예: 퇴근 후 1시간, 엑셀이 무기가 됩니다)"
+              className="text-center text-[28px] font-extrabold leading-[1.18] tracking-[-0.03em] text-text sm:text-[40px]"
+            />
+          ) : (
+            <h1 className="text-[32px] font-extrabold leading-[1.18] tracking-[-0.03em] text-text sm:text-[46px]">
+              {data.offer}
+            </h1>
+          )}
           {data.problemLine && (
             <p className="mx-auto mt-6 max-w-xl text-[16px] leading-[1.7] text-text-secondary sm:text-[18px]">
               {data.problemLine}
             </p>
           )}
-          {data.credential && (
-            <p className="mx-auto mt-5 inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-[13px] font-semibold text-text-secondary">
-              <span className="grid h-5 w-5 place-items-center rounded-full bg-accent text-[11px] font-black text-white">
-                ✓
-              </span>
-              {data.credential}
-            </p>
+          {editable ? (
+            <div className="mx-auto mt-5 max-w-md">
+              <EditText
+                value={data.credential ?? ""}
+                onChange={(v) => edit!.field("credential", v)}
+                placeholder="강사 소개·실적 한 줄 (예: 구독 1.2만 유튜버 · 5년차) — 선택"
+                className="text-center text-[13px] font-semibold text-text-secondary"
+              />
+            </div>
+          ) : (
+            data.credential && (
+              <p className="mx-auto mt-5 inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-[13px] font-semibold text-text-secondary">
+                <span className="grid h-5 w-5 place-items-center rounded-full bg-accent text-[11px] font-black text-white">
+                  ✓
+                </span>
+                {data.credential}
+              </p>
+            )
           )}
 
           {/* 소개 영상 — Skool about의 핵심. 고객이 URL만 넣으면 임베드 */}
@@ -220,47 +291,71 @@ export default function ValidationSite({ data }: { data: ValidationSiteData }) {
       </section>
 
       {/* ── 프롤로그 (강의 소개 본문) ── */}
-      {prologueParas.length > 0 && (
+      {(prologueParas.length > 0 || editable) && (
         <section className="border-b border-border bg-bg">
           <div className="mx-auto max-w-2xl px-5 py-16 sm:py-20">
             <h2 className="text-[22px] font-extrabold tracking-[-0.02em] text-text sm:text-[26px]">
               이 강의를 소개합니다
             </h2>
-            <div className="mt-6 space-y-4">
-              {prologueParas.map((p, i) => (
-                <p
-                  key={i}
-                  className="text-[16px] leading-[1.8] text-text-secondary"
-                >
-                  {p}
-                </p>
-              ))}
-            </div>
+            {editable ? (
+              <EditText
+                value={data.prologue ?? ""}
+                onChange={(v) => edit!.field("prologue", v)}
+                multiline
+                rows={5}
+                placeholder="누구를 위한 강의인지, 뭘 배워가는지, 왜 당신이 가르치는지 적어보세요. 줄을 바꾸면 문단이 나뉩니다."
+                className="mt-6 text-[16px] leading-[1.8] text-text-secondary"
+              />
+            ) : (
+              <div className="mt-6 space-y-4">
+                {prologueParas.map((p, i) => (
+                  <p
+                    key={i}
+                    className="text-[16px] leading-[1.8] text-text-secondary"
+                  >
+                    {p}
+                  </p>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       )}
 
       {/* ── 가치 포인트 (이런 걸 배웁니다) ── */}
-      {data.sellingPoints.length > 0 && (
+      {(data.sellingPoints.length > 0 || editable) && (
         <section className="border-b border-border bg-bg">
           <div className="mx-auto max-w-5xl px-5 py-16 sm:py-20">
             <h2 className="text-center text-[22px] font-extrabold tracking-[-0.02em] text-text sm:text-[26px]">
               이런 걸 얻어갑니다
             </h2>
             <div className="mt-10 grid gap-5 sm:grid-cols-3">
-              {data.sellingPoints.slice(0, 3).map((p, i) => (
-                <div
-                  key={i}
-                  className="rounded-[20px] border border-border bg-surface p-7"
-                >
-                  <span className="grid h-9 w-9 place-items-center rounded-full bg-bg-light text-base font-extrabold text-accent">
-                    {i + 1}
-                  </span>
-                  <p className="mt-4 text-[15px] font-semibold leading-[1.6] text-text">
-                    {p}
-                  </p>
-                </div>
-              ))}
+              {(editable ? [0, 1, 2] : data.sellingPoints.slice(0, 3).map((_, i) => i)).map(
+                (i) => (
+                  <div
+                    key={i}
+                    className="rounded-[20px] border border-border bg-surface p-7"
+                  >
+                    <span className="grid h-9 w-9 place-items-center rounded-full bg-bg-light text-base font-extrabold text-accent">
+                      {i + 1}
+                    </span>
+                    {editable ? (
+                      <EditText
+                        value={data.sellingPoints[i] ?? ""}
+                        onChange={(v) => edit!.point(i, v)}
+                        multiline
+                        rows={2}
+                        placeholder="강조할 점 (예: 바로 쓰는 템플릿 12종)"
+                        className="mt-4 text-[15px] font-semibold leading-[1.6] text-text"
+                      />
+                    ) : (
+                      <p className="mt-4 text-[15px] font-semibold leading-[1.6] text-text">
+                        {data.sellingPoints[i]}
+                      </p>
+                    )}
+                  </div>
+                ),
+              )}
             </div>
           </div>
         </section>
@@ -282,21 +377,54 @@ export default function ValidationSite({ data }: { data: ValidationSiteData }) {
                 key={i}
                 className="flex flex-col rounded-[22px] border border-border bg-surface p-8 shadow-[0_2px_10px_rgba(10,23,38,0.04)]"
               >
-                <p className="text-[15px] font-bold text-accent">
-                  {p.label || "기본"}
-                </p>
+                {editable ? (
+                  <EditText
+                    value={p.label}
+                    onChange={(v) => edit!.plan(i, "label", v)}
+                    placeholder="플랜 이름 (예: 단과)"
+                    className="text-[15px] font-bold text-accent"
+                  />
+                ) : (
+                  <p className="text-[15px] font-bold text-accent">
+                    {p.label || "기본"}
+                  </p>
+                )}
                 <div className="mt-3 flex items-baseline gap-1">
-                  <span className="text-[36px] font-extrabold tracking-[-0.03em] text-text">
-                    {p.price > 0 ? p.price.toLocaleString() : "0"}
-                  </span>
+                  {editable ? (
+                    <input
+                      value={p.price > 0 ? String(p.price) : ""}
+                      onChange={(e) =>
+                        edit!.planPrice(
+                          i,
+                          Number((e.target.value.match(/\d/g) ?? []).join("")) || 0,
+                        )
+                      }
+                      placeholder="0"
+                      inputMode="numeric"
+                      className="w-32 rounded-md bg-accent/[0.04] px-2 py-0.5 text-[32px] font-extrabold tracking-[-0.03em] text-text outline-none ring-1 ring-accent/25 focus:ring-2 focus:ring-accent"
+                    />
+                  ) : (
+                    <span className="text-[36px] font-extrabold tracking-[-0.03em] text-text">
+                      {p.price > 0 ? p.price.toLocaleString() : "0"}
+                    </span>
+                  )}
                   <span className="text-[15px] font-semibold text-text-tertiary">
                     원
                   </span>
                 </div>
-                {p.desc && (
-                  <p className="mt-3 flex-1 text-[14px] leading-[1.6] text-text-secondary">
-                    {p.desc}
-                  </p>
+                {editable ? (
+                  <EditText
+                    value={p.desc ?? ""}
+                    onChange={(v) => edit!.plan(i, "desc", v)}
+                    placeholder="플랜 설명 (선택)"
+                    className="mt-3 text-[14px] leading-[1.6] text-text-secondary"
+                  />
+                ) : (
+                  p.desc && (
+                    <p className="mt-3 flex-1 text-[14px] leading-[1.6] text-text-secondary">
+                      {p.desc}
+                    </p>
+                  )
                 )}
                 <button
                   onClick={() => openModal(p.label)}

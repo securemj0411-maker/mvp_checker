@@ -5,6 +5,7 @@ import { sendGAEvent } from "@next/third-parties/google";
 import { BANK_INFO, type BriefDraft, type ConfirmedBrief } from "@/lib/diagnosis";
 import { KAKAO_CHAT_URL } from "@/lib/site";
 import { BrandMark, Wordmark } from "@/components/Brand";
+import ValidationSite, { type ValidationSiteData } from "@/components/ValidationSite";
 
 /* ─────────────────────────────────────────────────────────────
    고객 대시보드 + 브리프 확정 — 킥오프 통화의 무통화 대체물.
@@ -484,6 +485,7 @@ function BriefStep({
   const [credential, setCredential] = useState(""); // 강사 소개/실적 한 줄
   const [introVideo, setIntroVideo] = useState(""); // 소개 영상 URL(유튜브/비메오)
   const [prologue, setPrologue] = useState(""); // 강의 소개 본문(프롤로그)
+  const [points, setPoints] = useState<string[]>([]); // 가치 포인트 3개(고객 편집)
   // 전문가 사전 점검 — 질문별 복수 선택(칩) + 선택적 직접입력
   const [intakeSel, setIntakeSel] = useState<string[][]>([]);
   const [intakeEtcMode, setIntakeEtcMode] = useState<boolean[]>([]);
@@ -523,6 +525,7 @@ function BriefStep({
       v.length > 0 ? v : [{ label: "기본", price: draft.price_value, desc: "" }],
     );
     setName((v) => v || draft.name_candidates[0] || "");
+    setPoints((v) => (v.length ? v : (draft.selling_points ?? []).slice(0, 3)));
   }, [draft]);
 
   // 수정 모드: 확정된 값으로 프리필 (초안 기본값 대신 고객이 정한 값). 1회만.
@@ -543,6 +546,9 @@ function BriefStep({
     setCredential(c.credential || "");
     setIntroVideo(c.intro_video || "");
     setPrologue(c.prologue || "");
+    setPoints(
+      (c.selling_points ?? draft?.selling_points ?? []).slice(0, 3),
+    );
     const inOptions = (draft?.offer_options ?? []).some(
       (o) => o.headline === c.offer,
     );
@@ -666,7 +672,10 @@ function BriefStep({
           .filter((x) => x.a);
         return ans.length > 0 ? ans : undefined;
       })(),
-      selling_points: draft!.selling_points,
+      selling_points: (() => {
+        const cp = points.map((s) => s.trim()).filter(Boolean);
+        return cp.length ? cp : draft!.selling_points;
+      })(),
       name: name.trim(),
       excluded: draft!.excluded,
       // pass_bar / min_sample / shortfall_choice 는 서버(코드)가 채운다
@@ -697,8 +706,71 @@ function BriefStep({
   const finalAmount = Math.round(listPrice * (1 - revalRate));
   const isDiscounted = finalAmount < listPrice;
 
+  // 확정 화면 = 실제 페이지 편집기. 입력 상태를 그대로 ValidationSite로 렌더하고
+  // 글자·가격은 페이지 위에서 인라인 편집(같은 state에 양방향 반영).
+  const previewIntent: ValidationSiteData["intent"] = /예약|신청|등록/.test(
+    lead.passBar?.bar ?? "",
+  )
+    ? "reserve"
+    : /문의/.test(lead.passBar?.bar ?? "")
+      ? "inquiry"
+      : "pay";
+  const previewData: ValidationSiteData = {
+    code: lead.siteToken ?? code,
+    name: name.trim() || draft?.name_candidates[0] || "내 강의",
+    offer: offer.trim() || draft?.offer_options[0]?.headline || "",
+    targetLine: draft?.target_line || "",
+    problemLine: draft?.problem_line || "",
+    plans: plans.map((p) => ({ label: p.label, price: p.price, desc: p.desc })),
+    sellingPoints: points,
+    intent: previewIntent,
+    credential: credential.trim() || undefined,
+    introVideo: introVideo.trim() || undefined,
+    prologue: prologue.trim() || undefined,
+  };
+  const editHandlers = {
+    field: (k: "offer" | "credential" | "prologue", v: string) => {
+      if (k === "offer") {
+        setOffer(v);
+        setOfferCustom(true);
+      } else if (k === "credential") setCredential(v);
+      else setPrologue(v);
+    },
+    plan: (i: number, k: "label" | "desc", v: string) =>
+      setPlans((ps) => ps.map((p, j) => (j === i ? { ...p, [k]: v } : p))),
+    planPrice: (i: number, v: number) =>
+      setPlans((ps) => ps.map((p, j) => (j === i ? { ...p, price: v } : p))),
+    point: (i: number, v: string) =>
+      setPoints((arr) => {
+        const n = [...arr];
+        while (n.length <= i) n.push("");
+        n[i] = v;
+        return n;
+      }),
+  };
+
   return (
     <div className="space-y-5">
+      {/* 진짜 페이지 미리보기 = 편집기 (윅스/아임웹식: 글자를 눌러 바로 수정) */}
+      <div className="cold-panel rounded-lg p-4 sm:p-5">
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <span className="text-[15px] font-bold text-text">내 강의 페이지</span>
+          <span className="rounded-full bg-accent/10 px-2.5 py-1 text-[11px] font-bold text-accent">
+            점선 칸을 눌러 글자·가격 바로 수정
+          </span>
+        </div>
+        <div className="overflow-hidden rounded-xl border border-border">
+          <div className="max-h-[68vh] overflow-y-auto">
+            <ValidationSite data={previewData} edit={editHandlers} />
+          </div>
+        </div>
+        <p className="mt-2 text-[11px] leading-relaxed text-text-tertiary">
+          지금 이 화면 그대로가 광고로 띄울 실제 페이지예요. 제목·소개·가격을
+          눌러 직접 고치면 즉시 반영됩니다. 색·이미지·배치는 전문가가 다듬어
+          드려요.
+        </p>
+      </div>
+
       {/* 대표 인사 영상 — 영상 준비되면 되살리기 */}
       {/* <FounderVideo /> */}
 
@@ -998,7 +1070,6 @@ function BriefStep({
           포함 내용을 적으면 그대로 사이트에 보여드립니다. 어떤 플랜이 많이
           눌리는지도 같이 측정해 드립니다.
         </p>
-        <PagePreview name={name} offer={offer} plans={plans} />
       </Card>
 
       {/* 3. 가칭 */}
