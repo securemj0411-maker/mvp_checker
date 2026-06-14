@@ -456,10 +456,67 @@ function ResaleScreen() {
   );
 }
 
-/* ── 5) 온라인 강의 페이크도어 — 녹화 전에 '수강신청'으로 수요 측정 ── */
+/* ── 5) 온라인 강의 페이크도어 — 녹화 전에 '수강신청'으로 수요 측정 ──
+   3종(노션 GO / 영어회화 NO-GO / 코딩부트캠프 PIVOT)을 같은 레이아웃으로 파라미터화. */
 
-function CourseScreen() {
-  const V = "#6d28d9";
+type Course = {
+  accent: string;
+  soft: string;
+  grad: string;
+  tag: string;
+  title: [string, string];
+  sub: string;
+  instr: [string, string];
+  curr: [string, string, string];
+  price: string;
+  priceLabel: string;
+  emoji: string;
+};
+
+const COURSES: Record<string, Course> = {
+  notion: {
+    accent: "#6d28d9",
+    soft: "#f1ecfe",
+    grad: "linear-gradient(135deg,#7c3aed,#a78bfa)",
+    tag: "사전 모집 · 선착순 50명",
+    title: ["노션으로 끝내는", "직장인 업무 자동화"],
+    sub: "반복 업무를 노션 한 곳에서 · 영상 12강 + 실습 템플릿",
+    instr: ["김다은 · 노션 앰배서더", "1인 사업 자동화 컨설턴트"],
+    curr: ["노션 기초 셋업", "반복 업무 자동화", "나만의 대시보드"],
+    price: "89,000원",
+    priceLabel: "얼리버드",
+    emoji: "👩‍🏫",
+  },
+  english: {
+    accent: "#0284c7",
+    soft: "#e0f2fe",
+    grad: "linear-gradient(135deg,#0ea5e9,#38bdf8)",
+    tag: "사전 모집",
+    title: ["퇴근 후 30분,", "영어회화 클래스"],
+    sub: "왕초보 탈출 · 영상 20강 + 주 1회 첨삭",
+    instr: ["이서연 · 영어 코치", "외국계 10년 · 통역사"],
+    curr: ["기초 회화 패턴", "상황별 실전 표현", "발음 교정"],
+    price: "59,000원",
+    priceLabel: "얼리버드",
+    emoji: "🗣️",
+  },
+  coding: {
+    accent: "#ea580c",
+    soft: "#ffedd5",
+    grad: "linear-gradient(135deg,#f97316,#fb923c)",
+    tag: "1기 모집 · 12명 한정",
+    title: ["비전공자 코딩", "부트캠프 · 6주"],
+    sub: "실무 프로젝트 중심 · 라이브 + 1:1 멘토링",
+    instr: ["박준호 · 현직 개발자", "스타트업 CTO 출신"],
+    curr: ["웹 개발 기초", "실전 프로젝트", "취업 포트폴리오"],
+    price: "890,000원",
+    priceLabel: "1기 특가",
+    emoji: "👨‍💻",
+  },
+};
+
+function CourseScreen({ c }: { c: Course }) {
+  const V = c.accent;
   return (
     <div className="flex h-full flex-col bg-white text-[#1a1a2e]">
       <div className="flex-1 overflow-hidden">
@@ -471,30 +528,30 @@ function CourseScreen() {
           </div>
         </div>
         {/* 썸네일 */}
-        <div className="mx-5 flex h-24 items-end rounded-2xl p-3" style={{ background: "linear-gradient(135deg,#7c3aed,#a78bfa)" }}>
-          <span className="rounded-full bg-white/25 px-2 py-0.5 text-[9px] font-bold text-white">사전 모집 · 선착순 50명</span>
+        <div className="mx-5 flex h-24 items-end rounded-2xl p-3" style={{ background: c.grad }}>
+          <span className="rounded-full bg-white/25 px-2 py-0.5 text-[9px] font-bold text-white">{c.tag}</span>
         </div>
         <div className="px-5 pt-3.5">
           <h3 className="text-[17px] font-extrabold leading-tight">
-            노션으로 끝내는
+            {c.title[0]}
             <br />
-            직장인 업무 자동화
+            {c.title[1]}
           </h3>
-          <p className="mt-1.5 text-[11px] text-[#6b7280]">반복 업무를 노션 한 곳에서 · 영상 12강 + 실습 템플릿</p>
+          <p className="mt-1.5 text-[11px] text-[#6b7280]">{c.sub}</p>
           <div className="mt-3 flex items-center gap-2">
-            <span className="grid h-8 w-8 place-items-center rounded-full bg-[#f1ecfe] text-[13px]">👩‍🏫</span>
+            <span className="grid h-8 w-8 place-items-center rounded-full text-[13px]" style={{ background: c.soft }}>{c.emoji}</span>
             <div>
-              <p className="text-[11px] font-bold">김다은 · 노션 앰배서더</p>
-              <p className="text-[9px] text-[#9ca3af]">1인 사업 자동화 컨설턴트</p>
+              <p className="text-[11px] font-bold">{c.instr[0]}</p>
+              <p className="text-[9px] text-[#9ca3af]">{c.instr[1]}</p>
             </div>
           </div>
           <div className="mt-3.5 space-y-1.5">
-            {["노션 기초 셋업", "반복 업무 자동화", "나만의 대시보드"].map((c, i) => (
-              <div key={c} className="flex items-center gap-2 rounded-lg border border-[#eef0f3] px-2.5 py-2">
-                <span className="grid h-5 w-5 flex-shrink-0 place-items-center rounded-full bg-[#f1ecfe] text-[10px] font-bold" style={{ color: V }}>
+            {c.curr.map((cu, i) => (
+              <div key={cu} className="flex items-center gap-2 rounded-lg border border-[#eef0f3] px-2.5 py-2">
+                <span className="grid h-5 w-5 flex-shrink-0 place-items-center rounded-full text-[10px] font-bold" style={{ background: c.soft, color: V }}>
                   {i + 1}
                 </span>
-                <span className="text-[11px] font-semibold">{c}</span>
+                <span className="text-[11px] font-semibold">{cu}</span>
               </div>
             ))}
           </div>
@@ -504,8 +561,8 @@ function CourseScreen() {
       <div className="flex-shrink-0 border-t border-[#eef0f3] px-4 py-3">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-[9px] font-medium text-[#9ca3af]">얼리버드</p>
-            <p className="text-[16px] font-extrabold" style={{ color: V }}>89,000원</p>
+            <p className="text-[9px] font-medium text-[#9ca3af]">{c.priceLabel}</p>
+            <p className="text-[16px] font-extrabold" style={{ color: V }}>{c.price}</p>
           </div>
           <button className="rounded-xl px-6 py-3 text-[13px] font-bold text-white" style={{ background: V }}>
             수강신청
@@ -519,12 +576,19 @@ function CourseScreen() {
 /* ── 디스패처 ── */
 
 export function CaseVisual({ slug }: { slug: string }) {
-  if (slug === "course")
+  if (slug.startsWith("course")) {
+    const key =
+      slug === "course-english"
+        ? "english"
+        : slug === "course-coding"
+          ? "coding"
+          : "notion";
     return (
       <PhoneFrame>
-        <CourseScreen />
+        <CourseScreen c={COURSES[key]} />
       </PhoneFrame>
     );
+  }
   if (slug === "dogo")
     return (
       <PhoneFrame>

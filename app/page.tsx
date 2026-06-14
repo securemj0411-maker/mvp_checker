@@ -97,20 +97,20 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
   const headline =
     variant === "a" ? (
       <>
-        그 아이디어가 먹힐지,
+        그 강의, 찍기 전에
         <br />
-        만들기 전에 확인하세요
+        살 사람부터 확인하세요
       </>
     ) : (
       <>
-        지인 칭찬 말고,
-        <br />낯선 사람의 클릭으로
+        녹화 한 컷 하기 전에,
+        <br />수강신청부터 받아보세요
       </>
     );
   const sub =
     variant === "a"
-      ? "실제 서비스처럼 보이는 페이지에 진짜 광고비를 써서, 당신을 모르는 사람 수백 명을 불러옵니다. 48시간 안에 준비를 끝내 광고를 켜고, 클릭과 결제 버튼 반응(실제 결제는 없습니다)을 재서 7일 안에 살릴지 죽일지 판정합니다."
-      : "당신 아이디어로 진짜 광고를 돌려 모르는 사람 수백 명을 불러옵니다. 48시간 안에 광고를 켜고, 클릭률과 결제 의향(실제 결제는 없습니다)을 재서 7일 안에 될지 안 될지(Go/No-Go) 답합니다.";
+      ? "커리큘럼·가격만 정하면 됩니다. 실서비스처럼 보이는 수강신청 페이지에 진짜 광고를 걸어, 당신을 모르는 사람 수백 명이 ‘수강신청’을 누르는지 7일 안에 잽니다(실제 결제는 없습니다). 녹화하기 전에, 살 사람이 있는지 압니다."
+      : "커리큘럼·가격만 정하면, 실서비스처럼 보이는 수강신청 페이지로 진짜 광고를 돌립니다. 모르는 사람 수백 명의 ‘수강신청’ 반응(실제 결제는 없습니다)을 재서 7일 안에 만들지 말지(Go/No-Go) 답합니다.";
 
   const ctas = (
     <>
@@ -118,7 +118,7 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
         href="/start"
         className="inline-flex items-center gap-2 rounded-full bg-accent px-7 py-4 text-base font-bold text-white shadow-[0_10px_24px_-8px_var(--accent-glow)] transition hover:-translate-y-0.5 hover:bg-accent-hover"
       >
-        내 아이디어 검증 신청
+        내 강의 검증 신청
         <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
       </a>
       <a
@@ -159,7 +159,7 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
         />
         <div className="px-6 pb-12 pt-16">
           <p className="text-sm font-bold" style={{ color: "#8FB6FF" }}>
-            사업 아이디어 검증 전문
+            강의 수요 검증 전문
           </p>
           <h1 className="mt-4 text-[34px] font-extrabold leading-[1.2] tracking-[-0.03em] text-white">
             {headline}
@@ -177,7 +177,7 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
       {/* ── 데스크탑/태블릿: 밝은 2단, 좌 텍스트 우 인물 ── */}
       <div className="mx-auto hidden max-w-6xl items-center gap-8 px-6 pb-8 pt-16 sm:grid sm:grid-cols-2 lg:gap-12 lg:pt-24">
         <div className="reveal-stagger">
-          <Label>사업 아이디어 검증 전문</Label>
+          <Label>강의 수요 검증 전문</Label>
           <h1 className="mt-5 text-[44px] font-extrabold leading-[1.16] tracking-[-0.035em] text-text lg:text-[56px]">
             {headline}
           </h1>
@@ -421,16 +421,16 @@ function Statement() {
     <section className="bg-bg">
       <div className="mx-auto max-w-4xl px-6 py-28 text-center sm:py-36">
         <p className="reveal text-2xl font-extrabold leading-[1.6] tracking-[-0.02em] text-text sm:text-[34px]">
-          아이디어가 좋다는 말은
+          “좋은 강의 같다”는 말은
           <br />
           어디서든 들을 수 있습니다.
           <br />
           <span className="text-text-tertiary">
-            돈을 내는 사람이 있는지는, 다른 문제입니다.
+            돈 내고 들을 사람이 있는지는, 다른 문제입니다.
           </span>
         </p>
         <p className="reveal mt-10 text-lg font-medium text-text-secondary sm:text-xl">
-          비즈필터는 그걸 만들기 전에 확인합니다.
+          비즈필터는 그걸 녹화하기 전에 확인합니다.
         </p>
       </div>
     </section>
@@ -799,7 +799,7 @@ function Process() {
       n: "1",
       d: "DAY 1–2",
       h: "리서치와 제작",
-      p: "검색 수요와 경쟁 광고를 조사하고, 검증용 사이트를 만듭니다. 데이터를 보기 전에 합격선부터 함께 정합니다.",
+      p: "검색 수요와 경쟁 강의를 조사하고, 실서비스 같은 수강신청 페이지를 만듭니다. 데이터를 보기 전에 합격선부터 함께 정합니다.",
     },
     {
       n: "2",
@@ -867,33 +867,11 @@ function Process() {
 function Cases() {
   const samples = [
     {
-      brand: "댕고 (DOGO)",
-      sub: "근처 산책사를 실시간으로 부르는 강아지 산책 매칭 앱",
-      explain:
-        "산책시킬 시간이 없는 날, 앱으로 근처 산책사를 부르면 검증된 산책사가 와서 대신 산책시키고 실시간 위치·사진을 보내줍니다. 한마디로 ‘강아지용 우버’.",
-      slug: "dogo",
-      stageBg: "linear-gradient(160deg,#eaf7f0,#d6efe0)",
-      stamp: "GO",
-      color: verdict.go,
-      bg: verdict.goBg,
-      rows: [
-        ["클릭률", "6.5%"],
-        ["사전등록", "764건"],
-        ["1명 데려온 값", "₩393"],
-      ],
-      report: [
-        { k: "수요", v: "클릭률 6.5%로 펫 카테고리 평균(1~2%)의 3배. 견주뿐 아니라 ‘산책사 지원’ 클릭도 비슷하게 나와, 양면 시장의 공급자 확보 가능성까지 확인됨." },
-        { k: "경쟁·대안", v: "지금은 지인 부탁·동네 펫시터 카페로 흩어진 시장. 통합 플랫폼이 없어 선점 여지가 큼(단, 인접 펫 서비스의 산책 확장은 위협)." },
-        { k: "사업성", v: "1명 데려온 값 ₩393, 산책 1회 1.2~1.5만 원. 수수료 15~20%면 첫 거래에서 회수되고, 주 2~3회 반복 구조라 LTV가 높음." },
-      ],
-      take: "GO — 다음 과제는 ‘파는가’가 아니라 견주·산책사 동시 확보와 안전·보험 책임 구조 설계.",
-    },
-    {
       brand: "노션 자동화 클래스",
-      sub: "녹화 전에 ‘수강신청’부터 받아본 온라인 클래스",
+      sub: "직장인 업무 자동화 · 온라인 강의",
       explain:
         "강사가 커리큘럼·가격만 정해 ‘수강신청’ 랜딩을 먼저 띄우고, 영상 한 컷 녹화하기 전에 진짜 결제할 사람이 있는지부터 측정했습니다.",
-      slug: "course",
+      slug: "course-notion",
       stageBg: "linear-gradient(160deg,#f1ecfe,#e3d8fb)",
       stamp: "GO",
       color: verdict.go,
@@ -911,49 +889,48 @@ function Cases() {
       take: "GO — 수요 확인됐으니 이제 녹화. 검증에 쓴 랜딩·수강신청자 명단을 그대로 첫 수강생으로.",
     },
     {
-      brand: "맛집발견",
-      sub: "위치 기반으로 동네 맛집을 추천하는 구독형 앱",
+      brand: "퇴근 후 영어회화",
+      sub: "왕초보 탈출 · 온라인 클래스",
       explain:
-        "내 위치를 기준으로 진짜 가까운 맛집만 골라 추천하고, 월 구독하면 숨은 맛집·할인 정보를 받는 앱.",
-      slug: "matjib",
-      stageBg: "linear-gradient(160deg,#1c1c28,#111118)",
-      stamp: "PIVOT",
-      color: verdict.pivot,
-      bg: verdict.pivotBg,
+        "20강 녹화 전에 ‘수강신청’ 랜딩을 띄워, 진짜 돈 내고 들을 사람이 있는지부터 광고로 측정했습니다.",
+      slug: "course-english",
+      stageBg: "linear-gradient(160deg,#e0f2fe,#c7e7fb)",
+      stamp: "NO-GO",
+      color: verdict.nogo,
+      bg: verdict.nogoBg,
       rows: [
-        ["클릭률", "0.26%"],
-        ["구독 의향", "19건"],
-        ["1명 데려온 값", "₩5,263"],
+        ["클릭률", "1.1%"],
+        ["사전 수강신청", "6건"],
+        ["1명 데려온 값", "₩9,800"],
       ],
       report: [
-        { k: "수요", v: "클릭률 0.26%로 광고 유입 자체가 거의 안 됨. 다만 들어온 사람의 23.5%가 구독을 눌러, 좁지만 진짜 수요는 존재." },
-        { k: "경쟁·대안", v: "네이버 지도·카카오맵·캐치테이블이 같은 욕구를 무료로 해결. ‘또 하나의 추천앱’에 월 구독할 이유가 약함 — 무료 대안 우위에 시장 포화." },
-        { k: "사업성", v: "CAC ₩5,263에 구독 단가가 낮아 회수에 수개월. 광고를 키울수록 단가가 더 오르는 구조라 현 모델로는 손익이 안 맞음." },
+        { k: "수요", v: "클릭률 1.1%에 수강신청 6건. 관심은 있어도 ‘돈 내고 들을’ 신호는 약했습니다 — 왕초보 영어는 콜드 광고로 결제 의향이 잘 안 붙습니다." },
+        { k: "경쟁·대안", v: "유튜브·스픽·듀오링고 등 무료·저가 대안이 시장을 덮음. ‘또 하나의 왕초보 영어’는 차별점이 약함." },
+        { k: "사업성", v: "객단가 59,000원에 1명 신청이 ₩9,800 — 신청 자체가 적어 광고를 키울수록 손해. 20강 녹화 전에 멈춰 몇 달을 아꼈습니다." },
       ],
-      take: "PIVOT — 넓은 광고 대신 미식 니치·특정 지역으로 좁혀 재검증하거나, 구독 대신 제휴·예약 수수료로 수익모델 전환 권고.",
+      take: "NO-GO — 녹화 전에 멈춤. 같은 주제라면 무료 대안과 다른 약속(특정 직군·시험 전용 등)으로 좁혀 재검증.",
     },
     {
-      brand: "SANCTUM (생텀)",
-      sub: "연 1,000만 원 회원제 프라이빗 지하 벙커 멤버십",
+      brand: "비전공자 코딩 부트캠프",
+      sub: "6주 라이브 · 고가 부트캠프",
       explain:
-        "골프장 회원권처럼, 연회비를 내면 전쟁·재난 같은 위급 상황에 나와 가족이 들어갈 수 있는 전국 지하 벙커의 ‘내 자리’를 미리 확보해 두는 고급 회원제 서비스.",
-      slug: "sanctum",
-      stageBg: "linear-gradient(160deg,#15151c,#0c0c12)",
+        "89만 원 부트캠프에 진짜 신청이 붙는지, ‘수강신청’ 랜딩으로 한 기수 모으기 전에 광고로 먼저 측정했습니다.",
+      slug: "course-coding",
+      stageBg: "linear-gradient(160deg,#ffedd5,#fed7aa)",
       stamp: "PIVOT",
       color: verdict.pivot,
       bg: verdict.pivotBg,
       rows: [
-        ["클릭률", "1.08%"],
-        ["상담 신청", "23건"],
-        ["객단가", "1,000만"],
+        ["클릭률", "3.9%"],
+        ["사전 수강신청", "14건"],
+        ["1명 데려온 값", "₩7,400"],
       ],
       report: [
-        { k: "수요", v: "클릭률 1.08%는 고가 틈새치고 양호. 상담 23건(전환 5.6%)에 객단가 연 1,000만 원 → 잠재 계약가치 약 2.3억, 지불 의향 확인." },
-        { k: "경쟁·대안", v: "국내 회원제 벙커는 사실상 부재. 대안은 개인 시공·해외 시설뿐이라 ‘회원권 구조’ 자체가 해자 — 진입장벽이 곧 경쟁우위." },
-        { k: "사업성", v: "CAC ₩86,957 대비 객단가가 압도적이라 광고 효율은 최상. 그러나 실제 벙커 = 수십억 초기 자본·고정비가 본질적 부담." },
-        { k: "법적", v: "대피·건축·소방·재난 관련 인허가가 통과해야 사업이 성립. 수요보다 먼저 검증해야 할 1순위 리스크." },
+        { k: "수요", v: "클릭률 3.9%로 관심은 강했습니다. 다만 89만 원 앞에서 결제까지는 14건 — 수요는 분명한데 가격 저항이 보입니다." },
+        { k: "경쟁·대안", v: "유료 부트캠프·국비지원 무료 과정과 경쟁. ‘취업까지’ 약속이 차별점이나, 89만 원 일시불이 진입 문턱." },
+        { k: "사업성", v: "객단가 89만 원이라 신청 1건의 가치가 큽니다(CAC ₩7,400). 전환율만 올리면 손익이 크게 벌어집니다." },
       ],
-      take: "PIVOT — 자산-라이트(기존 시설 제휴·임대)로 자본 부담 없이 재검증 + 법무 검토 선행 권고.",
+      take: "PIVOT — 수요는 있다. 가격·결제조건(분납·선취업후납)·기수 규모를 바꿔 저항을 낮추면 충분히 GO.",
     },
   ];
   return (
@@ -965,10 +942,9 @@ function Cases() {
             말 대신, 숫자
           </h2>
           <p className="mt-6 text-lg leading-[1.7] text-text-secondary">
-            실제 서비스처럼 보이는 사이트를 만들고, 진짜 광고비를 써서 모르는
-            사람 수백 명을 데려온 뒤, <b className="font-semibold text-text">수요·경쟁·단가·법적
-            리스크</b>까지 분석해 Go/No-Go를 냅니다. 세 가지로 갈린 결과를 그대로
-            보여드립니다.
+            실서비스처럼 보이는 수강신청 페이지를 만들고, 진짜 광고비를 써서
+            모르는 사람 수백 명을 데려온 뒤, <b className="font-semibold text-text">수요·경쟁·가격</b>까지
+            분석해 Go/No-Go를 냅니다. 강의 3건의 갈린 결과를 그대로 보여드립니다.
           </p>
         </div>
 
@@ -1662,17 +1638,17 @@ function FinalCTA() {
             <h2 className="mt-4 text-[32px] font-extrabold leading-[1.2] tracking-[-0.03em] text-text sm:text-[40px]">
               어차피 알게 될 답,
               <br />
-              진짜 사람들로 확인하세요
+              녹화 전에 확인하세요
             </h2>
             <p className="mx-auto mt-6 max-w-md text-lg leading-[1.7] text-text-secondary">
-              아이디어 한 줄이면 시작됩니다. 광고 채널과 합격선이 담긴 검증
+              강의 주제 한 줄이면 시작됩니다. 광고 채널과 합격선이 담긴 검증
               설계서를 그 자리에서 무료로 받아보세요.
             </p>
             <a
               href="/start"
               className="mt-9 inline-flex items-center gap-2 rounded-full bg-accent px-8 py-4 text-base font-bold text-white shadow-[0_10px_24px_-8px_var(--accent-glow)] transition hover:-translate-y-0.5 hover:bg-accent-hover"
             >
-              내 아이디어 검증 신청
+              내 강의 검증 신청
               <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
             </a>
             <p className="mt-5 text-sm font-medium text-text-tertiary">
@@ -1697,11 +1673,11 @@ function Footer() {
               <Wordmark />
             </a>
             <p className="mt-5 max-w-sm text-sm leading-relaxed">
-              사업 아이디어 검증 전문.
+              강의 수요 검증 전문.
               <br />
-              만들기 전에,{" "}
+              녹화하기 전에,{" "}
               <span className="text-text-secondary">
-                진짜 시장의 행동 데이터
+                진짜 수강 의향 데이터
               </span>
               로 답합니다.
             </p>
