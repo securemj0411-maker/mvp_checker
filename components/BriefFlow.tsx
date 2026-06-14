@@ -30,9 +30,20 @@ interface PublicLead {
   idea: string;
   ideaRefined: string | null;
   report: Record<string, unknown> | null;
-  brief: { draft?: BriefDraft; confirmed?: ConfirmedBrief } | null;
+  brief: {
+    draft?: BriefDraft;
+    confirmed?: ConfirmedBrief;
+    /** 확정 시 잠긴 입금액(재검증 할인 반영). 입금 화면·관리자가 공유한다. */
+    deposit_amount?: number;
+    /** 재검증 할인율(있을 때만). */
+    revalidation_rate?: number;
+    /** 고객이 '입금했어요'를 누른 시각 — 운영자 확인 대기 표시용. */
+    deposit_reported_at?: string;
+  } | null;
   briefConfirmedAt: string | null;
   depositDueAt: string | null;
+  /** 재검증 할인 — 동일 전화번호로 이전 검증 완료 건이 있을 때(브리프·입금 단계에서만 내려옴). */
+  revalidation?: { eligible: true; priorCount: number; rate: number } | null;
   policyFlag: string;
   pageMeasurable: boolean | null;
   hasPageUrl: boolean;
@@ -75,6 +86,8 @@ export default function BriefFlow({ code }: { code: string }) {
   const [error, setError] = useState<string | null>(null);
   // 입금 전, 확정한 브리프를 다시 열어 수정하는 모드
   const [editing, setEditing] = useState(false);
+  // '입금했어요' 처리 중
+  const [reporting, setReporting] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -96,6 +109,31 @@ export default function BriefFlow({ code }: { code: string }) {
   useEffect(() => {
     load();
   }, [load]);
+
+  // '입금했어요' — 계좌이체를 끝낸 고객이 직접 알림. 운영자 확인 신호일 뿐
+  // 자동 발송/자동 처리는 없다. 성공하면 화면이 '확인 중'으로 바뀐다.
+  // cancel=true 면 오클릭/미이체 신고를 되돌린다(다시 입금 대기 화면으로).
+  const reportDeposit = useCallback(
+    async (cancel = false) => {
+      setReporting(true);
+      try {
+        const res = await fetch("/api/brief", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "report_deposit", code, cancel }),
+        });
+        if (!res.ok) throw new Error(String(res.status));
+        const data = await res.json();
+        if (data?.lead) setLead(data.lead as PublicLead);
+        sendGAEvent("event", cancel ? "deposit_report_undo" : "deposit_reported", {});
+      } catch {
+        // 실패해도 흐름은 끊지 않는다 — 폴링이 곧 따라잡고, 카톡 문의 경로도 있다
+      } finally {
+        setReporting(false);
+      }
+    },
+    [code],
+  );
 
   // 단계가 바뀌면(브리프 확정→입금 등) 맨 위로 올린다.
   // 같은 컴포넌트 내 상태 전환이라 직전 화면 스크롤 위치가 남아, 입금액·계좌가
@@ -151,6 +189,8 @@ export default function BriefFlow({ code }: { code: string }) {
       {lead.stage === "deposit" && !editing && (
         <DepositStep
           lead={lead}
+          reporting={reporting}
+          onReportDeposit={reportDeposit}
           onEdit={() => {
             setEditing(true);
             window.scrollTo({ top: 0, behavior: "instant" });
@@ -632,11 +672,43 @@ function BriefStep({
   // 페이지가 있고(engine) 측정이 가능하면 엔진, 그 외엔 Quick.
   const tier: "engine" | "quick" =
     lead.tier === "engine" && !engineBlocked ? "engine" : "quick";
+  // 입금액을 확정 단계에서 미리 보여준다(재검증 할인 반영) — '얼마인지 알고 동의'
+  const listPrice = lead.tiers[tier].price;
+  const revalRate = lead.revalidation?.eligible ? lead.revalidation.rate : 0;
+  const finalAmount = Math.round(listPrice * (1 - revalRate));
+  const isDiscounted = finalAmount < listPrice;
 
   return (
     <div className="space-y-5">
       {/* 대표 인사 영상 — 영상 준비되면 되살리기 */}
       {/* <FounderVideo /> */}
+
+      {lead.revalidation?.eligible && (
+        <div
+          className="flex items-start gap-2.5 rounded-xl border bg-go-tint p-4"
+          style={{ borderColor: "var(--go)" }}
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="var(--go)"
+            strokeWidth="2.4"
+            className="mt-0.5 flex-shrink-0"
+            aria-hidden
+          >
+            <path d="M20 6 9 17l-5-5" />
+          </svg>
+          <p className="text-sm leading-relaxed text-text-secondary">
+            <b className="text-text">재검증 고객님</b>이라{" "}
+            <b className="text-go">
+              {Math.round(lead.revalidation.rate * 100)}% 할인
+            </b>
+            이 적용됩니다. 정확한 입금액은 확정 다음 화면에서 안내드립니다.
+          </p>
+        </div>
+      )}
 
       {editing && (
         <div className="flex items-center justify-between gap-3 rounded-xl border border-accent/30 bg-accent/5 px-4 py-3">
@@ -971,13 +1043,22 @@ function BriefStep({
                 <span className="text-base font-bold text-text">
                   {info.label}
                 </span>
-                <span className="text-2xl font-extrabold tracking-tight text-text">
-                  {info.priceLabel}
+                <span className="text-right">
+                  {isDiscounted && (
+                    <span className="mr-1.5 text-base font-semibold text-text-tertiary line-through">
+                      {info.priceLabel}
+                    </span>
+                  )}
+                  <span className="text-2xl font-extrabold tracking-tight text-text">
+                    {finalAmount.toLocaleString()}원
+                  </span>
                 </span>
               </div>
               <p className="mt-1 text-xs leading-relaxed text-text-tertiary">
-                {why} 답변에 맞춰 자동으로 정해졌고, 광고비까지 포함된
-                금액입니다.
+                {why} 답변에 맞춰 자동으로 정해졌고, 광고비까지 포함된 금액입니다.
+                {isDiscounted
+                  ? ` 재검증 ${Math.round(revalRate * 100)}% 할인이 적용된 실제 입금액입니다.`
+                  : ""}
               </p>
               <ul className="mt-3 space-y-2 border-t border-border/60 pt-3">
                 {bullets.map((b) => (
@@ -1059,7 +1140,7 @@ function BriefStep({
           ? "저장 중..."
           : editing
             ? "수정 내용 저장하기"
-            : "이대로 검증 시작하기"}
+            : `${finalAmount.toLocaleString()}원으로 검증 시작하기`}
       </button>
       <p className="text-center text-xs text-text-tertiary">
         {editing
@@ -1088,7 +1169,17 @@ function BriefStep({
 
 /* ───────── 2단계: 입금 안내 ───────── */
 
-function CopyButton({ value, label }: { value: string; label: string }) {
+function CopyButton({
+  value,
+  label,
+  full = false,
+  onCopied,
+}: {
+  value: string;
+  label: string;
+  full?: boolean;
+  onCopied?: () => void;
+}) {
   const [copied, setCopied] = useState(false);
   return (
     <button
@@ -1098,12 +1189,17 @@ function CopyButton({ value, label }: { value: string; label: string }) {
         try {
           await navigator.clipboard.writeText(value);
           setCopied(true);
+          onCopied?.();
           setTimeout(() => setCopied(false), 1600);
         } catch {
           /* 클립보드 권한 없으면 조용히 무시 — 번호는 화면에 그대로 보인다 */
         }
       }}
-      className="flex flex-shrink-0 items-center gap-1.5 rounded-xl border border-accent/30 bg-accent/10 px-3 py-2 text-xs font-bold text-accent transition hover:bg-accent/20 active:scale-95"
+      className={`flex items-center gap-1.5 rounded-xl border border-accent/30 bg-accent/10 text-xs font-bold text-accent transition hover:bg-accent/20 active:scale-95 ${
+        full
+          ? "mt-3 w-full justify-center px-4 py-3 text-sm"
+          : "flex-shrink-0 px-3 py-2"
+      }`}
     >
       {copied ? (
         <>
@@ -1118,7 +1214,7 @@ function CopyButton({ value, label }: { value: string; label: string }) {
             <rect x="9" y="9" width="11" height="11" rx="2.5" />
             <path d="M5 15V5a2 2 0 0 1 2-2h10" />
           </svg>
-          복사
+          {full ? label : "복사"}
         </>
       )}
     </button>
@@ -1139,12 +1235,29 @@ function ConfirmRow({ label, value }: { label: string; value: string }) {
 function DepositStep({
   lead,
   onEdit,
+  reporting = false,
+  onReportDeposit,
 }: {
   lead: PublicLead;
   onEdit?: () => void;
+  reporting?: boolean;
+  onReportDeposit?: (cancel?: boolean) => void;
 }) {
   const tier = lead.tiers[lead.tier === "engine" ? "engine" : "quick"];
   const confirmed = lead.brief?.confirmed;
+  // 확정 시 잠긴 입금액(재검증 할인 반영). 없으면 정가. 절대 정가를 넘지 않게 가드.
+  const listPrice = tier.price;
+  const lockedAmount = lead.brief?.deposit_amount;
+  const payAmount =
+    typeof lockedAmount === "number" && lockedAmount > 0
+      ? Math.min(lockedAmount, listPrice)
+      : listPrice;
+  const discounted = payAmount < listPrice;
+  const discountPct = discounted
+    ? Math.round((1 - payAmount / listPrice) * 100)
+    : 0;
+  // 고객이 '입금했어요'를 눌렀는지 — 누른 뒤엔 '확인 중' 화면으로 바꾼다.
+  const depositReported = !!lead.brief?.deposit_reported_at;
   const due = lead.depositDueAt
     ? new Date(lead.depositDueAt).toLocaleDateString("ko-KR", {
         month: "long",
@@ -1152,6 +1265,16 @@ function DepositStep({
         weekday: "short",
       })
     : null;
+
+  // 입금 화면 진입 측정 — 확정→입금화면→입금했어요 퍼널에서 최대 누수 구간을 잡는다
+  useEffect(() => {
+    sendGAEvent("event", "deposit_view", {
+      tier: lead.tier,
+      amount: payAmount,
+      discounted,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="space-y-5">
@@ -1169,10 +1292,25 @@ function DepositStep({
             <span className="text-sm font-semibold text-text-secondary">
               {tier.label}
             </span>
-            <span className="text-[26px] font-extrabold tracking-tight text-text">
-              {tier.price.toLocaleString()}원
+            <span className="text-right">
+              {discounted && (
+                <span className="mr-2 text-base font-semibold text-text-tertiary line-through">
+                  {listPrice.toLocaleString()}원
+                </span>
+              )}
+              <span className="text-[26px] font-extrabold tracking-tight text-text">
+                {payAmount.toLocaleString()}원
+              </span>
             </span>
           </div>
+          {discounted && (
+            <div className="mt-2 flex items-center gap-1.5 rounded-lg bg-go-tint px-3 py-2 text-xs font-bold text-go">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" aria-hidden>
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+              재검증 고객 {discountPct}% 할인이 적용된 금액입니다
+            </div>
+          )}
 
           <div className="mt-4 rounded-2xl border border-border bg-surface p-4">
             <p className="text-xs font-semibold text-text-tertiary">입금 계좌</p>
@@ -1225,11 +1363,95 @@ function DepositStep({
           </p>
         </div>
 
+        {/* 이체 3단계 안내 — 수동 이체는 화면 밖(은행앱)에서 일어나므로
+            복사→이체→복귀 동선을 명시해 '이체했는데 신고 안 함' 이탈을 막는다 */}
+        <div className="mt-4 rounded-xl border border-border bg-surface p-5">
+          <p className="text-sm font-bold text-text">이렇게 이체하시면 됩니다</p>
+          <ol className="mt-3 space-y-2">
+            {[
+              "아래 버튼으로 계좌·금액·입금자명을 한 번에 복사하세요.",
+              "쓰시는 은행 앱에 붙여넣어 이체합니다 (계좌이체는 24시간 가능).",
+              "이 화면으로 돌아와 아래 ‘입금했어요’를 눌러주세요.",
+            ].map((s, i) => (
+              <li key={i} className="flex gap-2.5">
+                <span className="grid h-5 w-5 flex-shrink-0 place-items-center rounded-full bg-accent/15 text-[11px] font-bold text-accent">
+                  {i + 1}
+                </span>
+                <span className="text-[13px] leading-relaxed text-text-secondary">
+                  {s}
+                </span>
+              </li>
+            ))}
+          </ol>
+          <CopyButton
+            full
+            value={`${BANK_INFO.bank} ${BANK_INFO.account} / ${payAmount.toLocaleString()}원 / 입금자명 ${lead.name}`}
+            label="계좌·금액·입금자명 한 번에 복사"
+            onCopied={() => sendGAEvent("event", "deposit_copy", { tier: lead.tier })}
+          />
+        </div>
+
+        {/* 입금했어요 — 계좌이체를 끝낸 고객이 직접 누르는 자가 알림.
+            자동 발송/자동 처리는 없고, 운영자 확인을 위한 신호일 뿐이다. */}
+        {depositReported ? (
+          <div
+            className="mt-4 rounded-xl border bg-go-tint p-5"
+            style={{ borderColor: "var(--go)" }}
+          >
+            <p className="flex items-center gap-2 text-sm font-bold text-go">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-go" />
+              입금을 확인하고 있습니다
+            </p>
+            <p className="mt-1.5 text-sm leading-relaxed text-text-secondary">
+              담당자가 영업시간 기준{" "}
+              <b className="text-text">2시간 안에</b> 입금을 확인한 뒤, 남겨주신
+              번호로 문자를 보내드립니다. 이 화면은 닫으셔도 되고, 확인이 끝나면
+              다음 단계로 자동으로 바뀝니다.
+            </p>
+            {/* 무엇을 보냈어야 하는지 재확인 (오클릭/금액 착오 구제) */}
+            <div className="mt-3 rounded-lg border border-border bg-surface px-4 py-3 text-xs leading-relaxed text-text-secondary">
+              <span className="font-semibold text-text">{payAmount.toLocaleString()}원</span>
+              {" · "}
+              {BANK_INFO.bank} {BANK_INFO.account}
+              {" · 입금자명 "}
+              <span className="font-semibold text-text">{lead.name}</span>
+            </div>
+            <button
+              type="button"
+              disabled={reporting || !onReportDeposit}
+              onClick={() => onReportDeposit?.(true)}
+              className="mt-2.5 text-xs font-semibold text-text-tertiary underline underline-offset-2 transition hover:text-text disabled:opacity-50"
+            >
+              아직 이체 전인데 잘못 눌렀어요 — 되돌리기
+            </button>
+          </div>
+        ) : (
+          <div className="mt-4">
+            <button
+              type="button"
+              disabled={reporting || !onReportDeposit}
+              onClick={() => onReportDeposit?.(false)}
+              className="w-full rounded-xl bg-accent px-6 py-4 text-base font-bold text-white transition hover:bg-accent-hover disabled:opacity-50"
+            >
+              {reporting ? "전송 중..." : "입금했어요"}
+            </button>
+            <p className="mt-2 text-center text-xs leading-relaxed text-text-tertiary">
+              위 계좌로{" "}
+              <b className="text-text-secondary">
+                {payAmount.toLocaleString()}원
+              </b>{" "}
+              이체를 <b className="text-text-secondary">끝내신 다음</b> 눌러주세요.
+              담당자가 영업시간 기준 2시간 안에 입금을 확인하고, 남겨주신 번호로
+              문자를 드립니다.
+            </p>
+          </div>
+        )}
+
         {/* 신뢰 스트립 — 입금 직전, 우리가 실제로 가진 약속을 적시에 */}
         <div className="mt-4 grid gap-2.5 rounded-xl border border-border bg-surface p-4 sm:grid-cols-3">
           {[
             "실명·얼굴 공개한 팀이 직접 운영",
-            "판정 못 드리면 검증비 전액 환불",
+            "판정 못 드리면 전액 환불 · 제작 착수 전 취소도 전액 (이후 단계별, 아래 규정)",
             "검증용 사이트·데이터 전부 고객님 자산",
           ].map((t) => (
             <div

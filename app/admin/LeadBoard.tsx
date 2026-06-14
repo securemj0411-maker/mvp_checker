@@ -37,7 +37,13 @@ export type Lead = {
   page_tag_verified_at: string | null;
   access_code: string | null;
   tier: string | null;
-  brief: { draft?: BriefDraft; confirmed?: ConfirmedBrief } | null;
+  brief: {
+    draft?: BriefDraft;
+    confirmed?: ConfirmedBrief;
+    deposit_amount?: number;
+    revalidation_rate?: number;
+    deposit_reported_at?: string;
+  } | null;
   brief_confirmed_at: string | null;
   deposit_due_at: string | null;
   ai_report: (Report & { source?: string }) | null;
@@ -514,6 +520,18 @@ function Modal({
       ? TIER_INFO[lead.tier]
       : null;
   const prohibited = lead.policy_flag === "prohibited";
+  // 확정 시 잠긴 입금액(재검증 할인 반영) + 고객 '입금했어요' 신고 — 정산 대조용
+  const depositAmount = lead.brief?.deposit_amount;
+  const revalRate = lead.brief?.revalidation_rate;
+  const expectedText =
+    typeof depositAmount === "number"
+      ? `${depositAmount.toLocaleString()}원${
+          revalRate ? ` (재검증 ${Math.round(revalRate * 100)}%↓)` : ""
+        }`
+      : tierInfo
+        ? `${tierInfo.label} ${tierInfo.priceLabel}`
+        : L(LABEL.tier, lead.tier);
+  const depositReportedAt = lead.brief?.deposit_reported_at;
 
   function copyCode() {
     if (lead.access_code) navigator.clipboard?.writeText(lead.access_code);
@@ -710,14 +728,23 @@ function Modal({
               <p className="text-xs font-bold uppercase tracking-wide text-accent">
                 입금 대기 중
               </p>
+              {depositReportedAt && (
+                <div className="mt-2 flex items-center gap-2 rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm font-bold text-emerald-600">
+                  <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+                  고객이 입금했다고 알림 · {fmtKST(depositReportedAt)}
+                </div>
+              )}
               <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
-                <Row k="플랜·금액" v={tierInfo ? `${tierInfo.label} ${tierInfo.priceLabel}` : L(LABEL.tier, lead.tier)} strong />
+                <Row k="입금 예정액" v={expectedText} strong />
                 <Row k="입금자명" v={lead.name} strong />
                 <Row k="계좌" v={`${BANK_INFO.bank} ${BANK_INFO.account}`} />
                 <Row k="기한" v={due ? due.text : "-"} strong={due?.urgent} />
               </div>
               <p className="mt-2.5 text-xs text-text-tertiary">
-                통장에서 입금자명 대조 후, 아래 상태를 <b className="text-accent">결제완료(paid)</b>로 바꾸면 고객 화면이 자동으로 다음 단계로 넘어갑니다.
+                통장에서 <b className="text-text">입금자명 + 입금 예정액</b>을 대조한 뒤, 아래 상태를 <b className="text-accent">결제완료(paid)</b>로 바꾸면 고객 화면이 자동으로 다음 단계로 넘어갑니다.
+                {revalRate
+                  ? " 재검증 할인이 적용된 금액이라 정가보다 적게 들어옵니다."
+                  : ""}
               </p>
             </div>
           )}

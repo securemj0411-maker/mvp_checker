@@ -353,6 +353,12 @@ html.js .reveal-stagger:not(.in) > * {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
   }
+  /* 로딩 스피너는 '작동 중'을 알리는 필수 피드백이라 모션 줄이기에서도 계속 돈다.
+     위 블랭킷 규칙이 회전 시간을 0.01ms로 뭉개면 멈춘 도넛처럼 보여, 렉·정지로
+     오해하게 된다(WCAG상 로딩 표시는 essential animation 예외). */
+  .animate-spin {
+    animation-duration: 0.9s !important;
+  }
 }
 
 /* ──────────────────────────────────────────────────────────────

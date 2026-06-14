@@ -1,6 +1,7 @@
 import ScrollReveal from "@/components/ScrollReveal";
 import { ArrowRight, Check } from "lucide-react";
 import { BrandMark, Wordmark } from "@/components/Brand";
+import { CaseVisual } from "@/components/CaseMockups";
 import { KAKAO_CHAT_URL } from "@/lib/site";
 
 export const metadata = { alternates: { canonical: "/" } };
@@ -32,8 +33,8 @@ export default function Home({
       <TourAds />
       <TourDashboard />
       <TourVerdict />
-      <Process />
       <Cases />
+      <Process />
       <Pricing />
       <Guarantee />
       <Story />
@@ -866,40 +867,93 @@ function Process() {
 function Cases() {
   const samples = [
     {
-      idea: "B2B 계약서 검토 자동화 SaaS",
+      brand: "댕고 (DOGO)",
+      sub: "근처 산책사를 실시간으로 부르는 강아지 산책 매칭 앱",
+      explain:
+        "산책시킬 시간이 없는 날, 앱으로 근처 산책사를 부르면 검증된 산책사가 와서 대신 산책시키고 실시간 위치·사진을 보내줍니다. 한마디로 ‘강아지용 우버’.",
+      slug: "dogo",
+      stageBg: "linear-gradient(160deg,#eaf7f0,#d6efe0)",
       stamp: "GO",
       color: verdict.go,
       bg: verdict.goBg,
       rows: [
-        ["클릭률", "4.1%"],
-        ["결제버튼 클릭률", "2.4%"],
-        ["1명 데려온 값", "₩6,800"],
+        ["클릭률", "6.5%"],
+        ["사전등록", "764건"],
+        ["1명 데려온 값", "₩393"],
       ],
-      take: "수요와 단가 모두 합격선을 넘었습니다. 개발을 진행할 근거가 확인된 사례입니다.",
+      report: [
+        { k: "수요", v: "클릭률 6.5%로 펫 카테고리 평균(1~2%)의 3배. 견주뿐 아니라 ‘산책사 지원’ 클릭도 비슷하게 나와, 양면 시장의 공급자 확보 가능성까지 확인됨." },
+        { k: "경쟁·대안", v: "지금은 지인 부탁·동네 펫시터 카페로 흩어진 시장. 통합 플랫폼이 없어 선점 여지가 큼(단, 인접 펫 서비스의 산책 확장은 위협)." },
+        { k: "사업성", v: "1명 데려온 값 ₩393, 산책 1회 1.2~1.5만 원. 수수료 15~20%면 첫 거래에서 회수되고, 주 2~3회 반복 구조라 LTV가 높음." },
+      ],
+      take: "GO — 다음 과제는 ‘파는가’가 아니라 견주·산책사 동시 확보와 안전·보험 책임 구조 설계.",
     },
     {
-      idea: "반려동물 맞춤 영양제 정기구독",
-      stamp: "NO-GO",
-      color: verdict.nogo,
-      bg: verdict.nogoBg,
+      brand: "노션 자동화 클래스",
+      sub: "녹화 전에 ‘수강신청’부터 받아본 온라인 클래스",
+      explain:
+        "강사가 커리큘럼·가격만 정해 ‘수강신청’ 랜딩을 먼저 띄우고, 영상 한 컷 녹화하기 전에 진짜 결제할 사람이 있는지부터 측정했습니다.",
+      slug: "course",
+      stageBg: "linear-gradient(160deg,#f1ecfe,#e3d8fb)",
+      stamp: "GO",
+      color: verdict.go,
+      bg: verdict.goBg,
       rows: [
-        ["클릭률", "1.4%"],
-        ["결제버튼 클릭", "0건"],
-        ["1명 데려온 값", "측정 불가"],
+        ["클릭률", "4.6%"],
+        ["사전 수강신청", "128건"],
+        ["1명 데려온 값", "₩2,100"],
       ],
-      take: "클릭은 있었지만 결제 의향이 확인되지 않았습니다. 출시 전에 중단해 수개월의 개발 비용을 아낀 사례입니다.",
+      report: [
+        { k: "수요", v: "클릭률 4.6%에 들어온 사람의 9%가 ‘수강신청’까지 갔습니다. ‘노션 자동화’는 검색·관심이 꾸준한 주제라 콜드 광고에도 진성 신청이 붙었습니다." },
+        { k: "경쟁·대안", v: "유튜브 무료 강의가 많지만 ‘체계적 커리큘럼 + 실습 템플릿’엔 돈을 냅니다. 무료로는 안 되는 약속(끝까지 완성)이 차별점." },
+        { k: "사업성", v: "객단가 89,000원, 수강신청 1건을 ₩2,100에 확보. 영상 한 컷 찍기 전에 손익이 보입니다 — GO면 그때 녹화 시작." },
+      ],
+      take: "GO — 수요 확인됐으니 이제 녹화. 검증에 쓴 랜딩·수강신청자 명단을 그대로 첫 수강생으로.",
     },
     {
-      idea: "프리랜서 세금 신고 대행",
+      brand: "맛집발견",
+      sub: "위치 기반으로 동네 맛집을 추천하는 구독형 앱",
+      explain:
+        "내 위치를 기준으로 진짜 가까운 맛집만 골라 추천하고, 월 구독하면 숨은 맛집·할인 정보를 받는 앱.",
+      slug: "matjib",
+      stageBg: "linear-gradient(160deg,#1c1c28,#111118)",
       stamp: "PIVOT",
       color: verdict.pivot,
       bg: verdict.pivotBg,
       rows: [
-        ["클릭률", "3.8%"],
-        ["결제버튼 클릭률", "0.6%"],
-        ["1명 데려온 값", "₩21,400"],
+        ["클릭률", "0.26%"],
+        ["구독 의향", "19건"],
+        ["1명 데려온 값", "₩5,263"],
       ],
-      take: "수요는 강하지만 이 가격으로는 수익 구조가 맞지 않습니다. 가격과 상품 구성 조정을 권고한 사례입니다.",
+      report: [
+        { k: "수요", v: "클릭률 0.26%로 광고 유입 자체가 거의 안 됨. 다만 들어온 사람의 23.5%가 구독을 눌러, 좁지만 진짜 수요는 존재." },
+        { k: "경쟁·대안", v: "네이버 지도·카카오맵·캐치테이블이 같은 욕구를 무료로 해결. ‘또 하나의 추천앱’에 월 구독할 이유가 약함 — 무료 대안 우위에 시장 포화." },
+        { k: "사업성", v: "CAC ₩5,263에 구독 단가가 낮아 회수에 수개월. 광고를 키울수록 단가가 더 오르는 구조라 현 모델로는 손익이 안 맞음." },
+      ],
+      take: "PIVOT — 넓은 광고 대신 미식 니치·특정 지역으로 좁혀 재검증하거나, 구독 대신 제휴·예약 수수료로 수익모델 전환 권고.",
+    },
+    {
+      brand: "SANCTUM (생텀)",
+      sub: "연 1,000만 원 회원제 프라이빗 지하 벙커 멤버십",
+      explain:
+        "골프장 회원권처럼, 연회비를 내면 전쟁·재난 같은 위급 상황에 나와 가족이 들어갈 수 있는 전국 지하 벙커의 ‘내 자리’를 미리 확보해 두는 고급 회원제 서비스.",
+      slug: "sanctum",
+      stageBg: "linear-gradient(160deg,#15151c,#0c0c12)",
+      stamp: "PIVOT",
+      color: verdict.pivot,
+      bg: verdict.pivotBg,
+      rows: [
+        ["클릭률", "1.08%"],
+        ["상담 신청", "23건"],
+        ["객단가", "1,000만"],
+      ],
+      report: [
+        { k: "수요", v: "클릭률 1.08%는 고가 틈새치고 양호. 상담 23건(전환 5.6%)에 객단가 연 1,000만 원 → 잠재 계약가치 약 2.3억, 지불 의향 확인." },
+        { k: "경쟁·대안", v: "국내 회원제 벙커는 사실상 부재. 대안은 개인 시공·해외 시설뿐이라 ‘회원권 구조’ 자체가 해자 — 진입장벽이 곧 경쟁우위." },
+        { k: "사업성", v: "CAC ₩86,957 대비 객단가가 압도적이라 광고 효율은 최상. 그러나 실제 벙커 = 수십억 초기 자본·고정비가 본질적 부담." },
+        { k: "법적", v: "대피·건축·소방·재난 관련 인허가가 통과해야 사업이 성립. 수요보다 먼저 검증해야 할 1순위 리스크." },
+      ],
+      take: "PIVOT — 자산-라이트(기존 시설 제휴·임대)로 자본 부담 없이 재검증 + 법무 검토 선행 권고.",
     },
   ];
   return (
@@ -911,113 +965,173 @@ function Cases() {
             말 대신, 숫자
           </h2>
           <p className="mt-6 text-lg leading-[1.7] text-text-secondary">
-            판정서가 어떤 모습인지 포맷 그대로 보여드립니다. 실제 검증
-            케이스는 고객 동의 하에 좋은 답도, 나쁜 답도 순차 공개합니다.
+            실제 서비스처럼 보이는 사이트를 만들고, 진짜 광고비를 써서 모르는
+            사람 수백 명을 데려온 뒤, <b className="font-semibold text-text">수요·경쟁·단가·법적
+            리스크</b>까지 분석해 Go/No-Go를 냅니다. 세 가지로 갈린 결과를 그대로
+            보여드립니다.
           </p>
         </div>
 
-        {/* 사후 진단 — 실제 사례 */}
-        <div className="reveal mt-14 grid items-center gap-10 rounded-[24px] border border-border bg-surface p-8 shadow-[0_14px_30px_-16px_rgba(10,23,38,0.10)] sm:p-10 lg:grid-cols-[1.2fr_0.8fr]">
-          <div>
-            <div className="flex items-center gap-2.5">
+        {/* 시연 사례 3종 — 큰 제품 목업 + 판정 (토스식 교차 행) */}
+        <div className="mt-20 space-y-24 sm:space-y-32">
+          {samples.map((c, i) => {
+            const flip = i % 2 === 1;
+            return (
+              <div
+                key={c.brand}
+                className="reveal grid items-center gap-10 lg:grid-cols-2 lg:gap-20"
+              >
+                {/* 제품 목업 — 이미지가 아니라 실제 JSX로 렌더(선명·반응형) */}
+                <div className={flip ? "lg:order-2" : ""}>
+                  <div
+                    className="relative overflow-hidden rounded-[32px] px-6 py-12 sm:px-10 sm:py-16"
+                    style={{ background: c.stageBg }}
+                  >
+                    <CaseVisual slug={c.slug} />
+                  </div>
+                </div>
+
+                {/* 판정 + 숫자 */}
+                <div className={flip ? "lg:order-1" : ""}>
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <span
+                      className="rounded-full px-3.5 py-1.5 text-sm font-extrabold"
+                      style={{ color: c.color, background: c.bg }}
+                    >
+                      {c.stamp}
+                    </span>
+                    <span className="rounded-full border border-border px-3 py-1 text-xs font-bold text-text-tertiary">
+                      시연 사례
+                    </span>
+                  </div>
+                  <h3 className="mt-5 text-[30px] font-extrabold leading-tight tracking-[-0.03em] text-text sm:text-[38px]">
+                    {c.brand}
+                  </h3>
+                  <p className="mt-2 text-[14px] font-semibold text-accent">
+                    {c.sub}
+                  </p>
+                  <p className="mt-2.5 max-w-md text-[15px] leading-[1.7] text-text-secondary">
+                    {c.explain}
+                  </p>
+                  <div className="mt-7 grid grid-cols-3 gap-3">
+                    {c.rows.map(([k, v]) => (
+                      <div
+                        key={k}
+                        className="rounded-[18px] bg-bg-alt px-4 py-4"
+                      >
+                        <p className="text-[11px] font-semibold text-text-tertiary">
+                          {k}
+                        </p>
+                        <p className="mt-1.5 text-[22px] font-extrabold tracking-tight text-text">
+                          {v}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                  {/* 검증 리포트 핵심 — 수요·경쟁·사업성·법적까지 (AI 검색으로 못 얻는 합성 분석) */}
+                  <div className="mt-7 border-t border-border-light pt-6">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-text-tertiary">
+                      검증 리포트에서 확인한 것
+                    </p>
+                    <dl className="mt-3.5 space-y-3">
+                      {c.report.map((r) => (
+                        <div
+                          key={r.k}
+                          className="grid grid-cols-[68px_1fr] gap-3 sm:grid-cols-[76px_1fr]"
+                        >
+                          <dt className="text-[12px] font-bold text-accent">
+                            {r.k}
+                          </dt>
+                          <dd className="text-[13.5px] leading-[1.65] text-text-secondary">
+                            {r.v}
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </div>
+                  <p
+                    className="mt-5 rounded-2xl px-4 py-3.5 text-[14px] font-semibold leading-[1.6] text-text"
+                    style={{ background: c.bg }}
+                  >
+                    {c.take}
+                  </p>
+                  <a
+                    href="/cases"
+                    className="group mt-6 inline-flex items-center gap-1.5 text-[15px] font-bold text-accent"
+                  >
+                    판정 근거 자세히 보기
+                    <ArrowRight
+                      className="h-4 w-4 transition group-hover:translate-x-1"
+                      strokeWidth={2.5}
+                    />
+                  </a>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <p className="reveal mt-16 text-center text-[13px] text-text-tertiary">
+          위 3건은 비즈필터가 <b className="font-semibold text-text-secondary">어떻게 검증하고 판정이 어떻게 나오는지</b> 보여주는 시연 사례입니다. ‘결제버튼 클릭’은 구매 버튼을 누른 수일 뿐 실제 결제는 받지 않으며, 실제 고객 검증 사례는 동의를 받아 순차적으로 공개합니다.
+        </p>
+
+        {/* 사후 진단 — 실제 사례 (득템잡이): 광고조차 막힌 NO-GO라 맨 아래 배치 */}
+        <div className="reveal mt-20 grid items-center gap-10 sm:mt-28 lg:grid-cols-2 lg:gap-20">
+          {/* 제품 목업 */}
+          <div className="lg:order-2">
+            <div
+              className="relative overflow-hidden rounded-[32px] px-6 py-12 sm:px-10 sm:py-16"
+              style={{ background: "linear-gradient(160deg,#eef2fb,#dbe5f7)" }}
+            >
+              <CaseVisual slug="resale" />
+            </div>
+          </div>
+          {/* 내용 */}
+          <div className="lg:order-1">
+            <div className="flex flex-wrap items-center gap-2.5">
               <span
-                className="rounded-full px-3.5 py-1.5 text-xs font-extrabold"
+                className="rounded-full px-3.5 py-1.5 text-sm font-extrabold"
                 style={{ color: verdict.nogo, background: verdict.nogoBg }}
               >
                 NO-GO
               </span>
-              <span className="rounded-full bg-text px-3.5 py-1.5 text-xs font-extrabold text-bg">
+              <span className="rounded-full bg-text px-3 py-1 text-xs font-extrabold text-bg">
                 사후 진단 · 실제 사례
               </span>
             </div>
-            <h3 className="mt-5 text-2xl font-extrabold tracking-tight text-text sm:text-[28px]">
-              중고 시세 분석 멤버십
+            <h3 className="mt-5 text-[30px] font-extrabold leading-tight tracking-[-0.03em] text-text sm:text-[38px]">
+              득템잡이
             </h3>
-            <p className="mt-4 max-w-lg leading-[1.75] text-text-secondary">
-              다 만들어 출시한 뒤에야 광고 제한, 결제 전환 막힘, 시장 포화가
-              한꺼번에 확인된 실제 서비스입니다. 사후 분석 결과, 전부{" "}
-              <span className="font-semibold text-text">
-                시작 전 7일 검증에서 잡히는 신호
-              </span>
-              였습니다. 같은 답을 몇 달과 수백만 원 대신 광고비 몇만 원으로
-              받는 것, 그게 검증의 목적입니다.
+            <p className="mt-2 text-[14px] font-semibold text-accent">
+              당근·번개·중고나라에서 시세보다 싼 매물을 찾아주는 중고 시세 차익 분석
             </p>
-          </div>
-          <div className="rounded-[18px] bg-bg-alt p-6">
-            <div className="flex items-center justify-between border-b border-dashed border-border pb-4">
-              <span className="text-[13px] font-semibold text-text-tertiary">
-                사후 진단서 · 실제 사례
-              </span>
-            </div>
-            <div className="mt-4 space-y-3.5">
+            <p className="mt-2.5 max-w-md text-[15px] leading-[1.7] text-text-secondary">
+              <b className="font-semibold text-text">한 달 동안 혼자 다 만들어</b> 출시한 뒤에야
+              비즈필터를 찾아왔습니다. 그제서야 광고 자체가 막히고(중고 거래·시세
+              비교는 플랫폼 광고 정책에 걸림), 결제 전환도 안 되고 시장도 이미
+              포화임을 알았죠.{" "}
+              <b className="font-semibold text-text">검증을 먼저 받았다면 한 달이 아니라 7일 안에</b>,
+              광고비 몇만 원으로 똑같은 답을 받았을 겁니다. 그게 검증의 목적입니다.
+            </p>
+            <div className="mt-7 grid grid-cols-2 gap-3">
               {[
                 ["관심 (클릭)", "높음", false],
-                ["결제까지 이어짐", "막힘", true],
-                ["광고 승인", "제한", false],
-                ["경쟁 상태", "이미 포화", true],
+                ["결제까지", "막힘", true],
+                ["광고 승인", "제한", true],
+                ["경쟁 상태", "포화", true],
               ].map(([k, v, bad]) => (
-                <div
-                  key={k as string}
-                  className="flex justify-between text-[15px]"
-                >
-                  <span className="font-medium text-text-tertiary">{k}</span>
-                  <span
-                    className="font-extrabold"
+                <div key={k as string} className="rounded-[18px] bg-bg-alt px-4 py-3.5">
+                  <p className="text-[11px] font-semibold text-text-tertiary">{k}</p>
+                  <p
+                    className="mt-1 text-[18px] font-extrabold tracking-tight"
                     style={{ color: bad ? verdict.nogo : "var(--text)" }}
                   >
                     {v}
-                  </span>
+                  </p>
                 </div>
               ))}
             </div>
           </div>
         </div>
-
-        {/* 포맷 예시 3종 */}
-        <div className="reveal-stagger mt-6 grid gap-5 md:grid-cols-3">
-          {samples.map((c) => (
-            <div
-              key={c.idea}
-              className="flex flex-col gap-4 rounded-[20px] border border-border bg-surface p-7 transition hover:-translate-y-1 hover:shadow-[0_20px_40px_-26px_rgba(10,23,38,0.3)]"
-            >
-              <span className="w-fit rounded-full border border-border px-2.5 py-1 text-[11px] font-bold text-text-tertiary">
-                포맷 예시
-              </span>
-              <div className="flex items-start justify-between gap-3">
-                <p className="text-[16px] font-bold leading-snug text-text">
-                  {c.idea}
-                </p>
-                <span
-                  className="flex-shrink-0 rounded-full px-3 py-1.5 text-xs font-extrabold"
-                  style={{ color: c.color, background: c.bg }}
-                >
-                  {c.stamp}
-                </span>
-              </div>
-              <div className="flex gap-6 border-t border-border-light pt-4">
-                {c.rows.map(([k, v]) => (
-                  <div key={k}>
-                    <p className="text-[11px] font-semibold text-text-tertiary">
-                      {k}
-                    </p>
-                    <p className="mt-1 text-[15px] font-extrabold text-text">
-                      {v}
-                    </p>
-                  </div>
-                ))}
-              </div>
-              <p className="border-t border-dashed border-border pt-3.5 text-[13px] leading-relaxed text-text-secondary">
-                {c.take}
-              </p>
-            </div>
-          ))}
-        </div>
-        <p className="reveal mt-7 text-center text-[13px] text-text-tertiary">
-          ‘결제버튼 클릭’은 구매 버튼을 누른 수일 뿐, 실제 결제는 받지
-          않습니다. 위 3개 카드는 판정서 포맷을 보여드리기 위한 가상
-          예시이며, 실제 검증 케이스가 쌓이는 대로 (고객 동의 하에)
-          실데이터로 교체됩니다.
-        </p>
       </div>
     </section>
   );
@@ -1613,6 +1727,11 @@ function Footer() {
               <li>
                 <a href="#story" className="hover:text-accent">
                   왜 검증인가
+                </a>
+              </li>
+              <li>
+                <a href="/cases" className="hover:text-accent">
+                  검증 사례
                 </a>
               </li>
               <li>

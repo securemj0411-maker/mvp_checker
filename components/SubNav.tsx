@@ -9,6 +9,9 @@ export function SubNav() {
           <Wordmark className="text-lg" />
         </a>
         <nav className="hidden items-center gap-7 text-sm font-medium text-text-secondary sm:flex">
+          <a href="/cases" className="transition hover:text-text">
+            사례
+          </a>
           <a href="/blog" className="transition hover:text-text">
             블로그
           </a>
@@ -38,6 +41,9 @@ export function SubFooter() {
         <div className="flex gap-5">
           <a href="/" className="hover:text-accent">
             홈
+          </a>
+          <a href="/cases" className="hover:text-accent">
+            사례
           </a>
           <a href="/blog" className="hover:text-accent">
             블로그

@@ -177,6 +177,20 @@ export const TIER_INFO: Record<
   },
 };
 
+/** 재검증 할인 — 이미 검증을 1회 이상 완료(입금 후 단계 진입)한 고객이
+ *  조건을 바꿔 다시 검증할 때 적용하는 할인율. 전화번호로 동일 고객을 식별한다. */
+export const REVALIDATION_DISCOUNT_RATE = 0.3;
+
+/** 입금 후 단계로 간 = 검증 1회 완료로 카운트하는 status 집합 */
+export const COMPLETED_STATUSES = [
+  "paid",
+  "build",
+  "live",
+  "verdict",
+  "won",
+  "lost",
+] as const;
+
 export const REFUND_POLICY = [
   "입금 후 제작 착수 전 취소: 전액 환불",
   "제작 착수 후 광고 집행 전 취소: 50% 환불",

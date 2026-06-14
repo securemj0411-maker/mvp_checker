@@ -2,8 +2,10 @@ import Anthropic from "@anthropic-ai/sdk";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { rateLimit, ipKey } from "@/lib/ratelimit";
 import {
+  COMPLETED_STATUSES,
   decidePassBar,
   REFUND_POLICY,
+  REVALIDATION_DISCOUNT_RATE,
   TIER_INFO,
   type BriefDraft,
   type ConfirmedBrief,
@@ -219,6 +221,33 @@ async function findLead(code: string) {
   return data as Record<string, unknown>;
 }
 
+/** 재검증 할인 판정 — 같은 전화번호로 '이 리드보다 먼저' 만들어졌고
+ *  입금 후 단계(paid 이상)까지 간 리드가 1건 이상이면 이 리드는 재검증으로 본다.
+ *  전화번호가 없거나(식별 불가) 이전 완료 건이 없으면 null(할인 없음). */
+async function revalidationFor(
+  admin: ReturnType<typeof getSupabaseAdmin>,
+  lead: Record<string, unknown>,
+): Promise<{ eligible: true; priorCount: number; rate: number } | null> {
+  const phone = (lead.phone as string | null)?.trim();
+  if (!phone) return null;
+  let q = admin
+    .from("o2o_leads")
+    .select("id", { count: "exact", head: true })
+    .eq("phone", phone)
+    .neq("id", lead.id as string)
+    .in("status", COMPLETED_STATUSES as unknown as string[]);
+  const createdAt = lead.created_at as string | null;
+  if (createdAt) q = q.lt("created_at", createdAt);
+  const { count, error } = await q;
+  if (error) {
+    console.error("[revalidation count]", error);
+    return null; // 조회 실패 시 안전하게 할인 미적용 (정가)
+  }
+  const priorCount = count ?? 0;
+  if (priorCount <= 0) return null;
+  return { eligible: true, priorCount, rate: REVALIDATION_DISCOUNT_RATE };
+}
+
 /* ───────── 브리프 초안 생성 (B-2 양식, B-3/B-4/B-5 규칙) ───────── */
 
 const BRIEF_SCHEMA = {
@@ -387,6 +416,7 @@ interface BriefBody {
   tier?: "engine" | "quick";
   confirmed?: ConfirmedBrief;
   agreement?: string;
+  cancel?: boolean;
 }
 
 export async function POST(request: Request) {
@@ -420,6 +450,11 @@ export async function POST(request: Request) {
         signups: number;
       } | null;
       series?: { d: string; visits: number; pay: number }[] | null;
+      revalidation?: {
+        eligible: true;
+        priorCount: number;
+        rate: number;
+      } | null;
     };
     // 광고가 켜진 뒤에는 실측 숫자 + 일자별 추세를 같이 내려보낸다 (금액 제외)
     if (["live", "verdict", "closed"].includes(pub.stage)) {
@@ -429,6 +464,10 @@ export async function POST(request: Request) {
       ]);
       pub.stats = stats;
       pub.series = series;
+    }
+    // 재검증 할인 여부 — 가격이 노출/확정되는 브리프·입금 단계에서만 계산
+    if (pub.stage === "brief" || pub.stage === "deposit") {
+      pub.revalidation = await revalidationFor(admin, lead);
     }
     return Response.json({ lead: pub });
   }
@@ -519,6 +558,19 @@ export async function POST(request: Request) {
             )
             .join(" / ")
         : `${confirmed.price_value.toLocaleString()}원`;
+    // 재검증 할인 — 동일 전화번호로 이전 완료 건이 있으면 30% 할인. 입금액을 여기서
+    // 잠가(brief.deposit_amount) 입금 화면·관리자·분쟁 기록이 같은 숫자를 쓰게 한다.
+    const reval = await revalidationFor(admin, lead);
+    const listPrice = TIER_INFO[tier].price;
+    const depositAmount = reval
+      ? Math.round(listPrice * (1 - reval.rate))
+      : listPrice;
+    const priceSnapshotLine = reval
+      ? `상품: ${TIER_INFO[tier].label} — 재검증 ${Math.round(
+          reval.rate * 100,
+        )}% 할인 적용, 입금액 ${depositAmount.toLocaleString()}원 (정가 ${listPrice.toLocaleString()}원)`
+      : `상품: ${TIER_INFO[tier].label} ${TIER_INFO[tier].priceLabel}`;
+
     const snapshot = [
       `오퍼: ${confirmed.offer}`,
       `타깃: ${confirmed.target_line}`,
@@ -533,7 +585,7 @@ export async function POST(request: Request) {
           ]
         : []),
       `판정 기준(합격선): ${pb.bar} (최소 표본 ${pb.minSample}, 미달 시 비율 환산 또는 1~2일 연장)`,
-      `상품: ${TIER_INFO[tier].label} ${TIER_INFO[tier].priceLabel}`,
+      priceSnapshotLine,
       `환불 규정: ${REFUND_POLICY.join(" | ")}`,
       `확정 방식: '이 브리프로 확정하고 진행하기' 버튼 클릭`,
     ].join("\n");
@@ -548,7 +600,13 @@ export async function POST(request: Request) {
     const { error: updateError } = await admin
       .from("o2o_leads")
       .update({
-        brief: { ...(existing ?? {}), confirmed: fullConfirmed },
+        brief: {
+          ...(existing ?? {}),
+          confirmed: fullConfirmed,
+          // 입금 화면·관리자가 함께 쓰는 확정 입금액(할인 반영). 재검증이면 할인율도 보관.
+          deposit_amount: depositAmount,
+          ...(reval ? { revalidation_rate: reval.rate } : {}),
+        },
         tier,
         // 최초 확정에만 타임스탬프/입금기한을 찍는다. 수정 시엔 기한을 늘리지 않음.
         ...(isEdit
@@ -576,6 +634,76 @@ export async function POST(request: Request) {
     ]);
     if (consentError) console.error("[consent insert]", consentError);
 
+    const fresh = await findLead(code);
+    return Response.json({ lead: fresh ? publicLead(fresh) : null });
+  }
+
+  /* '입금했어요' — 고객이 계좌이체 후 직접 알림. 발송이 아니라 운영자 확인용 신호.
+     입금 대기(deposit) 단계에서만 의미 있고, 중복 클릭은 무시한다.
+     cancel=true 면 오클릭/미이체 신고를 되돌린다(deposit_reported_at 제거). */
+  if (body.action === "report_deposit") {
+    const stage = deriveStage(
+      lead as { status: string | null; brief_confirmed_at: string | null },
+    );
+    if (stage !== "deposit") {
+      // 아직 확정 전이거나 이미 입금 처리됨 — 현재 상태만 돌려준다(no-op)
+      return Response.json({ lead: publicLead(lead) });
+    }
+    const existing = (lead.brief as Record<string, unknown>) ?? {};
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+    const ua = request.headers.get("user-agent")?.slice(0, 500) ?? null;
+
+    if (body.cancel) {
+      // 되돌리기 — 입금 신고 취소 (다시 입금 대기 화면으로)
+      if (existing.deposit_reported_at) {
+        const rest = { ...existing };
+        delete rest.deposit_reported_at;
+        const { error: upErr } = await admin
+          .from("o2o_leads")
+          .update({ brief: rest })
+          .eq("id", lead.id as string);
+        if (upErr) {
+          console.error("[report_deposit cancel]", upErr);
+          return Response.json({ error: "cancel failed" }, { status: 500 });
+        }
+        await admin.from("consent_events").insert([
+          {
+            lead_id: lead.id as string,
+            event_type: "deposit_report_undo",
+            content: "고객이 '입금했어요'를 되돌림(오클릭/미이체)",
+            ip,
+            user_agent: ua,
+          },
+        ]);
+      }
+      const fresh = await findLead(code);
+      return Response.json({ lead: fresh ? publicLead(fresh) : null });
+    }
+
+    if (!existing.deposit_reported_at) {
+      const { error: upErr } = await admin
+        .from("o2o_leads")
+        .update({
+          brief: { ...existing, deposit_reported_at: new Date().toISOString() },
+        })
+        .eq("id", lead.id as string);
+      if (upErr) {
+        console.error("[report_deposit]", upErr);
+        return Response.json({ error: "report failed" }, { status: 500 });
+      }
+      // 분쟁/정산 대비 가벼운 감사 로그 (동의가 아닌 알림 기록)
+      const { error: logErr } = await admin.from("consent_events").insert([
+        {
+          lead_id: lead.id as string,
+          event_type: "deposit_reported",
+          content: "고객이 '입금했어요' 버튼을 눌러 입금을 알림",
+          ip,
+          user_agent: ua,
+        },
+      ]);
+      if (logErr) console.error("[deposit_reported log]", logErr);
+    }
     const fresh = await findLead(code);
     return Response.json({ lead: fresh ? publicLead(fresh) : null });
   }
