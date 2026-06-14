@@ -1352,6 +1352,27 @@ function DepositStep({
           페이지에서 계속 보실 수 있습니다.
         </p>
 
+        {lead.siteToken && (
+          <a
+            href={`/v/${lead.siteToken}?preview=1`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-accent/40 bg-bg-light p-4 transition hover:border-accent hover:bg-accent/10"
+          >
+            <div>
+              <p className="text-[14px] font-bold text-text">
+                내 강의 페이지 미리보기 ↗
+              </p>
+              <p className="mt-0.5 text-[12px] leading-relaxed text-text-secondary">
+                방금 만든 당신 강의 페이지예요. 입금하면 여기에 진짜 광고를 켭니다.
+              </p>
+            </div>
+            <span className="flex-shrink-0 text-lg font-bold text-accent" aria-hidden>
+              →
+            </span>
+          </a>
+        )}
+
         <div className="mt-5 rounded-xl border border-accent/30 bg-accent/[0.05] p-5">
           <div className="flex items-baseline justify-between gap-3">
             <span className="text-sm font-semibold text-text-secondary">
@@ -1983,6 +2004,26 @@ function ProgressStep({ lead, code }: { lead: PublicLead; code: string }) {
           {c.desc}
         </p>
       </div>
+
+      {/* 내 검증 페이지 — 광고가 향하는 실제 페이지로 바로 이동 */}
+      {lead.siteToken && (
+        <a
+          href={`/v/${lead.siteToken}?preview=1`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-between gap-3 rounded-lg border border-accent/40 bg-accent/[0.05] p-5 transition hover:-translate-y-0.5 hover:border-accent hover:bg-accent/10"
+        >
+          <div>
+            <p className="text-[15px] font-bold text-text">내 검증 페이지 보기 ↗</p>
+            <p className="mt-1 text-[13px] leading-relaxed text-text-secondary">
+              광고가 향하는 실제 페이지예요. 새 탭에서 열립니다. (내 방문은 측정에 잡히지 않아요)
+            </p>
+          </div>
+          <span className="flex-shrink-0 text-xl font-bold text-accent" aria-hidden>
+            →
+          </span>
+        </a>
+      )}
       {showTagCard && (
         <TagInstallCard
           code={code}
