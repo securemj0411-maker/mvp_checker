@@ -173,6 +173,13 @@ export default function BriefFlow({ code }: { code: string }) {
     );
   }
 
+  // 24시간 미입금 만료 — 입금했어요(신고) 전이고 기한이 지났으면 접근 차단(데이터는 보관)
+  const expired =
+    lead.stage === "deposit" &&
+    !lead.brief?.deposit_reported_at &&
+    !!lead.depositDueAt &&
+    Date.now() > new Date(lead.depositDueAt).getTime();
+
   const content = (
     <>
       {(lead.stage === "brief" || editing) && (
@@ -187,7 +194,8 @@ export default function BriefFlow({ code }: { code: string }) {
           onCancelEdit={() => setEditing(false)}
         />
       )}
-      {lead.stage === "deposit" && !editing && (
+      {lead.stage === "deposit" && !editing && expired && <ExpiredNotice />}
+      {lead.stage === "deposit" && !editing && !expired && (
         <DepositStep
           lead={lead}
           reporting={reporting}
@@ -1368,6 +1376,79 @@ function ConfirmRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+/* 24시간 미입금 만료 — 접근 차단 + 재신청 (데이터는 보관) */
+function ExpiredNotice() {
+  return (
+    <div className="cold-panel rounded-lg p-6 text-center sm:p-8">
+      <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-bg-alt text-2xl">
+        ⏳
+      </div>
+      <p className="mt-5 text-xl font-extrabold text-text">
+        검증 신청이 만료됐어요
+      </p>
+      <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+        24시간 안에 입금이 확인되지 않아 이 페이지는 잠겼습니다. 작성하신 내용은
+        저장돼 있으니, 다시 신청하시면 이어서 빠르게 시작할 수 있어요.
+      </p>
+      <a
+        href="/start"
+        className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-accent px-7 py-3.5 text-base font-bold text-white transition hover:bg-accent-hover"
+      >
+        다시 신청하기
+      </a>
+      <p className="mt-3 text-xs text-text-tertiary">
+        문의는{" "}
+        <a
+          href={KAKAO_CHAT_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline"
+        >
+          카카오톡 채널
+        </a>
+        로 남겨주세요.
+      </p>
+    </div>
+  );
+}
+
+/* 입금 마감 실시간 카운트다운 — 압박 + 관리 */
+function Countdown({ due }: { due: string | null }) {
+  const [left, setLeft] = useState<number>(() =>
+    due ? new Date(due).getTime() - Date.now() : 0,
+  );
+  useEffect(() => {
+    if (!due) return;
+    const t = setInterval(
+      () => setLeft(new Date(due).getTime() - Date.now()),
+      1000,
+    );
+    return () => clearInterval(t);
+  }, [due]);
+  if (!due) return null;
+  const s = Math.max(0, Math.floor(left / 1000));
+  const hh = String(Math.floor(s / 3600)).padStart(2, "0");
+  const mm = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
+  const ss = String(s % 60).padStart(2, "0");
+  const urgent = s < 3 * 3600; // 3시간 미만이면 빨간 경고
+  return (
+    <div
+      className="flex flex-wrap items-center justify-between gap-2 rounded-xl px-4 py-3"
+      style={{ background: urgent ? "var(--nogo-tint)" : "var(--pivot-tint)" }}
+    >
+      <p
+        className="text-[14px] font-extrabold tabular-nums"
+        style={{ color: urgent ? "var(--nogo)" : "var(--pivot)" }}
+      >
+        ⏰ 입금 마감까지 {hh}:{mm}:{ss}
+      </p>
+      <p className="text-[12px] font-semibold text-text-secondary">
+        지나면 이 페이지는 사라져요
+      </p>
+    </div>
+  );
+}
+
 function DepositStep({
   lead,
   onEdit,
@@ -1414,6 +1495,7 @@ function DepositStep({
 
   return (
     <div className="space-y-5">
+      <Countdown due={lead.depositDueAt} />
       <div className="cold-panel rounded-lg p-6">
         <p className="text-lg font-bold text-text">
           준비안이 확정됐습니다. 입금만 남았습니다.

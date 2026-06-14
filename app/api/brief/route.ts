@@ -539,7 +539,7 @@ export async function POST(request: Request) {
     }
 
     const now = new Date();
-    const due = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000); // 입금 기한 3일
+    const due = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 입금 기한 24시간(미입금 시 만료)
     const existing = lead.brief as { draft?: BriefDraft } | null;
     const answers = leadAnswers(lead);
     const pb = decidePassBar(answers); // 합격선은 코드가 결정, 고객에게 안 떠넘김

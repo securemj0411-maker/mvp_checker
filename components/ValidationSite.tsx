@@ -307,15 +307,8 @@ export default function ValidationSite({
                 className="mt-6 text-[16px] leading-[1.8] text-text-secondary"
               />
             ) : (
-              <div className="mt-6 space-y-4">
-                {prologueParas.map((p, i) => (
-                  <p
-                    key={i}
-                    className="text-[16px] leading-[1.8] text-text-secondary"
-                  >
-                    {p}
-                  </p>
-                ))}
+              <div className="mt-6 whitespace-pre-wrap text-[16px] leading-[1.8] text-text-secondary">
+                {data.prologue}
               </div>
             )}
           </div>
