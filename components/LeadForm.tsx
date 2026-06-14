@@ -30,12 +30,16 @@ type QuizKey = keyof Pick<
   | "region"
   | "location"
   | "pageUrl"
+  | "instructorName"
+  | "courseTitle"
 >;
 
 interface Question {
   id: QuizKey;
   title: string;
   sub?: string;
+  /** 이 답이 페이지의 어디에 들어가는지 — "취조"가 아니라 "내 페이지 만드는 중" 프레이밍 */
+  context?: string;
   /** kind 생략 = 객관식 탭. "text" = 한 줄 입력 청크 */
   kind?: "text";
   placeholder?: string;
@@ -48,8 +52,27 @@ interface Question {
 
 const QUESTIONS: Question[] = [
   {
+    id: "instructorName",
+    title: "어떤 이름으로 보여드릴까요?",
+    sub: "강사명·브랜드명·닉네임 다 좋아요. 없으면 답변을 보고 후보를 만들어 드립니다.",
+    context: "페이지에 보일 강사·브랜드 이름",
+    kind: "text",
+    placeholder: "예: 민지쌤 · 오늘의꽃다발 · 노션연구소",
+    skipLabel: "아직 없어요 (AI가 추천)",
+  },
+  {
+    id: "courseTitle",
+    title: "강의 제목, 정하셨어요?",
+    sub: "정해두신 게 있으면 적어주세요. 없으면 답변을 보고 헤드라인 후보를 만들어 드립니다.",
+    context: "광고에서 가장 먼저 보일 제목",
+    kind: "text",
+    placeholder: "예: 퇴근 후 1시간, 엑셀이 무기가 됩니다",
+    skipLabel: "아직 안 정했어요 (AI가 추천)",
+  },
+  {
     id: "service",
     title: "어떤 형태의 강의인가요?",
+    context: "페이지 구성·신청 버튼 문구",
     options: [
       { value: "web", label: "VOD 녹화 강의", hint: "미리 찍어 올리는 온라인 강의 (클래스101·인프런·자사몰 등)" },
       { value: "content", label: "라이브 · 실시간 클래스", hint: "줌 등으로 정해진 시간에 진행" },
@@ -63,6 +86,7 @@ const QUESTIONS: Question[] = [
     id: "build",
     title: "수강신청 페이지, 지금 있으세요?",
     sub: "한 장짜리 강의 소개 페이지면 됩니다. 답에 따라 가장 싼 경로를 추천해 드립니다.",
+    context: "페이지를 누가 만들지",
     options: [
       {
         value: "self",
@@ -84,6 +108,7 @@ const QUESTIONS: Question[] = [
   {
     id: "region",
     title: "주 수강생은 어디서 오나요?",
+    context: "광고가 닿을 지역",
     when: (a) => a.service === "offline",
     options: [
       { value: "local", label: "동네 상권", hint: "반경 3~5km 안에서 오는 수강생" },
@@ -95,6 +120,7 @@ const QUESTIONS: Question[] = [
     id: "location",
     title: "어느 지역인가요?",
     sub: "지역타겟 광고 반경의 중심이 됩니다. 시/구/동까지면 충분합니다.",
+    context: "지역광고 반경의 중심",
     kind: "text",
     placeholder: "예: 서울 강남구 역삼동",
     skipLabel: "아직 안 정했어요",
@@ -104,6 +130,7 @@ const QUESTIONS: Question[] = [
     id: "pageUrl",
     title: "만들어 둔 페이지 주소를 알려주세요.",
     sub: "측정 장치를 설치할 수 있는 페이지인지 미리 확인해 드립니다.",
+    context: "측정 장치 설치 위치",
     kind: "text",
     placeholder: "예: https://my-class.com",
     skipLabel: "지금은 못 알려드려요",
@@ -484,6 +511,8 @@ export default function LeadForm() {
       region: (answers.region as QuizAnswers["region"]) ?? null,
       location: answers.location?.trim() || null,
       pageUrl: answers.pageUrl?.trim() || null,
+      instructorName: answers.instructorName?.trim() || null,
+      courseTitle: answers.courseTitle?.trim() || null,
     };
 
     const controller = new AbortController();
@@ -955,6 +984,31 @@ export default function LeadForm() {
           </p>
         </div>
 
+        {/* 자산 준비 팁 — 다음 단계 미리보기 + 정직한 전환 이유(가짜 수치 없음) */}
+        <div className="flex items-start gap-2.5 rounded-xl border border-accent/25 bg-accent/[0.04] px-4 py-3">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="var(--accent)"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="mt-0.5 flex-shrink-0"
+            aria-hidden
+          >
+            <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z" />
+            <circle cx="12" cy="13" r="3.5" />
+          </svg>
+          <p className="text-[13px] leading-relaxed text-text-secondary">
+            <b className="text-text">팁.</b> 다음 단계에서{" "}
+            <b className="text-text">강사 사진·소개 영상</b>을 더할 수 있어요.
+            얼굴과 목소리가 보이면 ‘진짜 사람이 하는구나’ 하는 신뢰가 생겨 신청으로
+            더 잘 이어집니다. 지금 없어도 괜찮아요 — 나중에 올리시면 됩니다.
+          </p>
+        </div>
+
         {errorMsg && (
           <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
             {errorMsg}
@@ -1000,9 +1054,31 @@ export default function LeadForm() {
   const q = visibleQuestions[Math.min(qIndex, visibleQuestions.length - 1)];
   return (
     <div className="cold-panel space-y-5 rounded-lg p-6 sm:p-8">
+      <div className="flex items-center gap-1.5 text-[12px] font-bold text-accent">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden
+        >
+          <path d="M12 20h9" />
+          <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+        </svg>
+        내 수강신청 페이지 만드는 중
+      </div>
       <Progress current={chunkIndex} total={totalChunks} />
       <div key={q.id} className="quiz-step-in space-y-5">
         <div>
+          {q.context && (
+            <span className="mb-2 inline-block rounded-full bg-accent/10 px-2.5 py-1 text-[11px] font-bold text-accent">
+              이 답 → {q.context}
+            </span>
+          )}
           <p className="text-xl font-bold text-text">{q.title}</p>
           {q.sub && (
             <p className="mt-1 text-sm text-text-secondary">{q.sub}</p>
@@ -1047,7 +1123,7 @@ export default function LeadForm() {
         <div className="flex items-center justify-between">
           <BackButton onClick={goBackFromQuiz} />
           <p className="text-xs text-text-tertiary">
-            이 답으로 광고 채널과 합격선이 정해집니다 · 끝에서 설계서 무료
+            답할수록 네 페이지가 완성돼요 · 끝에서 설계서 무료
           </p>
         </div>
       </div>

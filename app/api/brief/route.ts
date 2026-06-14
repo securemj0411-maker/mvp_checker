@@ -374,6 +374,12 @@ async function generateBrief(
     report?.current_alternative
       ? `지금 배우는 법: ${report.current_alternative}`
       : null,
+    report?.instructor_name
+      ? `★고객이 정한 강사·브랜드 이름(name_candidates 1순위로 이걸 그대로 넣을 것): ${report.instructor_name}`
+      : null,
+    report?.course_title
+      ? `★고객이 정한 강의 제목(offer_options 첫 안의 headline로 이걸 우선 반영할 것): ${report.course_title}`
+      : null,
     `수강료대: ${answers.price}`,
     `수강료 방식: ${answers.revenue}`,
     answers.location ? `지역: ${answers.location}` : null,
@@ -396,6 +402,7 @@ async function generateBrief(
       "- 모든 필드(오퍼, 타깃, 수강료, 소구점, 가칭)는 고객이 팔려는 그 강의에 대한 것이어야 합니다.",
       "",
       "작성 규칙:",
+      "- 고객이 직접 정한 값 우선: facts에 ★로 표시된 '고객이 정한 강사·브랜드 이름'이 있으면 name_candidates 1순위로 그 이름을 그대로 넣고, '고객이 정한 강의 제목'이 있으면 offer_options 첫 안의 headline에 그 제목을 우선 반영합니다(어색하면 살짝 다듬되 핵심어·의미는 유지). 둘 다 없을 때만 새로 생성합니다.",
       "- 오퍼 한 문장 공식: [타깃 수강생]이 [문제]를 겪을 때 [지금 배우는 법] 대신 이 강의를 듣게 한다. 헤드라인 자체는 그 강의를 들으려는 사람에게 말 거는 약속 문장으로 씁니다(배워서 뭐가 되는지).",
       "- 2안은 서로 다른 각도여야 합니다 (예: 결과·성과 소구 vs 쉬움·시간절약 소구).",
       "- 수강료는 고객이 답한 구간을 벗어나지 않고, 고객의 결제 방식(구독/단건·패키지/수수료)에 맞는 숫자로.",

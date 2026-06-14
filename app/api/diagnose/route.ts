@@ -469,9 +469,23 @@ export async function POST(request: Request) {
     report.pass_bar_reason = pb.reason;
 
     // 4) 설계서를 리드에 저장 (실패해도 응답은 내보낸다)
+    //    고객이 퀴즈에서 정한 강사명·제목을 ai_report에 함께 실어, 브리프 단계 AI가
+    //    이름·헤드라인 후보 대신 고객이 정한 값을 우선 쓰게 한다(마이그레이션 없이).
     const { error: updateError } = await admin
       .from("o2o_leads")
-      .update({ ai_report: { ...report, source }, policy_flag: "none" })
+      .update({
+        ai_report: {
+          ...report,
+          source,
+          ...(answers.instructorName?.trim()
+            ? { instructor_name: answers.instructorName.trim().slice(0, 80) }
+            : {}),
+          ...(answers.courseTitle?.trim()
+            ? { course_title: answers.courseTitle.trim().slice(0, 120) }
+            : {}),
+        },
+        policy_flag: "none",
+      })
       .eq("id", leadId);
     if (updateError) console.error("[diagnose update]", updateError);
 

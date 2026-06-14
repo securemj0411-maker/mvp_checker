@@ -48,6 +48,10 @@ export interface QuizAnswers {
   location?: string | null;
   /** build=built 한정 — 기존 페이지 주소 */
   pageUrl?: string | null;
+  /** 고객이 정한 강사·브랜드 이름(닉네임). 없으면 AI가 후보 생성. */
+  instructorName?: string | null;
+  /** 고객이 정한 강의 제목. 없으면 AI가 헤드라인 생성. */
+  courseTitle?: string | null;
 }
 
 export interface InterpretResult {
