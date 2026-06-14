@@ -327,6 +327,8 @@ export interface ConfirmedBrief {
   intro_video?: string;
   /** 고객 입력 — 프롤로그(강의 소개 본문, 줄바꿈=문단) */
   prologue?: string;
+  /** 고객 입력 — 소개 이미지(썸네일) 여러 장 (업로드된 public URL) */
+  media?: string[];
   /** 전문가 사전 점검 답변 (q=라벨, a=답). 빌드에 쓰이는 추가 정보 */
   intake?: { q: string; a: string }[];
   selling_points: string[]; // 내부용 (고객 미노출)

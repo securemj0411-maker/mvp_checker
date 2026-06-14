@@ -32,6 +32,7 @@ async function loadLead(code: string) {
           credential?: string;
           intro_video?: string;
           prologue?: string;
+          media?: string[];
         } | null;
       }
     | null;
@@ -101,6 +102,9 @@ export default async function ValidationPage({
     credential: ov.credential || c.credential || undefined,
     introVideo: ov.intro_video || c.intro_video || undefined,
     prologue: ov.prologue || c.prologue || c.notes || undefined,
+    media:
+      (Array.isArray(ov.media) && ov.media.length ? ov.media : c.media) ||
+      undefined,
     heroImage: ov.hero_image || undefined,
     accent: ov.accent || undefined,
   };

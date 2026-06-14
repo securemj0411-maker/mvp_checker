@@ -494,6 +494,8 @@ function BriefStep({
   const [introVideo, setIntroVideo] = useState(""); // 소개 영상 URL(유튜브/비메오)
   const [prologue, setPrologue] = useState(""); // 강의 소개 본문(프롤로그)
   const [points, setPoints] = useState<string[]>([]); // 가치 포인트 3개(고객 편집)
+  const [media, setMedia] = useState<string[]>([]); // 소개 이미지(썸네일) URL들
+  const [uploading, setUploading] = useState(false);
   // 전문가 사전 점검 — 질문별 복수 선택(칩) + 선택적 직접입력
   const [intakeSel, setIntakeSel] = useState<string[][]>([]);
   const [intakeEtcMode, setIntakeEtcMode] = useState<boolean[]>([]);
@@ -557,6 +559,7 @@ function BriefStep({
     setPoints(
       (c.selling_points ?? draft?.selling_points ?? []).slice(0, 3),
     );
+    setMedia(c.media ?? []);
     const inOptions = (draft?.offer_options ?? []).some(
       (o) => o.headline === c.offer,
     );
@@ -668,6 +671,7 @@ function BriefStep({
       credential: credential.trim() || undefined,
       intro_video: introVideo.trim() || undefined,
       prologue: prologue.trim() || undefined,
+      media: media.length ? media : undefined,
       intake: (() => {
         const qs = (draft!.intake_questions ?? []).slice(0, 3);
         const ans = qs
@@ -703,6 +707,23 @@ function BriefStep({
     }
   }
 
+  async function uploadImage(file: File) {
+    if (uploading) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.set("file", file);
+      fd.set("code", code);
+      const res = await fetch("/api/v/upload", { method: "POST", body: fd });
+      const data = await res.json();
+      if (data?.ok && data.url) setMedia((m) => [...m, data.url as string]);
+    } catch {
+      /* 업로드 실패 — 사용자가 다시 시도 */
+    } finally {
+      setUploading(false);
+    }
+  }
+
   const engineBlocked = lead.pageMeasurable === false;
   // 답변에 따라 진행 방식은 하나로 자동 결정된다 (고객이 고르지 않음).
   // 페이지가 있고(engine) 측정이 가능하면 엔진, 그 외엔 Quick.
@@ -735,6 +756,7 @@ function BriefStep({
     credential: credential.trim() || undefined,
     introVideo: introVideo.trim() || undefined,
     prologue: prologue.trim() || undefined,
+    media,
   };
   const editHandlers = {
     field: (k: "offer" | "credential" | "prologue", v: string) => {
@@ -1202,6 +1224,46 @@ function BriefStep({
             />
             <p className="mt-1 text-[11px] text-text-tertiary">
               링크만 붙이면 페이지 상단에 영상이 박힙니다.
+            </p>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-bold text-text-secondary">
+              소개 이미지 (썸네일 여러 장)
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {media.map((url, i) => (
+                <div
+                  key={i}
+                  className="relative h-16 w-24 overflow-hidden rounded-lg border border-border"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={url} alt="" className="h-full w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => setMedia((m) => m.filter((_, j) => j !== i))}
+                    className="absolute right-0.5 top-0.5 grid h-5 w-5 place-items-center rounded-full bg-text/70 text-[11px] font-bold text-white"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+              <label className="grid h-16 w-24 cursor-pointer place-items-center rounded-lg border border-dashed border-border text-center text-[12px] font-semibold text-text-tertiary transition hover:border-accent/60 hover:text-accent">
+                {uploading ? "올리는 중…" : "+ 이미지"}
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  className="hidden"
+                  disabled={uploading}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) uploadImage(f);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+            </div>
+            <p className="mt-1 text-[11px] text-text-tertiary">
+              강의 화면·결과물·후기 캡처 등을 올리면 페이지에 갤러리로 보입니다. (장당 최대 5MB)
             </p>
           </div>
           <div>

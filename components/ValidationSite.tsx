@@ -20,6 +20,8 @@ export type ValidationSiteData = {
   introVideo?: string;
   /** 고객 입력 — 프롤로그(강의 소개 본문). 줄바꿈 = 문단 */
   prologue?: string;
+  /** 고객 입력 — 소개 이미지(썸네일) 여러 장 (업로드된 public URL) */
+  media?: string[];
   /** 운영자 폴리시(리드별 override) — 전문가가 게시 전 다듬는 값 */
   heroImage?: string;
   accent?: string;
@@ -67,6 +69,74 @@ function embedUrl(raw?: string): string | null {
     /* 잘못된 URL은 무시 — 영상 섹션을 숨긴다 */
   }
   return null;
+}
+
+/* 소개 영상 + 썸네일 여러 장 — 메인 + 썸네일 스트립으로 전환 (Skool about식) */
+function MediaGallery({
+  video,
+  images,
+  name,
+}: {
+  video: string | null;
+  images: string[];
+  name: string;
+}) {
+  const items = [
+    ...(video ? [{ type: "video" as const, src: video }] : []),
+    ...images.map((src) => ({ type: "image" as const, src })),
+  ];
+  const [sel, setSel] = useState(0);
+  if (items.length === 0) return null;
+  const cur = items[Math.min(sel, items.length - 1)];
+  return (
+    <div className="mx-auto mt-10 max-w-2xl">
+      <div className="overflow-hidden rounded-[20px] border border-border bg-text shadow-[0_24px_60px_-24px_rgba(10,23,38,0.32)]">
+        <div className="relative aspect-video">
+          {cur.type === "video" ? (
+            <iframe
+              src={cur.src}
+              title={`${name} 소개 영상`}
+              className="absolute inset-0 h-full w-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={cur.src}
+              alt={name}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          )}
+        </div>
+      </div>
+      {items.length > 1 && (
+        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+          {items.map((it, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => setSel(i)}
+              className={`relative h-14 w-24 flex-shrink-0 overflow-hidden rounded-lg border-2 transition ${
+                i === sel
+                  ? "border-accent"
+                  : "border-border hover:border-accent/50"
+              }`}
+            >
+              {it.type === "video" ? (
+                <span className="grid h-full w-full place-items-center bg-text text-[11px] font-bold text-white">
+                  ▶ 영상
+                </span>
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={it.src} alt="" className="h-full w-full object-cover" />
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 type EditHandlers = {
@@ -261,19 +331,13 @@ export default function ValidationSite({
             )
           )}
 
-          {/* 소개 영상 — Skool about의 핵심. 고객이 URL만 넣으면 임베드 */}
-          {video && (
-            <div className="mx-auto mt-10 max-w-2xl overflow-hidden rounded-[20px] border border-border bg-text shadow-[0_24px_60px_-24px_rgba(10,23,38,0.32)]">
-              <div className="relative aspect-video">
-                <iframe
-                  src={video}
-                  title={`${data.name} 소개 영상`}
-                  className="absolute inset-0 h-full w-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
-            </div>
+          {/* 소개 영상 + 썸네일 갤러리 — Skool about의 핵심 */}
+          {(video || (data.media && data.media.length > 0)) && (
+            <MediaGallery
+              video={video}
+              images={data.media ?? []}
+              name={data.name}
+            />
           )}
 
           <button
