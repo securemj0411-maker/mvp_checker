@@ -26,7 +26,7 @@ export default async function AdminPage({
   const { data, error } = await getSupabaseAdmin()
     .from("o2o_leads")
     .select(
-      "id, created_at, name, email, phone, idea, idea_refined, status, memo, source, utm_source, service_type, audience, revenue_model, build_status, price_band, alternative, region, location, page_url, page_measurable, page_tag_verified_at, access_code, tier, brief, brief_confirmed_at, deposit_due_at, ai_report, policy_flag, interpret_status, ad_stats, site_published_at",
+      "id, created_at, name, email, phone, idea, idea_refined, status, memo, source, utm_source, service_type, audience, revenue_model, build_status, price_band, alternative, region, location, page_url, page_measurable, page_tag_verified_at, access_code, tier, brief, brief_confirmed_at, deposit_due_at, ai_report, policy_flag, interpret_status, ad_stats, site_published_at, site_overrides",
     )
     .order("created_at", { ascending: false })
     .limit(500);

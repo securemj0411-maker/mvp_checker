@@ -14,6 +14,9 @@ export type ValidationSiteData = {
   sellingPoints: string[];
   /** 합격선에서 파생된 행동 유형 — CTA 문구를 업종에 맞춘다 */
   intent: "pay" | "reserve" | "inquiry";
+  /** 운영자 폴리시(리드별 override) — 전문가가 게시 전 다듬는 값 */
+  heroImage?: string;
+  accent?: string;
 };
 
 /* CTA 문구 — t.js가 결제의향으로 집계하도록 '시작/예약/신청' 키워드를 포함한다 */
@@ -43,6 +46,13 @@ export default function ValidationSite({ data }: { data: ValidationSiteData }) {
   const [err, setErr] = useState(false);
 
   const cta = CTA_LABEL[data.intent];
+  // 운영자가 accent 색을 지정하면 페이지 전체 var(--accent)를 덮어쓴다(자식 cascade)
+  const rootStyle = data.accent
+    ? ({
+        "--accent": data.accent,
+        "--accent-hover": data.accent,
+      } as React.CSSProperties)
+    : undefined;
 
   function openModal(planLabel?: string) {
     setPlan(planLabel ?? null);
@@ -81,7 +91,7 @@ export default function ValidationSite({ data }: { data: ValidationSiteData }) {
     : [{ label: "기본", price: data.plans[0]?.price ?? 0, desc: "" }];
 
   return (
-    <div className="min-h-screen bg-bg text-text">
+    <div className="min-h-screen bg-bg text-text" style={rootStyle}>
       {/* ── 상단 바 (고객 브랜드) ── */}
       <header className="sticky top-0 z-30 border-b border-border/70 bg-bg/85 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-5">
@@ -120,6 +130,14 @@ export default function ValidationSite({ data }: { data: ValidationSiteData }) {
           >
             {cta}
           </button>
+          {data.heroImage && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={data.heroImage}
+              alt={data.name}
+              className="mx-auto mt-12 w-full max-w-2xl rounded-[22px] border border-border object-cover shadow-[0_24px_60px_-24px_rgba(10,23,38,0.28)]"
+            />
+          )}
         </div>
       </section>
 

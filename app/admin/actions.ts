@@ -79,6 +79,32 @@ export async function updateLead(formData: FormData) {
         ? new Date().toISOString()
         : null;
   }
+
+  // 검증 사이트 운영자 폴리시 override (이미지·강조색·헤드라인·서브문구)
+  if (
+    formData.has("ov_hero_image") ||
+    formData.has("ov_accent") ||
+    formData.has("ov_offer") ||
+    formData.has("ov_sub")
+  ) {
+    const ovStr = (k: string) => {
+      const v = String(formData.get(k) ?? "").trim();
+      return v ? v.slice(0, 500) : null;
+    };
+    const heroImage = ovStr("ov_hero_image");
+    const accent = ovStr("ov_accent");
+    const offer = ovStr("ov_offer");
+    const sub = ovStr("ov_sub");
+    update.site_overrides =
+      !heroImage && !accent && !offer && !sub
+        ? null
+        : {
+            ...(heroImage ? { hero_image: heroImage } : {}),
+            ...(accent ? { accent } : {}),
+            ...(offer ? { offer } : {}),
+            ...(sub ? { sub } : {}),
+          };
+  }
   if (hasAdInput) {
     const allEmpty =
       imp === null &&

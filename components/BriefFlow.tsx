@@ -351,7 +351,7 @@ function PagePreview({
   return (
     <div className="mt-4">
       <p className="mb-2 text-xs font-semibold text-text-tertiary">
-        실제 검증용 사이트엔 이렇게 보여요 (예시)
+        전문가가 만들 검증용 사이트, 미리 보기 (초안 예시)
       </p>
       <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-[0_8px_24px_-12px_rgba(10,23,38,0.14)]">
         <div className="flex items-center gap-1.5 border-b border-border-light bg-bg-alt px-3 py-2">
@@ -396,7 +396,8 @@ function PagePreview({
         </div>
       </div>
       <p className="mt-1.5 text-[11px] leading-relaxed text-text-tertiary">
-        디자인은 담당 전문가가 더 보기 좋게 다듬어 만듭니다. 위는 구성 예시입니다.
+        지금 보이는 건 초안 구성입니다. 결제 후 담당 전문가가 이미지·문구·디자인까지
+        직접 다듬어 실제 검증 사이트를 완성합니다.
       </p>
     </div>
   );

@@ -14,7 +14,7 @@ async function loadLead(code: string) {
   const admin = getSupabaseAdmin();
   const { data } = await admin
     .from("o2o_leads")
-    .select("id, access_code, brief, site_published_at")
+    .select("id, access_code, brief, site_published_at, site_overrides")
     .eq("access_code", normalize(code))
     .maybeSingle();
   return data as
@@ -23,6 +23,12 @@ async function loadLead(code: string) {
         access_code: string;
         brief: { confirmed?: ConfirmedBrief } | null;
         site_published_at: string | null;
+        site_overrides: {
+          hero_image?: string;
+          accent?: string;
+          offer?: string;
+          sub?: string;
+        } | null;
       }
     | null;
 }
@@ -77,15 +83,19 @@ export default async function ValidationPage({
     : [{ label: "기본", price: c.price_value ?? 0, desc: "" }]
   ).map((p) => ({ label: p.label, price: p.price, desc: p.desc ?? "" }));
 
+  // 운영자 폴리시 override (전문가가 게시 전 다듬는 값)
+  const ov = lead.site_overrides ?? {};
   const data: ValidationSiteData = {
     code: lead.access_code,
     name: c.name || "내 서비스",
-    offer: c.offer || c.name || "",
+    offer: ov.offer || c.offer || c.name || "",
     targetLine: c.target_line || "",
-    problemLine: c.problem_line || "",
+    problemLine: ov.sub || c.problem_line || "",
     plans,
     sellingPoints: Array.isArray(c.selling_points) ? c.selling_points : [],
     intent: intentOf(c.pass_bar ?? ""),
+    heroImage: ov.hero_image || undefined,
+    accent: ov.accent || undefined,
   };
 
   return (

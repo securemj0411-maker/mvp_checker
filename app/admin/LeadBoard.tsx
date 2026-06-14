@@ -52,6 +52,12 @@ export type Lead = {
     updated_at?: string;
   } | null;
   site_published_at: string | null;
+  site_overrides: {
+    hero_image?: string;
+    accent?: string;
+    offer?: string;
+    sub?: string;
+  } | null;
   signups?: {
     name: string | null;
     contact: string;
@@ -213,6 +219,7 @@ export default function LeadBoard({ leads: initial }: { leads: Lead[] }) {
       spend: string;
     },
     published?: boolean,
+    overrides?: { hero_image: string; accent: string; offer: string; sub: string },
   ) {
     const fd = new FormData();
     fd.set("id", id);
@@ -220,6 +227,12 @@ export default function LeadBoard({ leads: initial }: { leads: Lead[] }) {
     fd.set("memo", memo);
     if (typeof published === "boolean")
       fd.set("site_published", published ? "1" : "0");
+    if (overrides) {
+      fd.set("ov_hero_image", overrides.hero_image);
+      fd.set("ov_accent", overrides.accent);
+      fd.set("ov_offer", overrides.offer);
+      fd.set("ov_sub", overrides.sub);
+    }
     if (ad) {
       fd.set("ad_impressions", ad.impressions);
       fd.set("ad_clicks", ad.clicks);
@@ -441,12 +454,17 @@ function Modal({
       spend: string;
     },
     published?: boolean,
+    overrides?: { hero_image: string; accent: string; offer: string; sub: string },
   ) => void;
   onDelete: (id: string, name: string) => void;
 }) {
   const [status, setStatus] = useState(lead.status ?? "new");
   const [memo, setMemo] = useState(lead.memo ?? "");
   const [published, setPublished] = useState(!!lead.site_published_at);
+  const [ovImg, setOvImg] = useState(lead.site_overrides?.hero_image ?? "");
+  const [ovAccent, setOvAccent] = useState(lead.site_overrides?.accent ?? "");
+  const [ovOffer, setOvOffer] = useState(lead.site_overrides?.offer ?? "");
+  const [ovSub, setOvSub] = useState(lead.site_overrides?.sub ?? "");
   const [adImp, setAdImp] = useState(String(lead.ad_stats?.impressions ?? ""));
   const [adClk, setAdClk] = useState(String(lead.ad_stats?.clicks ?? ""));
   const [adVis, setAdVis] = useState(String(lead.ad_stats?.visits ?? ""));
@@ -593,6 +611,38 @@ function Modal({
                   </span>
                 )}
               </div>
+              <div className="mt-3 border-t border-border-light pt-3">
+                <p className="text-xs font-bold text-text-secondary">
+                  전문가 폴리시 (게시 전 다듬기 · 비우면 브리프 그대로)
+                </p>
+                <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                  <input
+                    value={ovOffer}
+                    onChange={(e) => setOvOffer(e.target.value)}
+                    placeholder="헤드라인 덮어쓰기"
+                    className="rounded-md border border-border bg-bg px-3 py-2 text-xs text-text outline-none transition focus:border-accent"
+                  />
+                  <input
+                    value={ovSub}
+                    onChange={(e) => setOvSub(e.target.value)}
+                    placeholder="서브문구 덮어쓰기"
+                    className="rounded-md border border-border bg-bg px-3 py-2 text-xs text-text outline-none transition focus:border-accent"
+                  />
+                  <input
+                    value={ovImg}
+                    onChange={(e) => setOvImg(e.target.value)}
+                    placeholder="히어로 이미지 URL"
+                    className="rounded-md border border-border bg-bg px-3 py-2 text-xs text-text outline-none transition focus:border-accent"
+                  />
+                  <input
+                    value={ovAccent}
+                    onChange={(e) => setOvAccent(e.target.value)}
+                    placeholder="강조색 hex (예 #3182f6)"
+                    className="rounded-md border border-border bg-bg px-3 py-2 text-xs text-text outline-none transition focus:border-accent"
+                  />
+                </div>
+              </div>
+
               <p className="mt-3 text-xs font-bold text-text-secondary">
                 사전등록 {lead.signups?.length ?? 0}건 (첫 고객 명단)
               </p>
@@ -884,6 +934,12 @@ function Modal({
                     spend: adSpend,
                   },
                   published,
+                  {
+                    hero_image: ovImg,
+                    accent: ovAccent,
+                    offer: ovOffer,
+                    sub: ovSub,
+                  },
                 )
               }
               className="rounded-lg bg-accent px-5 py-2 text-sm font-bold text-white transition hover:bg-accent-hover"
