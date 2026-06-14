@@ -51,6 +51,13 @@ export type Lead = {
     spend: number;
     updated_at?: string;
   } | null;
+  site_published_at: string | null;
+  signups?: {
+    name: string | null;
+    contact: string;
+    plan: string | null;
+    created_at: string;
+  }[];
 };
 
 /* ── 라벨 ── */
@@ -205,11 +212,14 @@ export default function LeadBoard({ leads: initial }: { leads: Lead[] }) {
       conversions: string;
       spend: string;
     },
+    published?: boolean,
   ) {
     const fd = new FormData();
     fd.set("id", id);
     fd.set("status", status);
     fd.set("memo", memo);
+    if (typeof published === "boolean")
+      fd.set("site_published", published ? "1" : "0");
     if (ad) {
       fd.set("ad_impressions", ad.impressions);
       fd.set("ad_clicks", ad.clicks);
@@ -430,11 +440,13 @@ function Modal({
       conversions: string;
       spend: string;
     },
+    published?: boolean,
   ) => void;
   onDelete: (id: string, name: string) => void;
 }) {
   const [status, setStatus] = useState(lead.status ?? "new");
   const [memo, setMemo] = useState(lead.memo ?? "");
+  const [published, setPublished] = useState(!!lead.site_published_at);
   const [adImp, setAdImp] = useState(String(lead.ad_stats?.impressions ?? ""));
   const [adClk, setAdClk] = useState(String(lead.ad_stats?.clicks ?? ""));
   const [adVis, setAdVis] = useState(String(lead.ad_stats?.visits ?? ""));
@@ -542,6 +554,68 @@ function Modal({
               </>
             )}
           </div>
+
+          {lead.brief?.confirmed && lead.access_code && (
+            <div className="mt-1 rounded-lg border border-border bg-bg px-4 py-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm font-bold text-text">
+                  검증 사이트 (확정 브리프 자동 생성)
+                </p>
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
+                  <input
+                    type="checkbox"
+                    checked={published}
+                    onChange={(e) => setPublished(e.target.checked)}
+                  />
+                  게시(광고 노출)
+                </label>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <a
+                  href={`/v/${lead.access_code}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-secondary transition hover:border-accent"
+                >
+                  실제 사이트 ↗
+                </a>
+                <a
+                  href={`/v/${lead.access_code}?preview=1`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-secondary transition hover:border-accent"
+                >
+                  미리보기 ↗
+                </a>
+                {!published && (
+                  <span className="rounded-lg bg-bg-alt px-3 py-1.5 text-xs text-text-tertiary">
+                    미게시 — 방문자에겐 ‘곧 공개’로 보임
+                  </span>
+                )}
+              </div>
+              <p className="mt-3 text-xs font-bold text-text-secondary">
+                사전등록 {lead.signups?.length ?? 0}건 (첫 고객 명단)
+              </p>
+              {lead.signups && lead.signups.length > 0 && (
+                <ul className="mt-1.5 max-h-44 space-y-1 overflow-y-auto pr-1 text-xs">
+                  {lead.signups.map((s, i) => (
+                    <li
+                      key={i}
+                      className="flex items-center justify-between gap-3 border-b border-border-light pb-1"
+                    >
+                      <span className="text-text-secondary">
+                        {s.name || "(이름없음)"} ·{" "}
+                        <b className="font-mono text-text">{s.contact}</b>
+                      </span>
+                      <span className="flex-shrink-0 text-text-tertiary">
+                        {s.plan || ""}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
 
           {prohibited && (
             <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-3">
@@ -798,13 +872,19 @@ function Modal({
             </button>
             <button
               onClick={() =>
-                onSave(lead.id, status, memo, {
-                  impressions: adImp,
-                  clicks: adClk,
-                  visits: adVis,
-                  conversions: adConv,
-                  spend: adSpend,
-                })
+                onSave(
+                  lead.id,
+                  status,
+                  memo,
+                  {
+                    impressions: adImp,
+                    clicks: adClk,
+                    visits: adVis,
+                    conversions: adConv,
+                    spend: adSpend,
+                  },
+                  published,
+                )
               }
               className="rounded-lg bg-accent px-5 py-2 text-sm font-bold text-white transition hover:bg-accent-hover"
             >

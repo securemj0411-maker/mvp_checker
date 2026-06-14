@@ -71,6 +71,14 @@ export async function updateLead(formData: FormData) {
     formData.has("ad_spend");
 
   const update: Record<string, unknown> = { status, memo: memo || null };
+
+  // 검증 사이트 게시 토글 (체크 시 광고 노출, 해제 시 '곧 공개'로 비공개)
+  if (formData.has("site_published")) {
+    update.site_published_at =
+      String(formData.get("site_published")) === "1"
+        ? new Date().toISOString()
+        : null;
+  }
   if (hasAdInput) {
     const allEmpty =
       imp === null &&

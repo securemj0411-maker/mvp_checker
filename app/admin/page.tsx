@@ -26,12 +26,32 @@ export default async function AdminPage({
   const { data, error } = await getSupabaseAdmin()
     .from("o2o_leads")
     .select(
-      "id, created_at, name, email, phone, idea, idea_refined, status, memo, source, utm_source, service_type, audience, revenue_model, build_status, price_band, alternative, region, location, page_url, page_measurable, page_tag_verified_at, access_code, tier, brief, brief_confirmed_at, deposit_due_at, ai_report, policy_flag, interpret_status, ad_stats",
+      "id, created_at, name, email, phone, idea, idea_refined, status, memo, source, utm_source, service_type, audience, revenue_model, build_status, price_band, alternative, region, location, page_url, page_measurable, page_tag_verified_at, access_code, tier, brief, brief_confirmed_at, deposit_due_at, ai_report, policy_flag, interpret_status, ad_stats, site_published_at",
     )
     .order("created_at", { ascending: false })
     .limit(500);
 
-  const leads = (data ?? []) as Lead[];
+  let leads = (data ?? []) as Lead[];
+
+  // 검증 사이트 사전등록 명단(첫 고객 명단) — 리드별로 묶어 모달에 노출
+  const leadIds = leads.map((l) => l.id);
+  if (leadIds.length > 0) {
+    const { data: sg } = await getSupabaseAdmin()
+      .from("o2o_signups")
+      .select("lead_id, name, contact, plan, created_at")
+      .in("lead_id", leadIds)
+      .order("created_at", { ascending: false });
+    const byLead: Record<string, NonNullable<Lead["signups"]>> = {};
+    for (const s of sg ?? []) {
+      (byLead[s.lead_id as string] ??= []).push({
+        name: (s.name as string | null) ?? null,
+        contact: s.contact as string,
+        plan: (s.plan as string | null) ?? null,
+        created_at: s.created_at as string,
+      });
+    }
+    leads = leads.map((l) => ({ ...l, signups: byLead[l.id] ?? [] }));
+  }
 
   return (
     <main className="min-h-screen bg-bg px-5 py-10 text-text">
