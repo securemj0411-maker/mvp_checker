@@ -3,6 +3,8 @@ import { ArrowRight, Check } from "lucide-react";
 import { BrandMark, Wordmark } from "@/components/Brand";
 import { KAKAO_CHAT_URL } from "@/lib/site";
 
+export const metadata = { alternates: { canonical: "/" } };
+
 /* 판정 컬러 시스템 — GO/NO-GO/PIVOT */
 const verdict = {
   go: "var(--go)",

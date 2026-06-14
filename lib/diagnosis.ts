@@ -134,7 +134,7 @@ export function isPageMeasurable(url: string | null | undefined): boolean | null
       url.startsWith("http") ? url : `https://${url}`,
     ).hostname.replace(/^www\./, "");
     return !UNMEASURABLE_HOSTS.some(
-      (b) => host === b || host.endsWith(`.${b.split(".")[0]}.naver.com`) || host.endsWith(b),
+      (b) => host === b || host.endsWith(`.${b}`) || host.endsWith(`.${b.split(".")[0]}.naver.com`),
     );
   } catch {
     return null; // 판별 불가 — 사람이 확인

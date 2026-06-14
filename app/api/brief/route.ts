@@ -462,6 +462,31 @@ export async function POST(request: Request) {
     if (!confirmed || (tier !== "engine" && tier !== "quick")) {
       return Response.json({ error: "missing fields" }, { status: 400 });
     }
+    // 서버측 검증 — 클라 우회로 음수/0 가격·빈 플랜·빈 오퍼가 들어오는 것 차단
+    if (!(confirmed.offer ?? "").trim() || !(confirmed.name ?? "").trim()) {
+      return Response.json({ error: "invalid brief" }, { status: 400 });
+    }
+    if (confirmed.plans && confirmed.plans.length > 0) {
+      confirmed.plans = confirmed.plans
+        .filter(
+          (p) =>
+            p &&
+            typeof p.price === "number" &&
+            p.price > 0 &&
+            (p.label ?? "").trim(),
+        )
+        .map((p) => ({
+          label: String(p.label).trim().slice(0, 60),
+          price: Math.round(p.price),
+          desc: p.desc ? String(p.desc).trim().slice(0, 200) : undefined,
+        }));
+      if (confirmed.plans.length === 0) {
+        return Response.json({ error: "invalid plans" }, { status: 400 });
+      }
+      confirmed.price_value = confirmed.plans[0].price;
+    } else if (!(confirmed.price_value > 0)) {
+      return Response.json({ error: "invalid price" }, { status: 400 });
+    }
     // 입금 전(deposit)까지는 재수정(고객이 '수정하기')을 허용한다.
     // 입금/제작 이후(paid·build·live·verdict·closed)에는 잠금 — 중복 클릭 포함.
     const stage = deriveStage(

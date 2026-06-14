@@ -1,15 +1,21 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { ADMIN_COOKIE } from "./auth";
+import { ADMIN_COOKIE, safeEqual } from "./auth";
+import { rateLimit } from "@/lib/ratelimit";
 
 export async function login(formData: FormData) {
+  const h = await headers();
+  const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  // 로그인 무차별 대입 방어 — IP당 분당 5회
+  if (!rateLimit(`adminlogin:${ip}`, 5, 60_000)) redirect("/admin?e=1");
+
   const password = String(formData.get("password") ?? "");
   const expected = process.env.ADMIN_PASSWORD;
   const secret = process.env.ADMIN_SESSION_SECRET;
 
-  if (!expected || !secret || password !== expected) {
+  if (!expected || !secret || !safeEqual(password, expected)) {
     redirect("/admin?e=1");
   }
 

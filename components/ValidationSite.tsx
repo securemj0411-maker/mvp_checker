@@ -44,13 +44,16 @@ export default function ValidationSite({ data }: { data: ValidationSiteData }) {
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
   const [err, setErr] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   const cta = CTA_LABEL[data.intent];
-  // 운영자가 accent 색을 지정하면 페이지 전체 var(--accent)를 덮어쓴다(자식 cascade)
-  const rootStyle = data.accent
+  // 운영자 입력 accent — hex 형식일 때만 적용(잘못된 값으로 페이지가 깨지지 않게)
+  const validAccent =
+    data.accent && /^#[0-9a-fA-F]{3,8}$/.test(data.accent) ? data.accent : null;
+  const rootStyle = validAccent
     ? ({
-        "--accent": data.accent,
-        "--accent-hover": data.accent,
+        "--accent": validAccent,
+        "--accent-hover": validAccent,
       } as React.CSSProperties)
     : undefined;
 
@@ -130,11 +133,12 @@ export default function ValidationSite({ data }: { data: ValidationSiteData }) {
           >
             {cta}
           </button>
-          {data.heroImage && (
+          {data.heroImage && /^https?:\/\//.test(data.heroImage) && !imgError && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={data.heroImage}
               alt={data.name}
+              onError={() => setImgError(true)}
               className="mx-auto mt-12 w-full max-w-2xl rounded-[22px] border border-border object-cover shadow-[0_24px_60px_-24px_rgba(10,23,38,0.28)]"
             />
           )}

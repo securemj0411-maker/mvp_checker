@@ -465,6 +465,19 @@ function Modal({
   const [ovAccent, setOvAccent] = useState(lead.site_overrides?.accent ?? "");
   const [ovOffer, setOvOffer] = useState(lead.site_overrides?.offer ?? "");
   const [ovSub, setOvSub] = useState(lead.site_overrides?.sub ?? "");
+
+  function copySignups(rows: NonNullable<Lead["signups"]>) {
+    const csv =
+      "이름,연락처,플랜,신청일\n" +
+      rows
+        .map((r) =>
+          [r.name ?? "", r.contact, r.plan ?? "", r.created_at]
+            .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+            .join(","),
+        )
+        .join("\n");
+    navigator.clipboard?.writeText(csv);
+  }
   const [adImp, setAdImp] = useState(String(lead.ad_stats?.impressions ?? ""));
   const [adClk, setAdClk] = useState(String(lead.ad_stats?.clicks ?? ""));
   const [adVis, setAdVis] = useState(String(lead.ad_stats?.visits ?? ""));
@@ -643,9 +656,20 @@ function Modal({
                 </div>
               </div>
 
-              <p className="mt-3 text-xs font-bold text-text-secondary">
-                사전등록 {lead.signups?.length ?? 0}건 (첫 고객 명단)
-              </p>
+              <div className="mt-3 flex items-center justify-between gap-2">
+                <p className="text-xs font-bold text-text-secondary">
+                  사전등록 {lead.signups?.length ?? 0}건 (첫 고객 명단)
+                </p>
+                {lead.signups && lead.signups.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => copySignups(lead.signups!)}
+                    className="rounded-md border border-border bg-surface px-2.5 py-1 text-[11px] font-bold text-text-secondary transition hover:border-accent"
+                  >
+                    명단 복사(CSV)
+                  </button>
+                )}
+              </div>
               {lead.signups && lead.signups.length > 0 && (
                 <ul className="mt-1.5 max-h-44 space-y-1 overflow-y-auto pr-1 text-xs">
                   {lead.signups.map((s, i) => (

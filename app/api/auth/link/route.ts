@@ -19,7 +19,9 @@ export async function POST(request: Request) {
     return Response.json({ error: "invalid json" }, { status: 400 });
   }
   const digits = (body.phone ?? "").replace(/\D/g, "");
-  if (digits.length < 9) {
+  // 한국 휴대폰 전체 자릿수만 허용(부분 일치로 인한 오연결 방지). 실제 연결은
+  // 아래에서 정규화된 전체 번호 정확 일치(p === digits)로만 이뤄진다.
+  if (digits.length < 10 || digits.length > 11) {
     return Response.json({ error: "bad phone" }, { status: 400 });
   }
 
