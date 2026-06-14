@@ -71,6 +71,21 @@ interface PublicLead {
     { label: string; price: number; priceLabel: string; desc: string }
   >;
   refundPolicy: readonly string[];
+  /** 노출 우선 채널(운영자 폴리시 + 고객 페이지 수정) — 페이지 편집기가 '현재 라이브 상태'를 시드한다. */
+  siteOverrides?: {
+    hero_image?: string;
+    accent?: string;
+    offer?: string;
+    sub?: string;
+    credential?: string;
+    intro_video?: string;
+    prologue?: string;
+    media?: string[];
+    plans?: { label: string; price: number; desc?: string }[];
+    selling_points?: string[];
+  } | null;
+  /** 광고 노출 중(게시됨)인지 — 편집 권한 배지 문구를 단계에 맞춘다. */
+  sitePublished?: boolean;
 }
 
 const STAGES: { key: Stage[]; label: string }[] = [
@@ -210,7 +225,9 @@ export default function BriefFlow({ code }: { code: string }) {
         lead.stage === "build" ||
         lead.stage === "live" ||
         lead.stage === "verdict" ||
-        lead.stage === "closed") && <ProgressStep lead={lead} code={code} />}
+        lead.stage === "closed") && (
+        <ProgressStep lead={lead} code={code} onReload={load} />
+      )}
     </>
   );
 
@@ -2202,7 +2219,291 @@ function VerdictSample() {
   );
 }
 
-function ProgressStep({ lead, code }: { lead: PublicLead; code: string }) {
+/* ───────── 내 페이지 수정 (확정 후 상시 — 입금/제작/광고 중 포함) ─────────
+   문구·소개·가격·썸네일을 site_overrides 로만 저장한다(결제 합의 스냅샷 brief.confirmed 은 잠김).
+   ValidationSite 인라인 편집 + 썸네일 업로드를 그대로 재사용해 라이브 페이지를 그 자리에서 고친다. */
+function PageEditor({
+  code,
+  lead,
+  onClose,
+  onSaved,
+}: {
+  code: string;
+  lead: PublicLead;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const c = lead.brief?.confirmed;
+  const ov = lead.siteOverrides ?? {};
+  // 현재 라이브 상태로 시드 — override 가 있으면 그 값, 없으면 확정값.
+  const seedPlans =
+    ov.plans && ov.plans.length
+      ? ov.plans
+      : c?.plans && c.plans.length
+        ? c.plans
+        : [{ label: "기본", price: c?.price_value ?? 0, desc: "" }];
+  const [offer, setOffer] = useState(ov.offer || c?.offer || "");
+  const [credential, setCredential] = useState(
+    ov.credential || c?.credential || "",
+  );
+  const [introVideo, setIntroVideo] = useState(
+    ov.intro_video || c?.intro_video || "",
+  );
+  const [prologue, setPrologue] = useState(ov.prologue || c?.prologue || "");
+  const [points, setPoints] = useState<string[]>(
+    (ov.selling_points && ov.selling_points.length
+      ? ov.selling_points
+      : (c?.selling_points ?? [])
+    ).slice(0, 3),
+  );
+  const [plans, setPlans] = useState(
+    seedPlans.map((p) => ({
+      label: p.label,
+      price: p.price,
+      desc: p.desc ?? "",
+    })),
+  );
+  const [media, setMedia] = useState<string[]>(
+    ov.media && ov.media.length ? ov.media : (c?.media ?? []),
+  );
+  const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [err, setErr] = useState(false);
+
+  async function uploadImage(file: File) {
+    if (uploading) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.set("file", file);
+      fd.set("code", code);
+      const res = await fetch("/api/v/upload", { method: "POST", body: fd });
+      const data = await res.json();
+      if (data?.ok && data.url) setMedia((m) => [...m, data.url as string]);
+    } catch {
+      /* 업로드 실패 — 사용자가 다시 시도 */
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function save() {
+    setSaving(true);
+    setErr(false);
+    setSaved(false);
+    try {
+      const res = await fetch("/api/brief", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "update_page",
+          code,
+          page: {
+            offer: offer.trim(),
+            credential: credential.trim(),
+            intro_video: introVideo.trim(),
+            prologue: prologue.trim(),
+            media,
+            selling_points: points.map((p) => p.trim()).filter(Boolean),
+            plans: plans
+              .map((p) => ({
+                label: p.label.trim(),
+                price: p.price,
+                desc: p.desc.trim(),
+              }))
+              .filter((p) => p.label && p.price > 0),
+          },
+        }),
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      sendGAEvent("event", "page_updated", {});
+      setSaved(true);
+      onSaved();
+      setTimeout(() => setSaved(false), 2500);
+    } catch {
+      setErr(true);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!c) return null;
+
+  const previewIntent: ValidationSiteData["intent"] = /예약|신청|등록/.test(
+    lead.passBar?.bar ?? "",
+  )
+    ? "reserve"
+    : /문의/.test(lead.passBar?.bar ?? "")
+      ? "inquiry"
+      : "pay";
+  const previewData: ValidationSiteData = {
+    code: lead.siteToken ?? code,
+    name: c.name || "내 강의",
+    offer: offer.trim() || c.offer || "",
+    targetLine: c.target_line || "",
+    problemLine: c.problem_line || "",
+    plans: plans.map((p) => ({ label: p.label, price: p.price, desc: p.desc })),
+    sellingPoints: points,
+    intent: previewIntent,
+    credential: credential.trim() || undefined,
+    introVideo: introVideo.trim() || undefined,
+    prologue: prologue.trim() || undefined,
+    media,
+  };
+  const editHandlers = {
+    field: (k: "offer" | "credential" | "prologue", v: string) => {
+      if (k === "offer") setOffer(v);
+      else if (k === "credential") setCredential(v);
+      else setPrologue(v);
+    },
+    plan: (i: number, k: "label" | "desc", v: string) =>
+      setPlans((ps) => ps.map((p, j) => (j === i ? { ...p, [k]: v } : p))),
+    planPrice: (i: number, v: number) =>
+      setPlans((ps) => ps.map((p, j) => (j === i ? { ...p, price: v } : p))),
+    point: (i: number, v: string) =>
+      setPoints((arr) => {
+        const n = [...arr];
+        while (n.length <= i) n.push("");
+        n[i] = v;
+        return n;
+      }),
+  };
+
+  const liveNow = lead.stage === "live";
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[16px] font-bold text-text">내 페이지 수정</p>
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex-shrink-0 text-xs font-bold text-text-tertiary underline-offset-2 transition hover:text-text hover:underline"
+        >
+          ← 현황으로
+        </button>
+      </div>
+
+      {/* 권한 배지 — 무엇이 열려 있고 무엇이 잠겨 있는지 명확히 */}
+      <div className="flex items-start gap-2.5 rounded-xl border border-accent/30 bg-accent/5 px-4 py-3">
+        <span className="mt-0.5 grid h-5 w-5 flex-shrink-0 place-items-center rounded-full bg-accent text-[11px] font-black text-white">
+          ✎
+        </span>
+        <p className="text-[13px] leading-relaxed text-text-secondary">
+          {liveNow
+            ? "광고가 도는 중에도 문구·소개·이미지는 언제든 고치실 수 있고, 저장하면 실제 페이지에 바로 반영됩니다. "
+            : "여기서 고친 내용은 저장하는 즉시 실제 페이지에 반영됩니다. "}
+          결제로 합의한 <b className="text-text">검증 상품 금액은 잠겨</b> 있어,
+          여기서 바꾸셔도 안전합니다.
+        </p>
+      </div>
+
+      {/* 진짜 페이지 = 편집기 (점선 칸을 눌러 글자·가격 바로 수정) */}
+      <div className="cold-panel rounded-lg p-4 sm:p-5">
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <span className="rounded-full bg-accent/10 px-2.5 py-1 text-[11px] font-bold text-accent">
+            점선 칸을 눌러 제목·소개·가격 바로 수정
+          </span>
+        </div>
+        <div className="overflow-hidden rounded-xl border border-border">
+          <div className="max-h-[68vh] overflow-y-auto">
+            <ValidationSite data={previewData} edit={editHandlers} />
+          </div>
+        </div>
+      </div>
+
+      {/* 영상·썸네일 — 페이지에 인라인으로 못 넣는 두 가지 */}
+      <Card label="소개 영상·이미지">
+        <div className="space-y-4">
+          <div>
+            <label className="mb-1.5 block text-xs font-bold text-text-secondary">
+              소개 영상 (유튜브·비메오 링크)
+            </label>
+            <input
+              value={introVideo}
+              onChange={(e) => setIntroVideo(e.target.value)}
+              maxLength={200}
+              inputMode="url"
+              placeholder="예: https://youtu.be/xxxxxxxx"
+              className={inputBase}
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-bold text-text-secondary">
+              소개 이미지 (썸네일 여러 장)
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {media.map((url, i) => (
+                <div
+                  key={i}
+                  className="relative h-16 w-24 overflow-hidden rounded-lg border border-border"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={url} alt="" className="h-full w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => setMedia((m) => m.filter((_, j) => j !== i))}
+                    className="absolute right-0.5 top-0.5 grid h-5 w-5 place-items-center rounded-full bg-text/70 text-[11px] font-bold text-white"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+              <label className="grid h-16 w-24 cursor-pointer place-items-center rounded-lg border border-dashed border-border text-center text-[12px] font-semibold text-text-tertiary transition hover:border-accent/60 hover:text-accent">
+                {uploading ? "올리는 중…" : "+ 이미지"}
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  className="hidden"
+                  disabled={uploading}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) uploadImage(f);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+            </div>
+            <p className="mt-1 text-[11px] text-text-tertiary">
+              강의 화면·결과물·후기 캡처 등 (장당 최대 5MB)
+            </p>
+          </div>
+        </div>
+      </Card>
+
+      {err && (
+        <p className="text-sm font-semibold text-nogo">
+          저장에 실패했습니다. 잠시 후 다시 시도해주세요.
+        </p>
+      )}
+      <div className="sticky bottom-0 -mx-4 border-t border-border bg-bg/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
+        <button
+          type="button"
+          onClick={save}
+          disabled={saving}
+          className="w-full rounded-full bg-accent py-3.5 text-[15px] font-bold text-white transition hover:bg-accent-hover disabled:opacity-50"
+        >
+          {saving
+            ? "반영하는 중…"
+            : saved
+              ? "반영됐습니다 ✓"
+              : "변경사항 페이지에 반영하기"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ProgressStep({
+  lead,
+  code,
+  onReload,
+}: {
+  lead: PublicLead;
+  code: string;
+  onReload: () => void;
+}) {
+  const [editingPage, setEditingPage] = useState(false);
   const c = PROGRESS_COPY[lead.stage] ?? PROGRESS_COPY.paid;
   const confirmed = lead.brief?.confirmed;
   // 엔진 고객은 광고 시작 전까지 측정 연결 카드를 보여준다 (연결되면 완료 표시)
@@ -2211,6 +2512,17 @@ function ProgressStep({ lead, code }: { lead: PublicLead; code: string }) {
     (lead.stage === "paid" ||
       lead.stage === "build" ||
       (lead.stage === "live" && !lead.tagVerified));
+
+  if (editingPage && confirmed) {
+    return (
+      <PageEditor
+        code={code}
+        lead={lead}
+        onClose={() => setEditingPage(false)}
+        onSaved={onReload}
+      />
+    );
+  }
   return (
     <div className="space-y-5">
       <div className="cold-panel rounded-lg p-6">
@@ -2238,6 +2550,30 @@ function ProgressStep({ lead, code }: { lead: PublicLead; code: string }) {
             →
           </span>
         </a>
+      )}
+
+      {/* 내 페이지 수정 — 확정 후에도(광고 중 포함) 그 자리에서 문구·이미지·가격을 고친다 */}
+      {confirmed && lead.stage !== "closed" && (
+        <button
+          type="button"
+          onClick={() => setEditingPage(true)}
+          className="flex w-full items-center justify-between gap-3 rounded-lg border border-border bg-surface p-5 text-left transition hover:-translate-y-0.5 hover:border-accent"
+        >
+          <div>
+            <p className="text-[15px] font-bold text-text">내 페이지 수정 ✎</p>
+            <p className="mt-1 text-[13px] leading-relaxed text-text-secondary">
+              제목·소개·가격·썸네일을 직접 고칩니다. 저장하면 실제 페이지에 바로
+              반영돼요.
+              {lead.stage === "live" && " 광고 중에도 가능합니다."}
+            </p>
+          </div>
+          <span
+            className="flex-shrink-0 text-xl font-bold text-accent"
+            aria-hidden
+          >
+            →
+          </span>
+        </button>
       )}
       {showTagCard && (
         <TagInstallCard

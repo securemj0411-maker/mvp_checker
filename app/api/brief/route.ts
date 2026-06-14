@@ -206,6 +206,11 @@ function publicLead(lead: Record<string, unknown>) {
     passBar,
     tiers: TIER_INFO,
     refundPolicy: REFUND_POLICY,
+    // 노출 우선 채널(운영자 폴리시 + 고객 페이지 수정). 대시보드 편집기가 '현재 라이브 상태'를 시드한다.
+    siteOverrides:
+      (lead.site_overrides as Record<string, unknown> | null) ?? null,
+    // 광고 노출 중(게시됨)인지 — 편집 권한 배지·문구를 단계에 맞춘다.
+    sitePublished: !!lead.site_published_at,
   };
 }
 
@@ -417,6 +422,8 @@ interface BriefBody {
   confirmed?: ConfirmedBrief;
   agreement?: string;
   cancel?: boolean;
+  /** update_page — 확정 후에도 고치는 페이지 콘텐츠(문구·이미지). site_overrides로만 간다. */
+  page?: Record<string, unknown>;
 }
 
 export async function POST(request: Request) {
@@ -703,6 +710,79 @@ export async function POST(request: Request) {
         },
       ]);
       if (logErr) console.error("[deposit_reported log]", logErr);
+    }
+    const fresh = await findLead(code);
+    return Response.json({ lead: fresh ? publicLead(fresh) : null });
+  }
+
+  /* 내 페이지 수정 — 확정 후에도(입금/제작/광고 중 포함) 문구·이미지를 언제든 바꾼다.
+     결제 합의 스냅샷(brief.confirmed)은 건드리지 않고, 노출 우선 채널(site_overrides)에만
+     쓴다. 그래서 검증 상품가·분쟁 기록은 잠긴 채, 보이는 페이지는 항상 편집된다.
+     운영자 폴리시(hero_image·accent)는 손대지 않고 보존한다(콘텐츠 필드만 화이트리스트). */
+  if (body.action === "update_page") {
+    // 확정(=페이지 존재) 이후에만. 확정 전 편집은 기존 brief 확정 흐름이 담당.
+    if (!lead.brief_confirmed_at) {
+      return Response.json({ error: "not confirmed" }, { status: 400 });
+    }
+    const p = (body.page ?? {}) as Record<string, unknown>;
+    const str = (v: unknown, max: number) =>
+      typeof v === "string" ? v.trim().slice(0, max) : "";
+
+    // 기존 override에서 시작 — hero_image·accent 등 운영자 값은 그대로 둔다.
+    const next: Record<string, unknown> = {
+      ...((lead.site_overrides as Record<string, unknown> | null) ?? {}),
+    };
+    // 빈 값이면 키를 지워 confirmed 값으로 자연스럽게 되돌린다(/v 는 ov.x || c.x).
+    const setOrClear = (key: string, val: string) => {
+      if (val) next[key] = val;
+      else delete next[key];
+    };
+    setOrClear("offer", str(p.offer, 120));
+    setOrClear("sub", str(p.sub, 200));
+    setOrClear("credential", str(p.credential, 120));
+    setOrClear("prologue", str(p.prologue, 1500));
+    // 소개 영상 — 허용 호스트만(임의 iframe 차단). 비정상이면 제거.
+    const vid = str(p.intro_video, 200);
+    if (vid && /^https?:\/\/(www\.|m\.|player\.)?(youtube\.com|youtu\.be|vimeo\.com)\//.test(vid))
+      next.intro_video = vid;
+    else delete next.intro_video;
+    // 미디어(썸네일) — http(s) URL만, 최대 8장.
+    const media = Array.isArray(p.media)
+      ? p.media
+          .map((x) => str(x, 400))
+          .filter((u) => /^https?:\/\//.test(u))
+          .slice(0, 8)
+      : [];
+    if (media.length) next.media = media;
+    else delete next.media;
+    // 소구점 — 최대 3개.
+    const points = Array.isArray(p.selling_points)
+      ? p.selling_points.map((x) => str(x, 80)).filter(Boolean).slice(0, 3)
+      : [];
+    if (points.length) next.selling_points = points;
+    else delete next.selling_points;
+    // 표시 플랜 — 최대 3개, 가격>0·라벨 필수. 표시용 가격이지 결제액(deposit_amount)이 아니다.
+    const plans = Array.isArray(p.plans)
+      ? (p.plans as unknown[])
+          .map((x) => (x ?? {}) as Record<string, unknown>)
+          .map((x) => ({
+            label: str(x.label, 60),
+            price: Math.max(0, Math.round(Number(x.price) || 0)),
+            ...(str(x.desc, 200) ? { desc: str(x.desc, 200) } : {}),
+          }))
+          .filter((x) => x.label && x.price > 0)
+          .slice(0, 3)
+      : [];
+    if (plans.length) next.plans = plans;
+    else delete next.plans;
+
+    const { error: upErr } = await admin
+      .from("o2o_leads")
+      .update({ site_overrides: next })
+      .eq("id", lead.id as string);
+    if (upErr) {
+      console.error("[update_page]", upErr);
+      return Response.json({ error: "update failed" }, { status: 500 });
     }
     const fresh = await findLead(code);
     return Response.json({ lead: fresh ? publicLead(fresh) : null });

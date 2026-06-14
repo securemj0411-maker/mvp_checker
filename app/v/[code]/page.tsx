@@ -33,6 +33,8 @@ async function loadLead(code: string) {
           intro_video?: string;
           prologue?: string;
           media?: string[];
+          plans?: { label: string; price: number; desc?: string }[];
+          selling_points?: string[];
         } | null;
       }
     | null;
@@ -83,13 +85,20 @@ export default async function ValidationPage({
     );
   }
 
-  const plans = (c.plans && c.plans.length > 0
-    ? c.plans
-    : [{ label: "기본", price: c.price_value ?? 0, desc: "" }]
-  ).map((p) => ({ label: p.label, price: p.price, desc: p.desc ?? "" }));
-
-  // 운영자 폴리시 override (전문가가 게시 전 다듬는 값)
+  // 노출 우선 채널(운영자 폴리시 + 고객 페이지 수정). 모든 콘텐츠 필드는 override가 confirmed보다 앞선다.
   const ov = lead.site_overrides ?? {};
+  const srcPlans =
+    Array.isArray(ov.plans) && ov.plans.length > 0
+      ? ov.plans
+      : c.plans && c.plans.length > 0
+        ? c.plans
+        : [{ label: "기본", price: c.price_value ?? 0, desc: "" }];
+  const plans = srcPlans.map((p) => ({
+    label: p.label,
+    price: p.price,
+    desc: p.desc ?? "",
+  }));
+
   const data: ValidationSiteData = {
     code: lead.site_token,
     name: c.name || "내 서비스",
@@ -97,7 +106,12 @@ export default async function ValidationPage({
     targetLine: c.target_line || "",
     problemLine: ov.sub || c.problem_line || "",
     plans,
-    sellingPoints: Array.isArray(c.selling_points) ? c.selling_points : [],
+    sellingPoints:
+      Array.isArray(ov.selling_points) && ov.selling_points.length > 0
+        ? ov.selling_points
+        : Array.isArray(c.selling_points)
+          ? c.selling_points
+          : [],
     intent: intentOf(c.pass_bar ?? ""),
     credential: ov.credential || c.credential || undefined,
     introVideo: ov.intro_video || c.intro_video || undefined,
