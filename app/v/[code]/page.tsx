@@ -35,6 +35,7 @@ async function loadLead(code: string) {
           media?: string[];
           plans?: { label: string; price: number; desc?: string }[];
           selling_points?: string[];
+          instructor_photo?: string;
         } | null;
       }
     | null;
@@ -114,6 +115,7 @@ export default async function ValidationPage({
           : [],
     intent: intentOf(c.pass_bar ?? ""),
     credential: ov.credential || c.credential || undefined,
+    instructorPhoto: ov.instructor_photo || undefined,
     introVideo: ov.intro_video || c.intro_video || undefined,
     prologue: ov.prologue || c.prologue || c.notes || undefined,
     media:

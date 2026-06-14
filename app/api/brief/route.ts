@@ -740,7 +740,11 @@ export async function POST(request: Request) {
     setOrClear("offer", str(p.offer, 120));
     setOrClear("sub", str(p.sub, 200));
     setOrClear("credential", str(p.credential, 120));
-    setOrClear("prologue", str(p.prologue, 1500));
+    setOrClear("prologue", str(p.prologue, 4000));
+    // 강사 사진 — 업로드된 http(s) URL만.
+    const photo = str(p.instructor_photo, 400);
+    if (photo && /^https?:\/\//.test(photo)) next.instructor_photo = photo;
+    else delete next.instructor_photo;
     // 소개 영상 — 허용 호스트만(임의 iframe 차단). 비정상이면 제거.
     const vid = str(p.intro_video, 200);
     if (vid && /^https?:\/\/(www\.|m\.|player\.)?(youtube\.com|youtu\.be|vimeo\.com)\//.test(vid))

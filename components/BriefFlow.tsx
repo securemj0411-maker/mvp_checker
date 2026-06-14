@@ -83,6 +83,7 @@ interface PublicLead {
     media?: string[];
     plans?: { label: string; price: number; desc?: string }[];
     selling_points?: string[];
+    instructor_photo?: string;
   } | null;
   /** 광고 노출 중(게시됨)인지 — 편집 권한 배지 문구를 단계에 맞춘다. */
   sitePublished?: boolean;
@@ -2251,10 +2252,9 @@ function PageEditor({
   );
   const [prologue, setPrologue] = useState(ov.prologue || c?.prologue || "");
   const [points, setPoints] = useState<string[]>(
-    (ov.selling_points && ov.selling_points.length
+    ov.selling_points && ov.selling_points.length
       ? ov.selling_points
-      : (c?.selling_points ?? [])
-    ).slice(0, 3),
+      : (c?.selling_points ?? []),
   );
   const [plans, setPlans] = useState(
     seedPlans.map((p) => ({
@@ -2266,13 +2266,19 @@ function PageEditor({
   const [media, setMedia] = useState<string[]>(
     ov.media && ov.media.length ? ov.media : (c?.media ?? []),
   );
+  const [instructorPhoto, setInstructorPhoto] = useState(
+    ov.instructor_photo || "",
+  );
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
-  async function uploadImage(file: File) {
+  async function uploadImage(
+    file: File,
+    target: "media" | "instructor" = "media",
+  ) {
     if (uploading) return;
     setUploading(true);
     try {
@@ -2281,7 +2287,10 @@ function PageEditor({
       fd.set("code", code);
       const res = await fetch("/api/v/upload", { method: "POST", body: fd });
       const data = await res.json();
-      if (data?.ok && data.url) setMedia((m) => [...m, data.url as string]);
+      if (data?.ok && data.url) {
+        if (target === "instructor") setInstructorPhoto(data.url as string);
+        else setMedia((m) => [...m, data.url as string]);
+      }
     } catch {
       /* 업로드 실패 — 사용자가 다시 시도 */
     } finally {
@@ -2305,6 +2314,7 @@ function PageEditor({
             credential: credential.trim(),
             intro_video: introVideo.trim(),
             prologue: prologue.trim(),
+            instructor_photo: instructorPhoto.trim(),
             media,
             selling_points: points.map((p) => p.trim()).filter(Boolean),
             plans: plans
@@ -2348,18 +2358,17 @@ function PageEditor({
     sellingPoints: points,
     intent: previewIntent,
     credential: credential.trim() || undefined,
+    instructorPhoto: instructorPhoto.trim() || undefined,
     introVideo: introVideo.trim() || undefined,
     prologue: prologue.trim() || undefined,
     media,
   };
-  // 폼 입력 헬퍼 — 강조점 3칸(빈 칸 허용, 채운 것만 저장), 플랜 추가·삭제
+  // 폼 입력 헬퍼 — 강조점 가변(추가·삭제), 플랜 추가·삭제
   const setPoint = (i: number, v: string) =>
-    setPoints((arr) => {
-      const n = [...arr];
-      while (n.length <= i) n.push("");
-      n[i] = v;
-      return n;
-    });
+    setPoints((arr) => arr.map((p, j) => (j === i ? v : p)));
+  const addPoint = () => setPoints((arr) => [...arr, ""]);
+  const removePoint = (i: number) =>
+    setPoints((arr) => arr.filter((_, j) => j !== i));
   const setPlanField = (i: number, k: "label" | "desc", v: string) =>
     setPlans((ps) => ps.map((p, j) => (j === i ? { ...p, [k]: v } : p)));
   const setPlanPrice = (i: number, v: number) =>
@@ -2454,40 +2463,105 @@ function PageEditor({
           </div>
           <div>
             <label className="mb-1.5 block text-xs font-bold text-text-secondary">
-              강의 소개 (프롤로그)
+              강사 사진 (선택)
+            </label>
+            <div className="flex items-center gap-3">
+              {instructorPhoto ? (
+                <div className="relative h-16 w-16 overflow-hidden rounded-full border border-border">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={instructorPhoto}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setInstructorPhoto("")}
+                    className="absolute right-0 top-0 grid h-5 w-5 place-items-center rounded-full bg-text/70 text-[11px] font-bold text-white"
+                  >
+                    ×
+                  </button>
+                </div>
+              ) : (
+                <span className="grid h-16 w-16 flex-shrink-0 place-items-center rounded-full bg-accent/10 text-[20px] font-black text-accent">
+                  {(c.name || "·").trim().slice(0, 1)}
+                </span>
+              )}
+              <label className="cursor-pointer rounded-lg border border-dashed border-border px-4 py-2 text-[12px] font-semibold text-text-tertiary transition hover:border-accent/60 hover:text-accent">
+                {uploading
+                  ? "올리는 중…"
+                  : instructorPhoto
+                    ? "사진 바꾸기"
+                    : "+ 사진 올리기"}
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  className="hidden"
+                  disabled={uploading}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) uploadImage(f, "instructor");
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+            </div>
+            <p className="mt-1 text-[11px] text-text-tertiary">
+              없으면 이름 첫 글자 기본 아바타로 보여요.
+            </p>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-bold text-text-secondary">
+              자유 서술 본문 (소개)
             </label>
             <textarea
               value={prologue}
               onChange={(e) => setPrologue(e.target.value)}
-              maxLength={1500}
-              rows={5}
-              placeholder="누구를 위한 강의인지, 뭘 배우는지, 왜 당신이 가르치는지 편하게 적어주세요. 줄을 바꾸면 문단이 나뉩니다."
-              className={`${rowInput} min-h-[110px] resize-y leading-relaxed`}
+              maxLength={4000}
+              rows={8}
+              placeholder="누구를 위한 건지, 뭘 받게 되는지, 왜 당신인지 자유롭게 적어주세요. 길이 제한 넉넉합니다. 줄을 바꾸면 문단이 그대로 나뉘어요."
+              className={`${rowInput} min-h-[150px] resize-y leading-relaxed`}
             />
           </div>
         </div>
       </Card>
 
-      {/* 강조점 3개 */}
-      <Card label="강조점 (최대 3개)">
+      {/* 강조점 — 개수 자유(추가·삭제) */}
+      <Card label="강조점">
         <p className="mb-3 text-xs leading-relaxed text-text-tertiary">
-          이 강의를 들으면 얻는 것. 채운 칸만 페이지에 보입니다.
+          이 서비스를 택하는 이유. 개수는 자유예요 — 1개도, 여러 개도. 비우면 이
+          섹션은 페이지에서 안 보입니다.
         </p>
         <div className="space-y-2">
-          {[0, 1, 2].map((i) => (
+          {points.map((p, i) => (
             <div key={i} className="flex items-center gap-2">
               <span className="grid h-7 w-7 flex-shrink-0 place-items-center rounded-full bg-bg-light text-[12px] font-extrabold text-accent">
                 {i + 1}
               </span>
               <input
-                value={points[i] ?? ""}
+                value={p}
                 onChange={(e) => setPoint(i, e.target.value)}
                 maxLength={80}
                 placeholder="예: 바로 쓰는 템플릿 12종"
-                className={rowInput}
+                className="min-w-0 flex-1 rounded-md border border-border bg-surface-light px-4 py-3 text-text placeholder:text-text-tertiary outline-none transition focus:border-accent"
               />
+              <button
+                type="button"
+                onClick={() => removePoint(i)}
+                className="grid h-7 w-7 flex-shrink-0 place-items-center rounded-full text-text-tertiary transition hover:bg-bg-alt hover:text-nogo"
+                aria-label="강조점 삭제"
+              >
+                ×
+              </button>
             </div>
           ))}
+          <button
+            type="button"
+            onClick={addPoint}
+            className="w-full rounded-lg border border-dashed border-border py-2.5 text-xs font-bold text-text-tertiary transition hover:border-accent hover:text-accent"
+          >
+            + 강조점 추가
+          </button>
         </div>
       </Card>
 

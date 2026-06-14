@@ -14,11 +14,13 @@ export type ValidationSiteData = {
   sellingPoints: string[];
   /** 합격선에서 파생된 행동 유형 — CTA 문구를 업종에 맞춘다 */
   intent: "pay" | "reserve" | "inquiry";
-  /** 고객 입력 — 강사 소개/실적 한 줄 (히어로 신뢰 라인) */
+  /** 고객 입력 — 강사 소개/실적 한 줄 (신뢰 라인) */
   credential?: string;
+  /** 고객 입력 — 강사 사진 (없으면 기본 아바타로 대체) */
+  instructorPhoto?: string;
   /** 고객 입력 — 소개 영상 URL (유튜브/비메오). 임베드로 렌더 */
   introVideo?: string;
-  /** 고객 입력 — 프롤로그(강의 소개 본문). 줄바꿈 = 문단 */
+  /** 고객 입력 — 자유 서술 본문(소개). 줄바꿈 = 문단 */
   prologue?: string;
   /** 고객 입력 — 소개 이미지(썸네일) 여러 장 (업로드된 public URL) */
   media?: string[];
@@ -32,6 +34,11 @@ const CTA_LABEL: Record<ValidationSiteData["intent"], string> = {
   pay: "수강 신청하기",
   reserve: "사전 예약 신청",
   inquiry: "상담 신청하기",
+};
+const CHIP_LABEL: Record<ValidationSiteData["intent"], string> = {
+  pay: "수강 신청",
+  reserve: "사전 예약",
+  inquiry: "상담 신청",
 };
 const MODAL_TITLE: Record<ValidationSiteData["intent"], string> = {
   pay: "오픈 알림 신청",
@@ -69,6 +76,47 @@ function embedUrl(raw?: string): string | null {
     /* 잘못된 URL은 무시 — 영상 섹션을 숨긴다 */
   }
   return null;
+}
+
+/** 강사 아바타 — 사진이 있으면 사진, 없으면 이름 첫 글자 기본 아바타(안 비어 보이게). */
+function Avatar({ photo, name }: { photo?: string; name: string }) {
+  if (photo && /^https?:\/\//.test(photo)) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={photo}
+        alt={name}
+        className="h-12 w-12 flex-shrink-0 rounded-full border border-border object-cover"
+      />
+    );
+  }
+  return (
+    <span className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-full bg-accent/10 text-[17px] font-black text-accent">
+      {name.trim().slice(0, 1) || "·"}
+    </span>
+  );
+}
+
+/** 기본 표지 — 사진·영상 업로드 전이라도 안 비어 보이게 채우는 우리 디폴트 비주얼. */
+function DefaultCover({
+  name,
+  ratio = "aspect-video",
+}: {
+  name: string;
+  ratio?: string;
+}) {
+  return (
+    <div
+      className={`grid ${ratio} w-full place-items-center rounded-[20px] border border-border bg-bg-alt`}
+    >
+      <div className="flex flex-col items-center gap-2 px-4 text-center">
+        <span className="grid h-12 w-12 place-items-center rounded-2xl bg-accent/10 text-[20px] font-black text-accent">
+          {name.trim().slice(0, 1) || "·"}
+        </span>
+        <span className="text-[15px] font-bold text-text-secondary">{name}</span>
+      </div>
+    </div>
+  );
 }
 
 /* 소개 영상 + 썸네일 여러 장 — 메인 + 썸네일 스트립으로 전환 (Skool about식) */
@@ -146,7 +194,7 @@ type EditHandlers = {
   point: (i: number, v: string) => void;
 };
 
-/** 페이지 위에서 글자처럼 보이는 인라인 편집 입력 (윅스/아임웹식) */
+/** 페이지 위에서 글자처럼 보이는 인라인 편집 입력 (BriefStep 확정 단계에서만 사용) */
 function EditText({
   value,
   onChange,
@@ -205,8 +253,11 @@ export default function ValidationSite({
     .split(/\n+/)
     .map((s) => s.trim())
     .filter(Boolean);
+  const points = data.sellingPoints.map((s) => s.trim()).filter(Boolean);
+  const hasMedia = !!video || (!!data.media && data.media.length > 0);
   const hasCover =
     !!data.heroImage && /^https?:\/\//.test(data.heroImage) && !imgError;
+  const hasCredential = !!(data.credential && data.credential.trim());
 
   // 운영자 입력 accent — hex 형식일 때만 적용(잘못된 값으로 페이지가 깨지지 않게)
   const validAccent =
@@ -259,6 +310,12 @@ export default function ValidationSite({
     Infinity,
   );
 
+  // 정보 칩 — 가짜 숫자(멤버 수 등) 대신 진짜 메타만. (신청 형태 + 표시 가격)
+  const chips = [
+    CHIP_LABEL[data.intent],
+    priceFrom !== Infinity ? `${priceFrom.toLocaleString()}원~` : null,
+  ].filter(Boolean) as string[];
+
   return (
     <div className="min-h-screen bg-bg text-text" style={rootStyle}>
       {/* ── 상단 바 (고객 브랜드) ── */}
@@ -292,72 +349,64 @@ export default function ValidationSite({
               {data.offer}
             </h1>
           )}
-          {data.targetLine && (
-            <p className="mt-3 inline-block rounded-full bg-bg-light px-4 py-1.5 text-[13px] font-bold text-accent">
-              {data.targetLine}
-            </p>
+
+          {/* 정보 칩 — Public·Free·멤버수 자리. 가짜 숫자 없이 진짜 메타만. */}
+          {chips.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {chips.map((c, i) => (
+                <span
+                  key={i}
+                  className="rounded-full border border-border bg-surface px-3 py-1 text-[12px] font-semibold text-text-secondary"
+                >
+                  {c}
+                </span>
+              ))}
+            </div>
           )}
 
           <div className="mt-7 grid gap-8 lg:grid-cols-[1fr_360px]">
-            {/* ── 좌: 영상 + 본문 ── */}
+            {/* ── 좌: 미디어 + 강사 + 본문 ── */}
             <div className="min-w-0">
-              {video || (data.media && data.media.length > 0) ? (
+              {hasMedia ? (
                 <MediaGallery
                   video={video}
                   images={data.media ?? []}
                   name={data.name}
                 />
-              ) : (
-                editable && (
-                  <div className="grid aspect-video w-full place-items-center rounded-[20px] border border-dashed border-border bg-bg-alt px-4 text-center text-[13px] text-text-tertiary">
-                    아래 ‘꾸미기’에서 소개 영상·이미지를 넣으면 여기에 표시돼요
-                  </div>
-                )
-              )}
-
-              {editable ? (
-                <div className="mt-5">
-                  <EditText
-                    value={data.credential ?? ""}
-                    onChange={(v) => edit!.field("credential", v)}
-                    placeholder="강사 소개·실적 한 줄 (예: 구독 1.2만 유튜버 · 5년차) — 선택"
-                    className="text-[14px] font-semibold text-text-secondary"
-                  />
+              ) : editable ? (
+                <div className="grid aspect-video w-full place-items-center rounded-[20px] border border-dashed border-border bg-bg-alt px-4 text-center text-[13px] text-text-tertiary">
+                  아래 ‘꾸미기’에서 소개 영상·이미지를 넣으면 여기에 표시돼요
                 </div>
               ) : (
-                data.credential && (
-                  <p className="mt-5 inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-[13px] font-semibold text-text-secondary">
-                    <span className="grid h-5 w-5 place-items-center rounded-full bg-accent text-[11px] font-black text-white">
-                      ✓
-                    </span>
-                    {data.credential}
-                  </p>
-                )
+                <DefaultCover name={data.name} />
               )}
 
-              {(prologueParas.length > 0 || editable) && (
-                <div className="mt-8">
-                  <h2 className="text-[20px] font-extrabold tracking-[-0.02em] text-text sm:text-[24px]">
-                    이 강의를 소개합니다
-                  </h2>
+              {/* 강사 블록 — 얼굴(사진 또는 기본 아바타) + 이름 + 약력 */}
+              <div className="mt-6 flex items-center gap-3">
+                <Avatar photo={data.instructorPhoto} name={data.name} />
+                <div className="min-w-0">
+                  <p className="text-[15px] font-extrabold text-text">
+                    {data.name}
+                  </p>
                   {editable ? (
                     <EditText
-                      value={data.prologue ?? ""}
-                      onChange={(v) => edit!.field("prologue", v)}
-                      multiline
-                      rows={7}
-                      placeholder="누구를 위한 강의인지, 뭘 배워가는지, 왜 당신이 가르치는지 자유롭게 적어보세요. 줄을 바꾸면 그대로 보입니다(이모지·✅ 불릿 OK)."
-                      className="mt-4 text-[16px] leading-[1.8] text-text-secondary"
+                      value={data.credential ?? ""}
+                      onChange={(v) => edit!.field("credential", v)}
+                      placeholder="강사 소개·실적 한 줄 (예: 구독 1.2만 유튜버 · 5년차) — 선택"
+                      className="mt-0.5 text-[13px] font-semibold text-text-secondary"
                     />
                   ) : (
-                    <div className="mt-4 whitespace-pre-wrap text-[16px] leading-[1.8] text-text-secondary">
-                      {data.prologue}
-                    </div>
+                    hasCredential && (
+                      <p className="mt-0.5 text-[13px] font-semibold text-text-secondary">
+                        {data.credential}
+                      </p>
+                    )
                   )}
                 </div>
-              )}
+              </div>
 
-              {(data.sellingPoints.length > 0 || editable) && (
+              {/* 이런 걸 얻어갑니다 — 개수 자유. 편집은 3칸 고정, 읽기는 채운 만큼 전부. */}
+              {(points.length > 0 || editable) && (
                 <div className="mt-8">
                   <h2 className="text-[20px] font-extrabold tracking-[-0.02em] text-text sm:text-[24px]">
                     이런 걸 얻어갑니다
@@ -365,7 +414,7 @@ export default function ValidationSite({
                   <div className="mt-4 space-y-2.5">
                     {(editable
                       ? [0, 1, 2]
-                      : data.sellingPoints.slice(0, 3).map((_, i) => i)
+                      : points.map((_, i) => i)
                     ).map((i) => (
                       <div
                         key={i}
@@ -383,7 +432,7 @@ export default function ValidationSite({
                           />
                         ) : (
                           <p className="text-[15px] font-semibold leading-[1.5] text-text">
-                            {data.sellingPoints[i]}
+                            {points[i]}
                           </p>
                         )}
                       </div>
@@ -391,12 +440,35 @@ export default function ValidationSite({
                   </div>
                 </div>
               )}
+
+              {/* 자유 서술 본문 — 강조점 아래. 길게 자유롭게(줄바꿈=문단). */}
+              {(prologueParas.length > 0 || editable) && (
+                <div className="mt-8">
+                  <h2 className="text-[20px] font-extrabold tracking-[-0.02em] text-text sm:text-[24px]">
+                    이 서비스를 소개합니다
+                  </h2>
+                  {editable ? (
+                    <EditText
+                      value={data.prologue ?? ""}
+                      onChange={(v) => edit!.field("prologue", v)}
+                      multiline
+                      rows={8}
+                      placeholder="누구를 위한 건지, 뭘 받게 되는지, 왜 당신인지 자유롭게 적어보세요. 길이 제한 넉넉합니다. 줄을 바꾸면 그대로 보여요(이모지·✅ OK)."
+                      className="mt-4 text-[16px] leading-[1.8] text-text-secondary"
+                    />
+                  ) : (
+                    <div className="mt-4 whitespace-pre-wrap text-[16px] leading-[1.8] text-text-secondary">
+                      {data.prologue}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* ── 우: sticky 신청 카드 (Skool JOIN 카드식) ── */}
             <aside className="self-start lg:sticky lg:top-20">
               <div className="overflow-hidden rounded-[20px] border border-border bg-surface shadow-[0_14px_40px_-20px_rgba(10,23,38,0.2)]">
-                {hasCover && (
+                {hasCover ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={data.heroImage}
@@ -404,6 +476,12 @@ export default function ValidationSite({
                     onError={() => setImgError(true)}
                     className="aspect-[16/9] w-full object-cover"
                   />
+                ) : (
+                  <div className="grid aspect-[16/9] w-full place-items-center bg-bg-alt">
+                    <span className="grid h-11 w-11 place-items-center rounded-2xl bg-accent/10 text-[18px] font-black text-accent">
+                      {data.name.trim().slice(0, 1) || "·"}
+                    </span>
+                  </div>
                 )}
                 <div className="p-5">
                   <p className="text-[16px] font-extrabold text-text">
