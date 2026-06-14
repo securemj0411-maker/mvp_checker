@@ -484,9 +484,10 @@ function BriefStep({
   const [credential, setCredential] = useState(""); // 강사 소개/실적 한 줄
   const [introVideo, setIntroVideo] = useState(""); // 소개 영상 URL(유튜브/비메오)
   const [prologue, setPrologue] = useState(""); // 강의 소개 본문(프롤로그)
-  // 전문가 사전 점검 — 질문별 답(칩 또는 직접입력), 질문별 직접입력 모드
-  const [intakeAns, setIntakeAns] = useState<string[]>([]);
-  const [intakeCustom, setIntakeCustom] = useState<boolean[]>([]);
+  // 전문가 사전 점검 — 질문별 복수 선택(칩) + 선택적 직접입력
+  const [intakeSel, setIntakeSel] = useState<string[][]>([]);
+  const [intakeEtcMode, setIntakeEtcMode] = useState<boolean[]>([]);
+  const [intakeEtc, setIntakeEtc] = useState<string[]>([]);
   const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -548,13 +549,16 @@ function BriefStep({
     if (c.offer && !inOptions) setOfferCustom(true);
     const qs = (draft?.intake_questions ?? []).slice(0, 3);
     if (c.intake && qs.length > 0) {
-      setIntakeAns(qs.map((q) => c.intake!.find((x) => x.q === q.key)?.a ?? ""));
-      setIntakeCustom(
-        qs.map((q) => {
-          const a = c.intake!.find((x) => x.q === q.key)?.a;
-          return !!a && !q.suggestions.includes(a);
-        }),
-      );
+      const parsed = qs.map((q) => {
+        const a = c.intake!.find((x) => x.q === q.key)?.a ?? "";
+        const parts = a.split(",").map((s) => s.trim()).filter(Boolean);
+        const sel = parts.filter((p) => q.suggestions.includes(p));
+        const etc = parts.filter((p) => !q.suggestions.includes(p)).join(", ");
+        return { sel, etc };
+      });
+      setIntakeSel(parsed.map((p) => p.sel));
+      setIntakeEtc(parsed.map((p) => p.etc));
+      setIntakeEtcMode(parsed.map((p) => p.etc.length > 0));
     }
   }, [editing, draft, lead.brief]);
 
@@ -653,7 +657,12 @@ function BriefStep({
       intake: (() => {
         const qs = (draft!.intake_questions ?? []).slice(0, 3);
         const ans = qs
-          .map((q, i) => ({ q: q.key, a: (intakeAns[i] ?? "").trim() }))
+          .map((q, i) => ({
+            q: q.key,
+            a: [...(intakeSel[i] ?? []), (intakeEtc[i] ?? "").trim()]
+              .filter(Boolean)
+              .join(", "),
+          }))
           .filter((x) => x.a);
         return ans.length > 0 ? ans : undefined;
       })(),
@@ -759,8 +768,8 @@ function BriefStep({
         <Card label="전문가 사전 점검">
           <p className="mb-3 text-xs leading-relaxed text-text-tertiary">
             담당 전문가가 수강신청 페이지·광고를 더 정확히 만들기 위해, 이
-            강의에서 아직 모르는 것만 추려서 여쭤봐요. 해당되는 걸 고르거나 직접
-            적어주세요. 건너뛰셔도 됩니다.
+            강의에서 아직 모르는 것만 추려서 여쭤봐요. 해당되는 걸 다 고르셔도
+            되고(여러 개 가능), 직접 적으셔도 돼요. 건너뛰셔도 됩니다.
           </p>
           <div className="space-y-4">
             {draft.intake_questions.slice(0, 3).map((q, i) => (
@@ -768,25 +777,23 @@ function BriefStep({
                 <p className="text-[13px] font-bold text-text">{q.question}</p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {q.suggestions.map((s) => {
-                    const selected = !intakeCustom[i] && intakeAns[i] === s;
+                    const on = (intakeSel[i] ?? []).includes(s);
                     return (
                       <button
                         key={s}
                         type="button"
-                        onClick={() => {
-                          setIntakeAns((a) => {
-                            const n = [...a];
-                            n[i] = s;
+                        onClick={() =>
+                          setIntakeSel((sel) => {
+                            const n = sel.map((x) => x ?? []);
+                            while (n.length <= i) n.push([]);
+                            n[i] = on
+                              ? n[i].filter((x) => x !== s)
+                              : [...n[i], s];
                             return n;
-                          });
-                          setIntakeCustom((c) => {
-                            const n = [...c];
-                            n[i] = false;
-                            return n;
-                          });
-                        }}
+                          })
+                        }
                         className={`rounded-full border px-3.5 py-2 text-[13px] font-semibold transition ${
-                          selected
+                          on
                             ? "border-accent bg-accent/10 text-text"
                             : "border-border bg-surface-light text-text-secondary hover:border-accent/60"
                         }`}
@@ -797,40 +804,37 @@ function BriefStep({
                   })}
                   <button
                     type="button"
-                    onClick={() => {
-                      setIntakeCustom((c) => {
+                    onClick={() =>
+                      setIntakeEtcMode((c) => {
                         const n = [...c];
-                        n[i] = true;
+                        while (n.length <= i) n.push(false);
+                        n[i] = !n[i];
                         return n;
-                      });
-                      setIntakeAns((a) => {
-                        const n = [...a];
-                        n[i] = "";
-                        return n;
-                      });
-                    }}
+                      })
+                    }
                     className={`rounded-full border border-dashed px-3.5 py-2 text-[13px] font-semibold transition ${
-                      intakeCustom[i]
+                      intakeEtcMode[i]
                         ? "border-accent text-text"
                         : "border-border text-text-tertiary hover:border-accent/60"
                     }`}
                   >
-                    직접 입력
+                    + 직접 입력
                   </button>
                 </div>
-                {intakeCustom[i] && (
+                {intakeEtcMode[i] && (
                   <input
                     autoFocus
-                    value={intakeAns[i] ?? ""}
+                    value={intakeEtc[i] ?? ""}
                     onChange={(e) =>
-                      setIntakeAns((a) => {
+                      setIntakeEtc((a) => {
                         const n = [...a];
+                        while (n.length <= i) n.push("");
                         n[i] = e.target.value;
                         return n;
                       })
                     }
                     maxLength={80}
-                    placeholder="직접 적어주세요"
+                    placeholder="직접 적어주세요 (위 선택과 함께 반영돼요)"
                     className={`${inputBase} mt-2 text-[13px]`}
                   />
                 )}
