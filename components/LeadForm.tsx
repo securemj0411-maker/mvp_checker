@@ -82,16 +82,6 @@ const QUESTIONS: Question[] = [
     ],
   },
   {
-    id: "audience",
-    title: "이 강의를 돈 내고 들을 사람은 누구인가요?",
-    sub: "비즈필터 비용 얘기가 아니라, 고객님 강의의 수강료를 낼 사람을 묻는 질문입니다. 여러 부류라면 첫 수강료를 낼 한 부류만 골라주세요.",
-    options: [
-      { value: "b2c", label: "개인 수강생" },
-      { value: "b2b", label: "기업 · 기관", hint: "B2B 교육 · 연수 · 임직원 교육" },
-      { value: "both", label: "둘 다, 또는 아직 모르겠어요" },
-    ],
-  },
-  {
     id: "region",
     title: "주 수강생은 어디서 오나요?",
     when: (a) => a.service === "offline",
@@ -118,67 +108,6 @@ const QUESTIONS: Question[] = [
     placeholder: "예: https://my-class.com",
     skipLabel: "지금은 못 알려드려요",
     when: (a) => a.build === "built",
-  },
-  {
-    id: "revenue",
-    title: "수강료는 어떻게 받나요?",
-    sub: "주력 한 가지 기준으로 골라주세요. 플랜을 여러 개 보여주고 싶으면(예: 단강 + 패키지) 시작 전 확정 화면에서 직접 추가할 수 있습니다.",
-    options: [
-      { value: "once", label: "한 번 결제", hint: "한 번 사면 끝 (단강·패키지 일시불·전자책)" },
-      {
-        value: "subscription",
-        label: "정기 결제",
-        hint: "월 구독·멤버십·월 회비 (구독 클래스·커뮤니티)",
-      },
-      {
-        value: "usage",
-        label: "들을 때마다 결제",
-        hint: "회차·세션마다 (1:1 코칭·오프라인 클래스 등)",
-      },
-      { value: "fee", label: "수수료 · 광고", hint: "플랫폼 중개 수수료, 광고 수익" },
-      { value: "undecided", label: "아직 안 정했어요" },
-    ],
-  },
-  {
-    id: "price",
-    title: "수강료, 한 번 결제 기준 얼마인가요?",
-    sub: "검증용 수강신청 페이지에 1회 기준으로 보여줄 금액입니다. 구독·멤버십이면 한 달 요금, 단강이면 1강 가격, 패키지면 패키지 가격. 주력 플랜 하나로 골라주시면 됩니다.",
-    options: [
-      { value: "under10k", label: "1만원 미만" },
-      { value: "10kto50k", label: "1~5만원" },
-      { value: "50kto100k", label: "5~10만원" },
-      { value: "over100k", label: "10만원 이상" },
-      {
-        value: "multi",
-        label: "플랜이 여러 개예요",
-        hint: "단강·패키지·구독 등 가격이 여러 개라 하나로 못 정하는 경우. 다음에 다 추가할 수 있어요",
-      },
-      { value: "unknown", label: "아직 모르겠어요" },
-    ],
-  },
-  {
-    id: "alternative",
-    title: "지금 사람들은 이걸 어떻게 배우고 있나요?",
-    sub: "비슷한 걸 지금은 무엇으로 채우는지 골라주세요. 꼭 ‘학습’이 아니어도 됩니다. 취미·자기계발도 포함이에요.",
-    options: [
-      {
-        value: "competitor",
-        label: "비슷한 유료 강의·클래스를 듣고 있어요",
-        hint: "클래스101·인프런·탈잉 등 경쟁 강의, 또는 다른 학원·강사",
-      },
-      {
-        value: "manual",
-        label: "유튜브·블로그·책으로 알아서 독학해요",
-        hint: "무료 자료·검색으로 그때그때 해결",
-      },
-      { value: "none", label: "마땅한 게 없어 그냥 안 배우고 참고 있어요" },
-      {
-        value: "unaware",
-        label: "이런 걸 배울 수 있는지조차 몰라요",
-        hint: "필요성을 먼저 알려줘야 하는 시장",
-      },
-      { value: "unknown", label: "잘 모르겠어요" },
-    ],
   },
 ];
 
