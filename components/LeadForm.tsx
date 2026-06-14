@@ -404,7 +404,7 @@ export default function LeadForm() {
     }
   }
 
-  /* 이해 확인 "맞아요" — 빈칸 질문이 있으면 그쪽으로, 없으면 퀴즈로.
+  /* 이해 확인 "맞아요" — 바로 퀴즈로. (추가 질문 gaps는 편집기와 중복이라 컷)
      리포트에서 되물음으로 돌아온 경우엔 퀴즈 없이 바로 재생성. */
   function confirmRead() {
     const refined = interp?.summary ?? idea;
@@ -415,13 +415,7 @@ export default function LeadForm() {
       runGenerate(refined, accessCode);
       return;
     }
-    if (interp?.gaps?.length) {
-      setInterpStage("gaps");
-      setGapIdx(0);
-      setGapSel([]);
-    } else {
-      setPhase("quiz");
-    }
+    setPhase("quiz");
   }
 
   /* 빈칸 답 1개 기록 → 다음 빈칸, 마지막이면 답을 녹여 refined 완성 후 퀴즈로 */

@@ -89,7 +89,7 @@ function MediaGallery({
   if (items.length === 0) return null;
   const cur = items[Math.min(sel, items.length - 1)];
   return (
-    <div className="mx-auto mt-10 max-w-2xl">
+    <div className="w-full">
       <div className="overflow-hidden rounded-[20px] border border-border bg-text shadow-[0_24px_60px_-24px_rgba(10,23,38,0.32)]">
         <div className="relative aspect-video">
           {cur.type === "video" ? (
@@ -276,221 +276,210 @@ export default function ValidationSite({
         </div>
       </header>
 
-      {/* ── 히어로 (Skool about식: 커버 → 타이틀 → 신뢰 라인 → 소개영상) ── */}
-      <section className="relative overflow-hidden border-b border-border">
-        <div className="hero-spotlight pointer-events-none absolute inset-0" />
-        <div className="relative mx-auto max-w-3xl px-5 py-14 text-center sm:py-20">
-          {hasCover && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={data.heroImage}
-              alt={data.name}
-              onError={() => setImgError(true)}
-              className="mx-auto mb-9 aspect-[16/7] w-full rounded-[20px] border border-border object-cover shadow-[0_20px_50px_-24px_rgba(10,23,38,0.3)]"
-            />
-          )}
-          {data.targetLine && (
-            <p className="mb-4 inline-block rounded-full bg-bg-light px-4 py-1.5 text-[13px] font-bold text-accent">
-              {data.targetLine}
-            </p>
-          )}
+      {/* ── Skool식 2단: 좌 콘텐츠 + 우 sticky 신청 카드 ── */}
+      <section className="relative">
+        <div className="hero-spotlight pointer-events-none absolute inset-x-0 top-0 h-72" />
+        <div className="relative mx-auto max-w-6xl px-5 py-8 sm:py-12">
           {editable ? (
             <EditText
               value={data.offer}
               onChange={(v) => edit!.field("offer", v)}
               placeholder="여기에 한 줄 제목 (예: 퇴근 후 1시간, 엑셀이 무기가 됩니다)"
-              className="text-center text-[28px] font-extrabold leading-[1.18] tracking-[-0.03em] text-text sm:text-[40px]"
+              className="text-[26px] font-extrabold leading-[1.2] tracking-[-0.03em] text-text sm:text-[36px]"
             />
           ) : (
-            <h1 className="text-[32px] font-extrabold leading-[1.18] tracking-[-0.03em] text-text sm:text-[46px]">
+            <h1 className="text-[26px] font-extrabold leading-[1.2] tracking-[-0.03em] text-text sm:text-[38px]">
               {data.offer}
             </h1>
           )}
-          {data.problemLine && (
-            <p className="mx-auto mt-6 max-w-xl text-[16px] leading-[1.7] text-text-secondary sm:text-[18px]">
-              {data.problemLine}
+          {data.targetLine && (
+            <p className="mt-3 inline-block rounded-full bg-bg-light px-4 py-1.5 text-[13px] font-bold text-accent">
+              {data.targetLine}
             </p>
           )}
-          {editable ? (
-            <div className="mx-auto mt-5 max-w-md">
-              <EditText
-                value={data.credential ?? ""}
-                onChange={(v) => edit!.field("credential", v)}
-                placeholder="강사 소개·실적 한 줄 (예: 구독 1.2만 유튜버 · 5년차) — 선택"
-                className="text-center text-[13px] font-semibold text-text-secondary"
-              />
-            </div>
-          ) : (
-            data.credential && (
-              <p className="mx-auto mt-5 inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-[13px] font-semibold text-text-secondary">
-                <span className="grid h-5 w-5 place-items-center rounded-full bg-accent text-[11px] font-black text-white">
-                  ✓
-                </span>
-                {data.credential}
-              </p>
-            )
-          )}
 
-          {/* 소개 영상 + 썸네일 갤러리 — Skool about의 핵심 */}
-          {(video || (data.media && data.media.length > 0)) && (
-            <MediaGallery
-              video={video}
-              images={data.media ?? []}
-              name={data.name}
-            />
-          )}
-
-          <button
-            onClick={() => openModal()}
-            className="mt-10 inline-flex items-center gap-2 rounded-full bg-accent px-8 py-4 text-base font-bold text-white shadow-[0_14px_32px_-10px_var(--accent-glow)] transition hover:-translate-y-0.5 hover:bg-accent-hover"
-          >
-            {cta}
-            {priceFrom !== Infinity && (
-              <span className="text-white/80">
-                · {priceFrom.toLocaleString()}원~
-              </span>
-            )}
-          </button>
-        </div>
-      </section>
-
-      {/* ── 프롤로그 (강의 소개 본문) ── */}
-      {(prologueParas.length > 0 || editable) && (
-        <section className="border-b border-border bg-bg">
-          <div className="mx-auto max-w-2xl px-5 py-16 sm:py-20">
-            <h2 className="text-[22px] font-extrabold tracking-[-0.02em] text-text sm:text-[26px]">
-              이 강의를 소개합니다
-            </h2>
-            {editable ? (
-              <EditText
-                value={data.prologue ?? ""}
-                onChange={(v) => edit!.field("prologue", v)}
-                multiline
-                rows={5}
-                placeholder="누구를 위한 강의인지, 뭘 배워가는지, 왜 당신이 가르치는지 적어보세요. 줄을 바꾸면 문단이 나뉩니다."
-                className="mt-6 text-[16px] leading-[1.8] text-text-secondary"
-              />
-            ) : (
-              <div className="mt-6 whitespace-pre-wrap text-[16px] leading-[1.8] text-text-secondary">
-                {data.prologue}
-              </div>
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* ── 가치 포인트 (이런 걸 배웁니다) ── */}
-      {(data.sellingPoints.length > 0 || editable) && (
-        <section className="border-b border-border bg-bg">
-          <div className="mx-auto max-w-5xl px-5 py-16 sm:py-20">
-            <h2 className="text-center text-[22px] font-extrabold tracking-[-0.02em] text-text sm:text-[26px]">
-              이런 걸 얻어갑니다
-            </h2>
-            <div className="mt-10 grid gap-5 sm:grid-cols-3">
-              {(editable ? [0, 1, 2] : data.sellingPoints.slice(0, 3).map((_, i) => i)).map(
-                (i) => (
-                  <div
-                    key={i}
-                    className="rounded-[20px] border border-border bg-surface p-7"
-                  >
-                    <span className="grid h-9 w-9 place-items-center rounded-full bg-bg-light text-base font-extrabold text-accent">
-                      {i + 1}
-                    </span>
-                    {editable ? (
-                      <EditText
-                        value={data.sellingPoints[i] ?? ""}
-                        onChange={(v) => edit!.point(i, v)}
-                        multiline
-                        rows={2}
-                        placeholder="강조할 점 (예: 바로 쓰는 템플릿 12종)"
-                        className="mt-4 text-[15px] font-semibold leading-[1.6] text-text"
-                      />
-                    ) : (
-                      <p className="mt-4 text-[15px] font-semibold leading-[1.6] text-text">
-                        {data.sellingPoints[i]}
-                      </p>
-                    )}
+          <div className="mt-7 grid gap-8 lg:grid-cols-[1fr_360px]">
+            {/* ── 좌: 영상 + 본문 ── */}
+            <div className="min-w-0">
+              {video || (data.media && data.media.length > 0) ? (
+                <MediaGallery
+                  video={video}
+                  images={data.media ?? []}
+                  name={data.name}
+                />
+              ) : (
+                editable && (
+                  <div className="grid aspect-video w-full place-items-center rounded-[20px] border border-dashed border-border bg-bg-alt px-4 text-center text-[13px] text-text-tertiary">
+                    아래 ‘꾸미기’에서 소개 영상·이미지를 넣으면 여기에 표시돼요
                   </div>
-                ),
+                )
               )}
-            </div>
-          </div>
-        </section>
-      )}
 
-      {/* ── 가격/플랜 ── */}
-      <section className="bg-bg-alt">
-        <div className="mx-auto max-w-5xl px-5 py-16 sm:py-20">
-          <h2 className="text-center text-[26px] font-extrabold tracking-[-0.02em] text-text sm:text-[32px]">
-            수강 안내
-          </h2>
-          <div
-            className={`mx-auto mt-10 grid max-w-3xl gap-5 ${
-              plans.length > 1 ? "sm:grid-cols-2 lg:grid-cols-3" : "max-w-sm"
-            }`}
-          >
-            {plans.map((p, i) => (
-              <div
-                key={i}
-                className="flex flex-col rounded-[22px] border border-border bg-surface p-8 shadow-[0_2px_10px_rgba(10,23,38,0.04)]"
-              >
-                {editable ? (
+              {editable ? (
+                <div className="mt-5">
                   <EditText
-                    value={p.label}
-                    onChange={(v) => edit!.plan(i, "label", v)}
-                    placeholder="플랜 이름 (예: 단과)"
-                    className="text-[15px] font-bold text-accent"
+                    value={data.credential ?? ""}
+                    onChange={(v) => edit!.field("credential", v)}
+                    placeholder="강사 소개·실적 한 줄 (예: 구독 1.2만 유튜버 · 5년차) — 선택"
+                    className="text-[14px] font-semibold text-text-secondary"
                   />
-                ) : (
-                  <p className="text-[15px] font-bold text-accent">
-                    {p.label || "기본"}
+                </div>
+              ) : (
+                data.credential && (
+                  <p className="mt-5 inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-[13px] font-semibold text-text-secondary">
+                    <span className="grid h-5 w-5 place-items-center rounded-full bg-accent text-[11px] font-black text-white">
+                      ✓
+                    </span>
+                    {data.credential}
                   </p>
-                )}
-                <div className="mt-3 flex items-baseline gap-1">
+                )
+              )}
+
+              {(prologueParas.length > 0 || editable) && (
+                <div className="mt-8">
+                  <h2 className="text-[20px] font-extrabold tracking-[-0.02em] text-text sm:text-[24px]">
+                    이 강의를 소개합니다
+                  </h2>
                   {editable ? (
-                    <input
-                      value={p.price > 0 ? String(p.price) : ""}
-                      onChange={(e) =>
-                        edit!.planPrice(
-                          i,
-                          Number((e.target.value.match(/\d/g) ?? []).join("")) || 0,
-                        )
-                      }
-                      placeholder="0"
-                      inputMode="numeric"
-                      className="w-32 rounded-md bg-accent/[0.04] px-2 py-0.5 text-[32px] font-extrabold tracking-[-0.03em] text-text outline-none ring-1 ring-accent/25 focus:ring-2 focus:ring-accent"
+                    <EditText
+                      value={data.prologue ?? ""}
+                      onChange={(v) => edit!.field("prologue", v)}
+                      multiline
+                      rows={7}
+                      placeholder="누구를 위한 강의인지, 뭘 배워가는지, 왜 당신이 가르치는지 자유롭게 적어보세요. 줄을 바꾸면 그대로 보입니다(이모지·✅ 불릿 OK)."
+                      className="mt-4 text-[16px] leading-[1.8] text-text-secondary"
                     />
                   ) : (
-                    <span className="text-[36px] font-extrabold tracking-[-0.03em] text-text">
-                      {p.price > 0 ? p.price.toLocaleString() : "0"}
-                    </span>
+                    <div className="mt-4 whitespace-pre-wrap text-[16px] leading-[1.8] text-text-secondary">
+                      {data.prologue}
+                    </div>
                   )}
-                  <span className="text-[15px] font-semibold text-text-tertiary">
-                    원
-                  </span>
                 </div>
-                {editable ? (
-                  <EditText
-                    value={p.desc ?? ""}
-                    onChange={(v) => edit!.plan(i, "desc", v)}
-                    placeholder="플랜 설명 (선택)"
-                    className="mt-3 text-[14px] leading-[1.6] text-text-secondary"
+              )}
+
+              {(data.sellingPoints.length > 0 || editable) && (
+                <div className="mt-8">
+                  <h2 className="text-[20px] font-extrabold tracking-[-0.02em] text-text sm:text-[24px]">
+                    이런 걸 얻어갑니다
+                  </h2>
+                  <div className="mt-4 space-y-2.5">
+                    {(editable
+                      ? [0, 1, 2]
+                      : data.sellingPoints.slice(0, 3).map((_, i) => i)
+                    ).map((i) => (
+                      <div
+                        key={i}
+                        className="flex items-start gap-3 rounded-[14px] border border-border bg-surface px-4 py-3"
+                      >
+                        <span className="mt-0.5 grid h-6 w-6 flex-shrink-0 place-items-center rounded-full bg-bg-light text-[12px] font-extrabold text-accent">
+                          {i + 1}
+                        </span>
+                        {editable ? (
+                          <EditText
+                            value={data.sellingPoints[i] ?? ""}
+                            onChange={(v) => edit!.point(i, v)}
+                            placeholder="강조할 점 (예: 바로 쓰는 템플릿 12종)"
+                            className="text-[15px] font-semibold leading-[1.5] text-text"
+                          />
+                        ) : (
+                          <p className="text-[15px] font-semibold leading-[1.5] text-text">
+                            {data.sellingPoints[i]}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* ── 우: sticky 신청 카드 (Skool JOIN 카드식) ── */}
+            <aside className="self-start lg:sticky lg:top-20">
+              <div className="overflow-hidden rounded-[20px] border border-border bg-surface shadow-[0_14px_40px_-20px_rgba(10,23,38,0.2)]">
+                {hasCover && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={data.heroImage}
+                    alt={data.name}
+                    onError={() => setImgError(true)}
+                    className="aspect-[16/9] w-full object-cover"
                   />
-                ) : (
-                  p.desc && (
-                    <p className="mt-3 flex-1 text-[14px] leading-[1.6] text-text-secondary">
-                      {p.desc}
-                    </p>
-                  )
                 )}
-                <button
-                  onClick={() => openModal(p.label)}
-                  className="mt-7 rounded-full bg-accent py-3.5 text-[15px] font-bold text-white transition hover:bg-accent-hover"
-                >
-                  {cta}
-                </button>
+                <div className="p-5">
+                  <p className="text-[16px] font-extrabold text-text">
+                    {data.name}
+                  </p>
+                  {data.problemLine && (
+                    <p className="mt-1.5 text-[13px] leading-[1.6] text-text-secondary">
+                      {data.problemLine}
+                    </p>
+                  )}
+                  <div className="mt-4 space-y-2">
+                    {plans.map((p, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between gap-2 rounded-[12px] bg-bg-alt px-3.5 py-2.5"
+                      >
+                        {editable ? (
+                          <input
+                            value={p.label}
+                            onChange={(e) => edit!.plan(i, "label", e.target.value)}
+                            placeholder="플랜"
+                            className="min-w-0 flex-1 rounded bg-transparent px-1.5 py-0.5 text-[13px] font-bold text-text outline-none ring-1 ring-accent/20 focus:ring-accent"
+                          />
+                        ) : (
+                          <span className="min-w-0 truncate text-[13px] font-bold text-text">
+                            {p.label || "기본"}
+                          </span>
+                        )}
+                        {editable ? (
+                          <span className="flex flex-shrink-0 items-baseline">
+                            <input
+                              value={p.price > 0 ? String(p.price) : ""}
+                              onChange={(e) =>
+                                edit!.planPrice(
+                                  i,
+                                  Number((e.target.value.match(/\d/g) ?? []).join("")) || 0,
+                                )
+                              }
+                              placeholder="0"
+                              inputMode="numeric"
+                              className="w-20 rounded bg-transparent px-1 py-0.5 text-right text-[15px] font-extrabold text-text outline-none ring-1 ring-accent/20 focus:ring-accent"
+                            />
+                            <span className="text-[12px] font-semibold text-text-tertiary">
+                              원
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="flex-shrink-0 text-[15px] font-extrabold text-text">
+                            {p.price > 0 ? p.price.toLocaleString() : "0"}
+                            <span className="text-[12px] font-semibold text-text-tertiary">
+                              원
+                            </span>
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => openModal()}
+                    className="mt-4 w-full rounded-full bg-accent py-3.5 text-[15px] font-bold text-white transition hover:bg-accent-hover"
+                  >
+                    {cta}
+                    {priceFrom !== Infinity && (
+                      <span className="text-white/80">
+                        {" · "}
+                        {priceFrom.toLocaleString()}원~
+                      </span>
+                    )}
+                  </button>
+                  <p className="mt-2.5 text-center text-[11px] leading-relaxed text-text-tertiary">
+                    실제 결제는 진행되지 않습니다. 신청하면 오픈 시 가장 먼저
+                    안내드려요.
+                  </p>
+                </div>
               </div>
-            ))}
+            </aside>
           </div>
         </div>
       </section>
