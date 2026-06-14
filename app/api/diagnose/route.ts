@@ -1,6 +1,7 @@
 import { randomBytes } from "crypto";
 import Anthropic from "@anthropic-ai/sdk";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { rateLimit, ipKey } from "@/lib/ratelimit";
 import {
   buildFallbackReport,
   classifyProhibited,
@@ -321,6 +322,9 @@ interface DiagnoseBody {
 }
 
 export async function POST(request: Request) {
+  // AI 호출 비용 보호 — IP당 분당 제한
+  if (!rateLimit(ipKey(request, "diagnose"), 10, 60_000))
+    return Response.json({ error: "rate_limited" }, { status: 429 });
   let body: DiagnoseBody;
   try {
     body = await request.json();

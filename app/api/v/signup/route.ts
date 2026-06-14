@@ -1,10 +1,14 @@
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { rateLimit, ipKey } from "@/lib/ratelimit";
 
 export const dynamic = "force-dynamic";
 
 /** 검증 사이트 사전등록 — 방문자가 CTA 모달에서 연락처를 남기면 적재.
  *  이게 검증 종료 후 고객(창업자)에게 넘어가는 '첫 고객 명단'이 된다. */
 export async function POST(request: Request) {
+  // 명단 오염(스팸) 보호 — IP당 분당 제한
+  if (!rateLimit(ipKey(request, "signup"), 8, 60_000))
+    return Response.json({ ok: false }, { status: 429 });
   let body: { code?: string; name?: string; contact?: string; plan?: string | null };
   try {
     body = await request.json();

@@ -1,4 +1,6 @@
+import { lookup } from "node:dns/promises";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { rateLimit, ipKey } from "@/lib/ratelimit";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +45,15 @@ async function safeFetch(rawUrl: string): Promise<Response | null> {
     }
     if (u.protocol !== "http:" && u.protocol !== "https:") return null;
     if (isBlockedHost(u.hostname)) return null;
+    // 호스트명은 공개지만 사설/메타데이터 IP로 resolve되는 DNS 리바인딩 방어 —
+    // 해석된 IP가 하나라도 내부면 거부.
+    try {
+      const addrs = await lookup(u.hostname, { all: true });
+      if (addrs.length === 0 || addrs.some((a) => isBlockedHost(a.address)))
+        return null;
+    } catch {
+      return null;
+    }
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 6000);
@@ -75,6 +86,8 @@ async function safeFetch(rawUrl: string): Promise<Response | null> {
  * 이미 이벤트가 도착해 검증된 리드는 즉시 ok.
  */
 export async function POST(request: Request) {
+  if (!rateLimit(ipKey(request, "verify"), 10, 60_000))
+    return Response.json({ error: "rate_limited" }, { status: 429 });
   let body: { code?: string; url?: string };
   try {
     body = await request.json();

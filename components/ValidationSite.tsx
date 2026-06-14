@@ -297,8 +297,17 @@ export default function ValidationSite({ data }: { data: ValidationSiteData }) {
                 >
                   {sending ? "보내는 중…" : "보내기"}
                 </button>
-                <p className="mt-3 text-center text-[12px] text-text-tertiary">
-                  실제 결제는 진행되지 않습니다.
+                <p className="mt-3 text-center text-[12px] leading-relaxed text-text-tertiary">
+                  실제 결제는 진행되지 않습니다. 남겨주신 연락처는 서비스 안내
+                  목적으로만 사용하며 그 외 용도로 쓰지 않습니다.{" "}
+                  <a
+                    href="/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-text-secondary"
+                  >
+                    개인정보처리방침
+                  </a>
                 </p>
               </form>
             )}

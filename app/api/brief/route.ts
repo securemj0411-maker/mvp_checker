@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { rateLimit, ipKey } from "@/lib/ratelimit";
 import {
   decidePassBar,
   REFUND_POLICY,
@@ -387,6 +388,9 @@ interface BriefBody {
 }
 
 export async function POST(request: Request) {
+  // access_code 열거·폭주 보호 — IP당 분당 제한
+  if (!rateLimit(ipKey(request, "brief"), 30, 60_000))
+    return Response.json({ error: "rate_limited" }, { status: 429 });
   let body: BriefBody;
   try {
     body = await request.json();

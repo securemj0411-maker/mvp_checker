@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { rateLimit, ipKey } from "@/lib/ratelimit";
 
 export const dynamic = "force-dynamic";
 
@@ -8,6 +9,9 @@ export const dynamic = "force-dynamic";
  * 응답은 읽히지 않으므로 본문 없이 204 만 돌려준다.
  */
 export async function POST(request: Request) {
+  // 측정 폭주(판정 왜곡) 보호 — IP당 분당 제한. 실패는 조용히 204.
+  if (!rateLimit(ipKey(request, "t"), 80, 60_000))
+    return new Response(null, { status: 429 });
   let body: {
     c?: string;
     t?: string;
