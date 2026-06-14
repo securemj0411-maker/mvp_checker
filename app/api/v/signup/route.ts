@@ -31,7 +31,7 @@ export async function POST(request: Request) {
   const { data: lead } = await admin
     .from("o2o_leads")
     .select("id, site_published_at")
-    .eq("access_code", code)
+    .eq("site_token", code)
     .maybeSingle();
   if (!lead?.id) return Response.json({ ok: false }, { status: 404 });
   // 게시된(광고 노출 중) 사이트에서만 신청을 받는다 — 미게시·미리보기 제출은 거부.

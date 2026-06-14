@@ -167,6 +167,8 @@ function publicLead(lead: Record<string, unknown>) {
   const passBar = decidePassBar(answers);
   return {
     name: lead.name,
+    // 공개 측정 토큰 (광고 노출용 — 대시보드 키 access_code와 분리)
+    siteToken: (lead.site_token as string) ?? null,
     stage: deriveStage(
       lead as { status: string | null; brief_confirmed_at: string | null },
     ),

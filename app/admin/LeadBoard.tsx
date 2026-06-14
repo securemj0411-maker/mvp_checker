@@ -52,6 +52,7 @@ export type Lead = {
     updated_at?: string;
   } | null;
   site_published_at: string | null;
+  site_token: string | null;
   site_overrides: {
     hero_image?: string;
     accent?: string;
@@ -603,7 +604,7 @@ function Modal({
               </div>
               <div className="mt-2 flex flex-wrap gap-2">
                 <a
-                  href={`/v/${lead.access_code}`}
+                  href={`/v/${lead.site_token}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-secondary transition hover:border-accent"
@@ -611,7 +612,7 @@ function Modal({
                   실제 사이트 ↗
                 </a>
                 <a
-                  href={`/v/${lead.access_code}?preview=1`}
+                  href={`/v/${lead.site_token}?preview=1`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-secondary transition hover:border-accent"

@@ -23,6 +23,8 @@ type Stage =
 
 interface PublicLead {
   name: string;
+  /** 공개 측정 토큰 (광고 노출용 — 대시보드 키와 분리) */
+  siteToken?: string | null;
   stage: Stage;
   tier: "engine" | "quick" | string;
   idea: string;
@@ -1697,6 +1699,7 @@ function ProgressStep({ lead, code }: { lead: PublicLead; code: string }) {
       {showTagCard && (
         <TagInstallCard
           code={code}
+          siteToken={lead.siteToken}
           hasPageUrl={lead.hasPageUrl}
           verified={lead.tagVerified}
         />
@@ -1759,10 +1762,12 @@ function Card({
 
 function TagInstallCard({
   code,
+  siteToken,
   hasPageUrl,
   verified,
 }: {
   code: string;
+  siteToken?: string | null;
   hasPageUrl: boolean;
   verified: boolean;
 }) {
@@ -1772,7 +1777,7 @@ function TagInstallCard({
   const [result, setResult] = useState<string | null>(null);
   const [copied, setCopied] = useState<"tag" | "ai" | null>(null);
 
-  const snippet = `<script defer src="https://www.bizfilter.kr/t.js" data-code="${code}"></script>`;
+  const snippet = `<script defer src="https://www.bizfilter.kr/t.js" data-code="${siteToken || code}"></script>`;
   // 바이브코더용 — 커서/클로드에 그대로 붙여넣는 설치 요청문
   const aiPrompt = `내 웹사이트의 모든 페이지 <head> 안에 아래 스크립트 태그를 추가해줘. 방문과 버튼 클릭을 측정하는 태그야. 다른 코드는 바꾸지 말고 이 한 줄만 추가해줘.\n\n${snippet}`;
 

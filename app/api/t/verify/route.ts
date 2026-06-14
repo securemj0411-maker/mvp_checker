@@ -102,7 +102,7 @@ export async function POST(request: Request) {
   const admin = getSupabaseAdmin();
   const { data: lead } = await admin
     .from("o2o_leads")
-    .select("id, page_url, page_tag_verified_at")
+    .select("id, page_url, page_tag_verified_at, site_token")
     .eq("access_code", code)
     .maybeSingle();
   if (!lead?.id) return Response.json({ error: "not found" }, { status: 404 });
@@ -132,7 +132,9 @@ export async function POST(request: Request) {
   } catch {
     return Response.json({ verified: false, reason: "fetch_failed" });
   }
-  const hasTag = html.includes("/t.js") && html.includes(code);
+  // 설치 스니펫은 공개 측정 토큰(site_token)을 쓴다
+  const token = (lead.site_token as string) || code;
+  const hasTag = html.includes("/t.js") && html.includes(token);
   if (hasTag) {
     await admin
       .from("o2o_leads")

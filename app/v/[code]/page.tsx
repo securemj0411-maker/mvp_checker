@@ -14,13 +14,14 @@ async function loadLead(code: string) {
   const admin = getSupabaseAdmin();
   const { data } = await admin
     .from("o2o_leads")
-    .select("id, access_code, brief, site_published_at, site_overrides")
-    .eq("access_code", normalize(code))
+    .select("id, access_code, site_token, brief, site_published_at, site_overrides")
+    .eq("site_token", normalize(code))
     .maybeSingle();
   return data as
     | {
         id: string;
         access_code: string;
+        site_token: string;
         brief: { confirmed?: ConfirmedBrief } | null;
         site_published_at: string | null;
         site_overrides: {
@@ -86,7 +87,7 @@ export default async function ValidationPage({
   // 운영자 폴리시 override (전문가가 게시 전 다듬는 값)
   const ov = lead.site_overrides ?? {};
   const data: ValidationSiteData = {
-    code: lead.access_code,
+    code: lead.site_token,
     name: c.name || "내 서비스",
     offer: ov.offer || c.offer || c.name || "",
     targetLine: c.target_line || "",
@@ -106,7 +107,7 @@ export default async function ValidationPage({
     <>
       <ValidationSite data={data} />
       {/* 측정 — 게시된 노출에서만. 방문·CTA 클릭이 o2o_events로(코크핏 실시간 반영) */}
-      {measure && <script defer src="/t.js" data-code={lead.access_code} />}
+      {measure && <script defer src="/t.js" data-code={lead.site_token} />}
     </>
   );
 }

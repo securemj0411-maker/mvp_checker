@@ -30,10 +30,11 @@ export async function POST(request: Request) {
   if (code.length < 8 || !type) return new Response(null, { status: 204 });
 
   const admin = getSupabaseAdmin();
+  // 공개 측정 토큰(site_token) 우선, 구 스니펫 호환용 access_code 폴백
   const { data: lead } = await admin
     .from("o2o_leads")
     .select("id, page_tag_verified_at")
-    .eq("access_code", code)
+    .or(`site_token.eq.${code},access_code.eq.${code}`)
     .maybeSingle();
   if (!lead?.id) return new Response(null, { status: 204 });
 
