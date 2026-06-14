@@ -2270,6 +2270,7 @@ function PageEditor({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   async function uploadImage(file: File) {
     if (uploading) return;
@@ -2351,26 +2352,28 @@ function PageEditor({
     prologue: prologue.trim() || undefined,
     media,
   };
-  const editHandlers = {
-    field: (k: "offer" | "credential" | "prologue", v: string) => {
-      if (k === "offer") setOffer(v);
-      else if (k === "credential") setCredential(v);
-      else setPrologue(v);
-    },
-    plan: (i: number, k: "label" | "desc", v: string) =>
-      setPlans((ps) => ps.map((p, j) => (j === i ? { ...p, [k]: v } : p))),
-    planPrice: (i: number, v: number) =>
-      setPlans((ps) => ps.map((p, j) => (j === i ? { ...p, price: v } : p))),
-    point: (i: number, v: string) =>
-      setPoints((arr) => {
-        const n = [...arr];
-        while (n.length <= i) n.push("");
-        n[i] = v;
-        return n;
-      }),
-  };
+  // 폼 입력 헬퍼 — 강조점 3칸(빈 칸 허용, 채운 것만 저장), 플랜 추가·삭제
+  const setPoint = (i: number, v: string) =>
+    setPoints((arr) => {
+      const n = [...arr];
+      while (n.length <= i) n.push("");
+      n[i] = v;
+      return n;
+    });
+  const setPlanField = (i: number, k: "label" | "desc", v: string) =>
+    setPlans((ps) => ps.map((p, j) => (j === i ? { ...p, [k]: v } : p)));
+  const setPlanPrice = (i: number, v: number) =>
+    setPlans((ps) => ps.map((p, j) => (j === i ? { ...p, price: v } : p)));
+  const addPlan = () =>
+    setPlans((ps) =>
+      ps.length >= 3 ? ps : [...ps, { label: "", price: 0, desc: "" }],
+    );
+  const removePlan = (i: number) =>
+    setPlans((ps) => (ps.length <= 1 ? ps : ps.filter((_, j) => j !== i)));
 
   const liveNow = lead.stage === "live";
+  const rowInput =
+    "w-full rounded-md border border-border bg-surface-light px-4 py-3 text-text placeholder:text-text-tertiary outline-none transition focus:border-accent";
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-3">
@@ -2398,59 +2401,122 @@ function PageEditor({
         </p>
       </div>
 
-      {/* 진짜 페이지 = 편집기 (점선 칸을 눌러 글자·가격 바로 수정) */}
-      <div className="cold-panel rounded-lg p-4 sm:p-5">
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <span className="rounded-full bg-accent/10 px-2.5 py-1 text-[11px] font-bold text-accent">
-            점선 칸을 눌러 제목·소개·가격 바로 수정
-          </span>
-        </div>
+      {/* 실제 페이지 미리보기 — 고객에게 보이는 화면(읽기 전용). 편집은 아래 폼에서. */}
+      <button
+        type="button"
+        onClick={() => setShowPreview((v) => !v)}
+        className="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-surface px-4 py-3 text-left transition hover:border-accent"
+      >
+        <span className="text-[13px] font-bold text-text">
+          {showPreview ? "미리보기 닫기" : "실제 페이지 미리보기"}
+        </span>
+        <span className="text-[12px] font-semibold text-text-tertiary">
+          {showPreview ? "▲ 접기" : "고객에게 보이는 화면 ▼"}
+        </span>
+      </button>
+      {showPreview && (
         <div className="overflow-hidden rounded-xl border border-border">
-          <div className="max-h-[68vh] overflow-y-auto">
-            <ValidationSite data={previewData} edit={editHandlers} />
+          <div className="max-h-[60vh] overflow-y-auto">
+            <ValidationSite data={previewData} />
           </div>
         </div>
-      </div>
+      )}
 
-      {/* 영상·썸네일 — 페이지에 인라인으로 못 넣는 두 가지 */}
-      <Card label="소개 영상·이미지">
+      {/* 제목·소개 */}
+      <Card label="제목 · 소개">
         <div className="space-y-4">
           <div>
             <label className="mb-1.5 block text-xs font-bold text-text-secondary">
-              소개 영상 (유튜브·비메오 링크)
+              한 줄 제목
             </label>
             <input
-              value={introVideo}
-              onChange={(e) => setIntroVideo(e.target.value)}
-              maxLength={200}
-              inputMode="url"
-              placeholder="예: https://youtu.be/xxxxxxxx"
-              className={inputBase}
+              value={offer}
+              onChange={(e) => setOffer(e.target.value)}
+              maxLength={120}
+              placeholder="예: 퇴근 후 1시간, 엑셀이 무기가 됩니다"
+              className={rowInput}
+            />
+            <p className="mt-1 text-[11px] text-text-tertiary">
+              광고에서 가장 먼저 보이는 문장이에요.
+            </p>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-bold text-text-secondary">
+              강사 소개 한 줄 (실적·경력)
+            </label>
+            <input
+              value={credential}
+              onChange={(e) => setCredential(e.target.value)}
+              maxLength={80}
+              placeholder="예: 구독 1.2만 유튜버 · 노션 5년차 · 수강생 300명"
+              className={rowInput}
             />
           </div>
           <div>
             <label className="mb-1.5 block text-xs font-bold text-text-secondary">
-              소개 이미지 (썸네일 여러 장)
+              강의 소개 (프롤로그)
+            </label>
+            <textarea
+              value={prologue}
+              onChange={(e) => setPrologue(e.target.value)}
+              maxLength={1500}
+              rows={5}
+              placeholder="누구를 위한 강의인지, 뭘 배우는지, 왜 당신이 가르치는지 편하게 적어주세요. 줄을 바꾸면 문단이 나뉩니다."
+              className={`${rowInput} min-h-[110px] resize-y leading-relaxed`}
+            />
+          </div>
+        </div>
+      </Card>
+
+      {/* 강조점 3개 */}
+      <Card label="강조점 (최대 3개)">
+        <p className="mb-3 text-xs leading-relaxed text-text-tertiary">
+          이 강의를 들으면 얻는 것. 채운 칸만 페이지에 보입니다.
+        </p>
+        <div className="space-y-2">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="flex items-center gap-2">
+              <span className="grid h-7 w-7 flex-shrink-0 place-items-center rounded-full bg-bg-light text-[12px] font-extrabold text-accent">
+                {i + 1}
+              </span>
+              <input
+                value={points[i] ?? ""}
+                onChange={(e) => setPoint(i, e.target.value)}
+                maxLength={80}
+                placeholder="예: 바로 쓰는 템플릿 12종"
+                className={rowInput}
+              />
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      {/* 썸네일·영상 (카톡 사진 추가식 타일) */}
+      <Card label="썸네일 이미지 · 소개 영상">
+        <div className="space-y-4">
+          <div>
+            <label className="mb-1.5 block text-xs font-bold text-text-secondary">
+              소개 이미지 (사진 추가)
             </label>
             <div className="flex flex-wrap gap-2">
               {media.map((url, i) => (
                 <div
                   key={i}
-                  className="relative h-16 w-24 overflow-hidden rounded-lg border border-border"
+                  className="relative h-20 w-28 overflow-hidden rounded-lg border border-border"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={url} alt="" className="h-full w-full object-cover" />
                   <button
                     type="button"
                     onClick={() => setMedia((m) => m.filter((_, j) => j !== i))}
-                    className="absolute right-0.5 top-0.5 grid h-5 w-5 place-items-center rounded-full bg-text/70 text-[11px] font-bold text-white"
+                    className="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full bg-text/70 text-[11px] font-bold text-white"
                   >
                     ×
                   </button>
                 </div>
               ))}
-              <label className="grid h-16 w-24 cursor-pointer place-items-center rounded-lg border border-dashed border-border text-center text-[12px] font-semibold text-text-tertiary transition hover:border-accent/60 hover:text-accent">
-                {uploading ? "올리는 중…" : "+ 이미지"}
+              <label className="grid h-20 w-28 cursor-pointer place-items-center rounded-lg border border-dashed border-border text-center text-[12px] font-semibold text-text-tertiary transition hover:border-accent/60 hover:text-accent">
+                {uploading ? "올리는 중…" : "+ 사진"}
                 <input
                   type="file"
                   accept="image/png,image/jpeg,image/webp,image/gif"
@@ -2468,6 +2534,88 @@ function PageEditor({
               강의 화면·결과물·후기 캡처 등 (장당 최대 5MB)
             </p>
           </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-bold text-text-secondary">
+              소개 영상 (유튜브·비메오 링크)
+            </label>
+            <input
+              value={introVideo}
+              onChange={(e) => setIntroVideo(e.target.value)}
+              maxLength={200}
+              inputMode="url"
+              placeholder="예: https://youtu.be/xxxxxxxx"
+              className={rowInput}
+            />
+          </div>
+        </div>
+      </Card>
+
+      {/* 표시 가격·플랜 */}
+      <Card label="표시 가격 · 플랜">
+        <p className="mb-3 text-xs leading-relaxed text-text-tertiary">
+          페이지에 보일 수강료예요. (결제하실 검증 상품 금액과는 별개라 자유롭게
+          바꾸셔도 됩니다)
+        </p>
+        <div className="space-y-2.5">
+          {plans.map((p, i) => (
+            <div
+              key={i}
+              className="rounded-lg border border-border bg-surface-light p-3"
+            >
+              <div className="flex items-center gap-2">
+                <input
+                  value={p.label}
+                  onChange={(e) => setPlanField(i, "label", e.target.value)}
+                  maxLength={60}
+                  placeholder="플랜 이름 (예: 얼리버드)"
+                  className="min-w-0 flex-1 rounded-md border border-border bg-bg px-3 py-2 text-sm text-text outline-none transition focus:border-accent"
+                />
+                <div className="flex flex-shrink-0 items-center gap-1">
+                  <input
+                    value={p.price > 0 ? String(p.price) : ""}
+                    onChange={(e) =>
+                      setPlanPrice(
+                        i,
+                        Number((e.target.value.match(/\d/g) ?? []).join("")) || 0,
+                      )
+                    }
+                    inputMode="numeric"
+                    placeholder="0"
+                    className="w-24 rounded-md border border-border bg-bg px-3 py-2 text-right text-sm font-bold text-text outline-none transition focus:border-accent"
+                  />
+                  <span className="text-xs font-semibold text-text-tertiary">
+                    원
+                  </span>
+                </div>
+                {plans.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removePlan(i)}
+                    className="grid h-7 w-7 flex-shrink-0 place-items-center rounded-full text-text-tertiary transition hover:bg-bg-alt hover:text-nogo"
+                    aria-label="플랜 삭제"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+              <input
+                value={p.desc}
+                onChange={(e) => setPlanField(i, "desc", e.target.value)}
+                maxLength={200}
+                placeholder="플랜 설명 (선택)"
+                className="mt-2 w-full rounded-md border border-border bg-bg px-3 py-2 text-xs text-text-secondary outline-none transition focus:border-accent"
+              />
+            </div>
+          ))}
+          {plans.length < 3 && (
+            <button
+              type="button"
+              onClick={addPlan}
+              className="w-full rounded-lg border border-dashed border-border py-2.5 text-xs font-bold text-text-tertiary transition hover:border-accent hover:text-accent"
+            >
+              + 플랜 추가
+            </button>
+          )}
         </div>
       </Card>
 
