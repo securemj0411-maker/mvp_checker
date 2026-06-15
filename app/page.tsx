@@ -96,9 +96,9 @@ function Nav() {
 function Hero({ variant = "a" }: { variant?: HeroVariant }) {
   const headline = (
     <>
-      한 달 내내 갈아 넣어 만든 내 강의,
+      한 달 갈아 넣은 내 강의,
       <br />
-      오픈하자 아무도 안 산다면?
+      오픈했는데 아무도 안 산다면?
     </>
   );
   const sub =
@@ -134,21 +134,6 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
               "linear-gradient(160deg, #0a1730 0%, #122a4d 45%, #16233a 100%)",
           }}
         />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/team/founders.png"
-          alt=""
-          aria-hidden
-          className="pointer-events-none absolute -right-12 bottom-0 -z-10 h-[72%] w-auto object-contain opacity-90"
-        />
-        <div
-          aria-hidden
-          className="absolute inset-0 -z-10"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(12,27,52,.2) 0%, rgba(12,27,52,.55) 55%, rgba(12,27,52,.9) 100%)",
-          }}
-        />
         <div className="px-6 pb-12 pt-16">
           <p className="text-sm font-bold" style={{ color: "#8FB6FF" }}>
             강의 수요 검증 전문
@@ -167,7 +152,7 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
       </div>
 
       {/* ── 데스크탑/태블릿: 밝은 2단, 좌 텍스트 우 인물 ── */}
-      <div className="mx-auto hidden max-w-6xl items-center gap-8 px-6 pb-8 pt-16 sm:grid sm:grid-cols-2 lg:gap-12 lg:pt-24">
+      <div className="mx-auto hidden max-w-3xl px-6 pb-8 pt-16 sm:block lg:pt-24">
         <div className="reveal-stagger">
           <Label>강의 수요 검증 전문</Label>
           <h1 className="mt-5 text-[44px] font-extrabold leading-[1.16] tracking-[-0.035em] text-text lg:text-[56px]">
@@ -180,22 +165,6 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
           <p className="mt-7 text-sm font-medium text-text-tertiary">
             광고비 별도 청구 없음 · 신청은 결제가 아닙니다 · 될지 안 될지 판정 보장
           </p>
-        </div>
-        <div className="reveal relative flex items-end justify-center self-stretch">
-          <div
-            aria-hidden
-            className="absolute bottom-0 left-1/2 -z-10 h-[78%] w-[88%] -translate-x-1/2 rounded-full opacity-60 blur-3xl"
-            style={{
-              background:
-                "radial-gradient(closest-side, var(--accent-glow), transparent)",
-            }}
-          />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/team/founders.png"
-            alt="비즈필터 창업자"
-            className="relative max-h-[540px] w-auto object-contain"
-          />
         </div>
       </div>
     </section>
