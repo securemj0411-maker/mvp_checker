@@ -1,6 +1,6 @@
 import ScrollReveal from "@/components/ScrollReveal";
 import StepsAccordion from "@/components/StepsAccordion";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight, Check, ShieldCheck } from "lucide-react";
 import { BrandMark, Wordmark } from "@/components/Brand";
 import { CaseVisual } from "@/components/CaseMockups";
 import { KAKAO_CHAT_URL } from "@/lib/site";
@@ -149,26 +149,69 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
           <p className="mt-6 text-xs font-medium text-white/55">
             상담 무료 · 광고비 별도 청구 없음 · 될지 안 될지 판정 보장
           </p>
+          <div className="mt-9">
+            <HeroVisual />
+          </div>
         </div>
       </div>
 
       {/* ── 데스크탑/태블릿: 밝은 2단, 좌 텍스트 우 인물 ── */}
-      <div className="mx-auto hidden max-w-3xl px-6 pb-8 pt-16 sm:block lg:pt-24">
-        <div className="reveal-stagger">
-          <Label>강의 수요 검증 전문</Label>
-          <h1 className="mt-5 text-[44px] font-extrabold leading-[1.16] tracking-[-0.035em] text-text lg:text-[56px]">
-            {headline}
-          </h1>
-          <p className="mt-7 max-w-lg text-lg leading-[1.7] text-text-secondary">
-            {sub}
-          </p>
-          <div className="mt-9 flex flex-wrap items-center gap-3">{ctas}</div>
-          <p className="mt-7 text-sm font-medium text-text-tertiary">
-            상담 무료 · 광고비 별도 청구 없음 · 될지 안 될지 판정 보장
-          </p>
+      <div className="mx-auto hidden max-w-6xl px-6 pb-8 pt-16 sm:block lg:pt-24">
+        <div className="lg:grid lg:grid-cols-[1fr_auto] lg:items-center lg:gap-12">
+          <div className="reveal-stagger">
+            <Label>강의 수요 검증 전문</Label>
+            <h1 className="mt-5 text-[44px] font-extrabold leading-[1.16] tracking-[-0.035em] text-text lg:text-[56px]">
+              {headline}
+            </h1>
+            <p className="mt-7 max-w-lg text-lg leading-[1.7] text-text-secondary">
+              {sub}
+            </p>
+            <div className="mt-9 flex flex-wrap items-center gap-3">{ctas}</div>
+            <p className="mt-7 text-sm font-medium text-text-tertiary">
+              상담 무료 · 광고비 별도 청구 없음 · 될지 안 될지 판정 보장
+            </p>
+          </div>
+          <div className="reveal mt-12 lg:mt-0">
+            <HeroVisual />
+          </div>
         </div>
       </div>
     </section>
+  );
+}
+
+/* 히어로 비주얼 — "31일 갈아 넣은 강의 → 0명" 한 장. 판정 빨강은 토큰(var(--nogo)) */
+function HeroVisual() {
+  return (
+    <div className="mx-auto w-full max-w-[320px] rounded-[22px] border border-border bg-surface p-7 text-center shadow-[0_18px_44px_-22px_rgba(23,46,92,0.32)]">
+      <span className="block text-[13px] font-bold text-text-tertiary">
+        31일 갈아 넣은 강의 · 오픈 첫 주
+      </span>
+      <div className="mb-0.5 mt-3.5 flex items-baseline justify-center gap-2">
+        <span
+          className="text-[100px] font-extrabold leading-[0.9] tracking-[-0.05em]"
+          style={{ color: "var(--nogo)" }}
+        >
+          0
+        </span>
+        <span
+          className="text-[26px] font-extrabold"
+          style={{ color: "var(--nogo)" }}
+        >
+          명
+        </span>
+      </div>
+      <span className="block text-[15px] font-bold text-text">
+        아무도 사지 않았습니다
+      </span>
+      <div className="my-5 h-px bg-border" />
+      <div className="flex items-center justify-center gap-2">
+        <ShieldCheck className="h-[18px] w-[18px] text-accent" strokeWidth={2.5} />
+        <span className="text-[13.5px] font-bold text-accent">
+          비즈필터는 만들기 전에 확인합니다
+        </span>
+      </div>
+    </div>
   );
 }
 
