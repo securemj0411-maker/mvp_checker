@@ -542,6 +542,13 @@ export async function POST(request: Request) {
     } else if (!(confirmed.price_value > 0)) {
       return Response.json({ error: "invalid price" }, { status: 400 });
     }
+    // 강사/대표 사진 — 업로드된 http(s) URL만 보관, 그 외엔 버린다(악성 입력 차단)
+    if (
+      confirmed.instructor_photo &&
+      !/^https?:\/\//.test(String(confirmed.instructor_photo))
+    ) {
+      delete confirmed.instructor_photo;
+    }
     // 입금 전(deposit)까지는 재수정(고객이 '수정하기')을 허용한다.
     // 입금/제작 이후(paid·build·live·verdict·closed)에는 잠금 — 중복 클릭 포함.
     const stage = deriveStage(

@@ -327,6 +327,8 @@ export interface ConfirmedBrief {
   notes?: string;
   /** 고객 입력 — 강사 소개/실적 한 줄 (히어로 신뢰 라인) */
   credential?: string;
+  /** 고객 입력 — 강사/대표 사진 (히어로 아바타용 public URL). 없으면 이름 첫 글자 아바타. */
+  instructor_photo?: string;
   /** 고객 입력 — 소개 영상 URL (유튜브/비메오) */
   intro_video?: string;
   /** 고객 입력 — 프롤로그(강의 소개 본문, 줄바꿈=문단) */

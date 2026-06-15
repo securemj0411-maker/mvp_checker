@@ -513,6 +513,7 @@ function BriefStep({
   const [prologue, setPrologue] = useState(""); // 강의 소개 본문(프롤로그)
   const [points, setPoints] = useState<string[]>([]); // 가치 포인트 3개(고객 편집)
   const [media, setMedia] = useState<string[]>([]); // 소개 이미지(썸네일) URL들
+  const [instructorPhoto, setInstructorPhoto] = useState(""); // 강사/대표 사진(히어로 아바타) URL
   const [uploading, setUploading] = useState(false);
   // 전문가 사전 점검 — 질문별 복수 선택(칩) + 선택적 직접입력
   const [intakeSel, setIntakeSel] = useState<string[][]>([]);
@@ -578,6 +579,7 @@ function BriefStep({
       (c.selling_points ?? draft?.selling_points ?? []).slice(0, 3),
     );
     setMedia(c.media ?? []);
+    setInstructorPhoto(c.instructor_photo ?? "");
     const inOptions = (draft?.offer_options ?? []).some(
       (o) => o.headline === c.offer,
     );
@@ -687,6 +689,7 @@ function BriefStep({
       plans: cleanPlans,
       notes: notes.trim() || undefined,
       credential: credential.trim() || undefined,
+      instructor_photo: instructorPhoto.trim() || undefined,
       intro_video: introVideo.trim() || undefined,
       prologue: prologue.trim() || undefined,
       media: media.length ? media : undefined,
@@ -725,7 +728,10 @@ function BriefStep({
     }
   }
 
-  async function uploadImage(file: File) {
+  async function uploadImage(
+    file: File,
+    target: "media" | "instructor" = "media",
+  ) {
     if (uploading) return;
     setUploading(true);
     try {
@@ -734,7 +740,10 @@ function BriefStep({
       fd.set("code", code);
       const res = await fetch("/api/v/upload", { method: "POST", body: fd });
       const data = await res.json();
-      if (data?.ok && data.url) setMedia((m) => [...m, data.url as string]);
+      if (data?.ok && data.url) {
+        if (target === "instructor") setInstructorPhoto(data.url as string);
+        else setMedia((m) => [...m, data.url as string]);
+      }
     } catch {
       /* 업로드 실패 — 사용자가 다시 시도 */
     } finally {
@@ -1216,6 +1225,56 @@ function BriefStep({
           그대로 페이지에 들어가고, 비워두면 기본형으로 나갑니다.
         </p>
         <div className="space-y-4">
+          <div>
+            <label className="mb-1.5 block text-xs font-bold text-text-secondary">
+              강사 · 대표 사진 (선택)
+            </label>
+            <div className="flex items-center gap-3">
+              {instructorPhoto ? (
+                <div className="relative h-16 w-16 overflow-hidden rounded-full border border-border">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={instructorPhoto}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setInstructorPhoto("")}
+                    className="absolute right-0 top-0 grid h-5 w-5 place-items-center rounded-full bg-text/70 text-[11px] font-bold text-white"
+                  >
+                    ×
+                  </button>
+                </div>
+              ) : (
+                <span className="grid h-16 w-16 flex-shrink-0 place-items-center rounded-full bg-accent/10 text-[20px] font-black text-accent">
+                  {(name || "·").trim().slice(0, 1)}
+                </span>
+              )}
+              <label className="cursor-pointer rounded-lg border border-dashed border-border px-4 py-2 text-[12px] font-semibold text-text-tertiary transition hover:border-accent/60 hover:text-accent">
+                {uploading
+                  ? "올리는 중…"
+                  : instructorPhoto
+                    ? "사진 바꾸기"
+                    : "+ 사진 올리기"}
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  className="hidden"
+                  disabled={uploading}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) uploadImage(f, "instructor");
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+            </div>
+            <p className="mt-1 text-[11px] text-text-tertiary">
+              페이지 맨 위 강사 프로필에 동그랗게 들어갑니다. 없으면 이름 첫 글자
+              기본 아바타로 나가요. (소개 이미지와는 다른 자리예요.)
+            </p>
+          </div>
           <div>
             <label className="mb-1.5 block text-xs font-bold text-text-secondary">
               강사 소개 한 줄 (실적·경력)
@@ -2267,7 +2326,7 @@ function PageEditor({
     ov.media && ov.media.length ? ov.media : (c?.media ?? []),
   );
   const [instructorPhoto, setInstructorPhoto] = useState(
-    ov.instructor_photo || "",
+    ov.instructor_photo || c?.instructor_photo || "",
   );
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);

@@ -88,7 +88,7 @@ export async function GET(request: Request) {
           : [],
     intent: intentOf(c.pass_bar ?? ""),
     credential: ov.credential || c.credential || undefined,
-    instructorPhoto: ov.instructor_photo || undefined,
+    instructorPhoto: ov.instructor_photo || c.instructor_photo || undefined,
     introVideo: ov.intro_video || c.intro_video || undefined,
     prologue: ov.prologue || c.prologue || c.notes || undefined,
     media:
