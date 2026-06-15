@@ -84,7 +84,7 @@ function Nav() {
           rel="noopener noreferrer"
           className="rounded-full bg-accent px-[18px] py-[10px] text-sm font-bold text-white transition hover:bg-accent-hover"
         >
-          카톡 상담
+          지금 검증받기
         </a>
       </div>
     </header>
@@ -111,7 +111,7 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
         rel="noopener noreferrer"
         className="inline-flex items-center gap-2 rounded-full bg-accent px-7 py-4 text-base font-bold text-white shadow-[0_10px_24px_-8px_var(--accent-glow)] transition hover:-translate-y-0.5 hover:bg-accent-hover"
       >
-        카톡으로 검증 상담
+        지금 바로 검증받기
         <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
       </a>
       <a
@@ -490,7 +490,7 @@ function Pricing() {
         "될지 안 될지(Go/No-Go) 판정 리포트 + 다음에 할 일 제안",
         "재검증 30% 할인: 조건 바꿔 다시 돌리면 회당 약 20만원",
       ],
-      cta: "엔진으로 상담",
+      cta: "엔진으로 검증받기",
       highlight: false,
       consult: false,
     },
@@ -508,7 +508,7 @@ function Pricing() {
         "실시간 진행 대시보드 + 될지 안 될지(Go/No-Go) 판정 리포트 + 다음에 할 일 권고",
         "판정 보장: 될지 안 될지 분명한 결론(Go/No-Go)을 못 드리면 전액 환불",
       ],
-      cta: "Quick으로 상담",
+      cta: "Quick으로 검증받기",
       highlight: true,
       consult: false,
     },
@@ -526,7 +526,7 @@ function Pricing() {
         "수강료(한 명이 내는 돈) · 수강생 1명 데려오는 값(CAC) · 평생 가치(LTV) · 손익 시뮬레이션",
         "판정 보장: 될지 안 될지 분명한 결론(Go/No-Go)을 못 드리면 전액 환불",
       ],
-      cta: "카카오톡으로 상담 문의",
+      cta: "맞춤형으로 검증받기",
       highlight: false,
       consult: true,
     },
@@ -1016,7 +1016,7 @@ function FinalCTA() {
               rel="noopener noreferrer"
               className="mt-9 inline-flex items-center gap-2 rounded-full bg-accent px-8 py-4 text-base font-bold text-white shadow-[0_10px_24px_-8px_var(--accent-glow)] transition hover:-translate-y-0.5 hover:bg-accent-hover"
             >
-              카카오톡으로 상담 신청
+              지금 바로 검증받기
               <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
             </a>
             <p className="mt-5 text-sm font-medium text-text-tertiary">
@@ -1100,7 +1100,7 @@ function Footer() {
                   rel="noopener noreferrer"
                   className="hover:text-accent"
                 >
-                  카톡 상담
+                  검증 시작하기
                 </a>
               </li>
             </ul>
