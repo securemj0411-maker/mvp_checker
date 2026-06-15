@@ -399,7 +399,7 @@ export default function ValidationSite({
           {/* 로고 — 지금은 비즈필터 기본 로고, 추후 고객 업로드 로고로 교체 예정 */}
           <span className="flex items-center gap-2">
             <BrandMark size={26} />
-            <span className="text-[17px] font-semibold tracking-[-0.02em] text-text">
+            <span className="text-[18px] font-extrabold tracking-[-0.02em] text-text">
               {data.name}
             </span>
           </span>
