@@ -391,39 +391,39 @@ export default function ValidationSite({
         </div>
       </header>
 
-      {/* ── Skool식 2단: 좌 콘텐츠 + 우 sticky 신청 카드 ── */}
-      <section className="relative">
-        <div className="hero-spotlight pointer-events-none absolute inset-x-0 top-0 h-72" />
-        <div className="relative mx-auto max-w-6xl px-5 py-8 sm:py-12">
-          {editable ? (
-            <EditText
-              value={data.offer}
-              onChange={(v) => edit!.field("offer", v)}
-              placeholder="여기에 한 줄 제목 (예: 퇴근 후 1시간, 엑셀이 무기가 됩니다)"
-              className="text-[26px] font-semibold leading-[1.2] tracking-[-0.03em] text-text sm:text-[36px]"
-            />
-          ) : (
-            <h1 className="text-[26px] font-semibold leading-[1.2] tracking-[-0.03em] text-text sm:text-[38px]">
-              {data.offer}
-            </h1>
-          )}
-
-          <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_360px]">
-            {/* ── 좌: 미디어 + 강사 + 본문 ── */}
-            <div className="min-w-0">
-              {hasMedia ? (
-                <MediaGallery
-                  video={video}
-                  images={data.media ?? []}
-                  name={data.name}
+      {/* ── Skool식 2단: 좌 콘텐츠 카드 + 우 신청 카드 ── */}
+      <section>
+        <div className="mx-auto max-w-6xl px-5 py-8 sm:py-10">
+          <div className="grid gap-6 lg:grid-cols-[1fr_360px] lg:items-start">
+            {/* ── 좌: 제목+미디어+정보+본문을 흰 카드 하나로 (Skool about식) ── */}
+            <div className="min-w-0 rounded-[16px] border border-border bg-surface p-5 sm:p-7">
+              {editable ? (
+                <EditText
+                  value={data.offer}
+                  onChange={(v) => edit!.field("offer", v)}
+                  placeholder="여기에 한 줄 제목 (예: 퇴근 후 1시간, 엑셀이 무기가 됩니다)"
+                  className="text-[23px] font-semibold leading-[1.25] tracking-[-0.02em] text-text sm:text-[29px]"
                 />
-              ) : editable ? (
-                <div className="grid aspect-video w-full place-items-center rounded-[20px] border border-dashed border-border bg-bg-alt px-4 text-center text-[13px] text-text-tertiary">
-                  아래 ‘꾸미기’에서 소개 영상·이미지를 넣으면 여기에 표시돼요
-                </div>
               ) : (
-                <DefaultCover name={data.name} />
+                <h1 className="text-[23px] font-semibold leading-[1.25] tracking-[-0.02em] text-text sm:text-[29px]">
+                  {data.offer}
+                </h1>
               )}
+              <div className="mt-5">
+                {hasMedia ? (
+                  <MediaGallery
+                    video={video}
+                    images={data.media ?? []}
+                    name={data.name}
+                  />
+                ) : editable ? (
+                  <div className="grid aspect-video w-full place-items-center rounded-[12px] border border-dashed border-border bg-bg-alt px-4 text-center text-[13px] text-text-tertiary">
+                    아래 ‘꾸미기’에서 소개 영상·이미지를 넣으면 여기에 표시돼요
+                  </div>
+                ) : (
+                  <DefaultCover name={data.name} />
+                )}
+              </div>
 
               {/* 정보 줄 (Skool식) — 형태 · 가격 · 사전신청 · By 강사 (회색 아이콘) */}
               <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-border pb-5 text-[13px] text-text-secondary">
