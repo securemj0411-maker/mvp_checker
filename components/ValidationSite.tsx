@@ -80,6 +80,11 @@ function embedUrl(raw?: string): string | null {
   return null;
 }
 
+/** 고객이 아직 강사 사진을 안 올렸을 때 보여줄 기본 이미지(예시용). public/defaults 에 위치. */
+const DEFAULT_INSTRUCTOR_PHOTO = "/defaults/instructor-default.png";
+/** 영상 링크도, 소개 이미지도 없을 때만 채우는 기본 예시 영상. 링크를 올리거나 사진을 넣으면 사라진다. */
+const DEFAULT_INTRO_VIDEO = "https://www.youtube.com/watch?v=dCREiWLElTQ";
+
 /** 강사 아바타 — 사진이 있으면 사진, 없으면 이름 첫 글자 기본 아바타(안 비어 보이게). */
 function Avatar({
   photo,
@@ -294,20 +299,29 @@ export default function ValidationSite({
   const [done, setDone] = useState(false);
   const [err, setErr] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const [instructorImgError, setInstructorImgError] = useState(false);
 
   const cta = CTA_LABEL[data.intent];
   const editable = !!edit;
-  const video = embedUrl(data.introVideo);
+  const customVideo = embedUrl(data.introVideo);
+  const hasImages = !!(data.media && data.media.length > 0);
+  // 영상 링크가 있으면 그 영상. 없고 소개 이미지도 없을 때만 예시 영상으로 채운다.
+  // (사진만 넣으면 예시 영상은 안 보인다.)
+  const video = customVideo || (hasImages ? null : embedUrl(DEFAULT_INTRO_VIDEO));
   const prologueParas = (data.prologue ?? "")
     .split(/\n+/)
     .map((s) => s.trim())
     .filter(Boolean);
   const points = data.sellingPoints.map((s) => s.trim()).filter(Boolean);
-  const hasMedia = !!video || (!!data.media && data.media.length > 0);
+  const hasMedia = !!video || hasImages;
   const hasCover =
     !!data.heroImage && /^https?:\/\//.test(data.heroImage) && !imgError;
   const hasInstructorPhoto =
     !!data.instructorPhoto && /^https?:\/\//.test(data.instructorPhoto);
+  // 강사 사진이 없으면 예시용 기본 이미지로 대체(고객이 올리면 그 사진으로 교체)
+  const instructorPhotoSrc = hasInstructorPhoto
+    ? data.instructorPhoto!
+    : DEFAULT_INSTRUCTOR_PHOTO;
   const hasCredential = !!(data.credential && data.credential.trim());
 
   // 운영자 입력 accent — hex 형식일 때만 적용(잘못된 값으로 페이지가 깨지지 않게)
@@ -543,13 +557,14 @@ export default function ValidationSite({
                     onError={() => setImgError(true)}
                     className="aspect-[16/9] w-full object-cover"
                   />
-                ) : hasInstructorPhoto ? (
-                  // 강사·대표 사진 — 세로/가로 원본 비율 그대로(안 짤리게), 높이만 상한
+                ) : !instructorImgError ? (
+                  // 강사·대표 사진(없으면 예시용 기본 이미지) — 세로/가로 원본 비율 그대로(안 짤리게), 높이만 상한
                   <div className="flex w-full items-center justify-center bg-bg-alt">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={data.instructorPhoto}
+                      src={instructorPhotoSrc}
                       alt={data.name}
+                      onError={() => setInstructorImgError(true)}
                       className="max-h-[440px] w-auto max-w-full object-contain"
                     />
                   </div>
