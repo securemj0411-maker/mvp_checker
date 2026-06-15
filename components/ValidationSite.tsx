@@ -103,7 +103,7 @@ function Avatar({
   }
   return (
     <span
-      className={`${box} grid flex-shrink-0 place-items-center rounded-full bg-accent/10 font-black text-accent`}
+      className={`${box} grid flex-shrink-0 place-items-center rounded-full bg-accent/10 font-bold text-accent`}
     >
       {name.trim().slice(0, 1) || "·"}
     </span>
@@ -159,7 +159,7 @@ function DefaultCover({
       className={`grid ${ratio} w-full place-items-center rounded-[20px] border border-border bg-bg-alt`}
     >
       <div className="flex flex-col items-center gap-2 px-4 text-center">
-        <span className="grid h-12 w-12 place-items-center rounded-2xl bg-accent/10 text-[20px] font-black text-accent">
+        <span className="grid h-12 w-12 place-items-center rounded-2xl bg-accent/10 text-[20px] font-bold text-accent">
           {name.trim().slice(0, 1) || "·"}
         </span>
         <span className="text-[15px] font-bold text-text-secondary">{name}</span>
@@ -311,12 +311,23 @@ export default function ValidationSite({
   // 운영자 입력 accent — hex 형식일 때만 적용(잘못된 값으로 페이지가 깨지지 않게)
   const validAccent =
     data.accent && /^#[0-9a-fA-F]{3,8}$/.test(data.accent) ? data.accent : null;
-  const rootStyle = validAccent
-    ? ({
-        "--accent": validAccent,
-        "--accent-hover": validAccent,
-      } as React.CSSProperties)
-    : undefined;
+  // Skool about 페이지 톤으로 이 페이지만 재테마 — 밝은 중립 배경·흰 카드·얇은 회색
+  // 텍스트·Roboto 계열 폰트. (우리 앱 토큰 var(--bg/--surface/...)을 이 서브트리에서만 덮어씀)
+  const rootStyle = {
+    "--bg": "#f7f6f3",
+    "--surface": "#ffffff",
+    "--bg-alt": "#f1efea",
+    "--bg-light": "#f1efea",
+    "--border": "#e6e4e0",
+    "--border-hover": "#d2cfc9",
+    "--text": "#1f2123",
+    "--text-secondary": "#4b4d50",
+    "--text-tertiary": "#8a8d91",
+    "--accent": validAccent ?? "#2b6cb0",
+    "--accent-hover": validAccent ?? "#245a96",
+    fontFamily:
+      "'Roboto', 'Pretendard', 'Apple SD Gothic Neo', -apple-system, system-ui, sans-serif",
+  } as React.CSSProperties;
 
   function openModal(planLabel?: string) {
     if (editable) return; // 편집 모드(미리보기)에서는 신청 모달을 띄우지 않는다
@@ -368,12 +379,12 @@ export default function ValidationSite({
       {/* ── 상단 바 (고객 브랜드) ── */}
       <header className="sticky top-0 z-30 border-b border-border/70 bg-bg/85 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-5">
-          <span className="text-[17px] font-extrabold tracking-[-0.02em] text-text">
+          <span className="text-[17px] font-semibold tracking-[-0.02em] text-text">
             {data.name}
           </span>
           <button
             onClick={() => openModal()}
-            className="rounded-full bg-accent px-4 py-2 text-sm font-bold text-white transition hover:bg-accent-hover"
+            className="rounded-[10px] bg-accent px-4 py-2 text-sm font-bold text-white transition hover:bg-accent-hover"
           >
             {cta}
           </button>
@@ -389,10 +400,10 @@ export default function ValidationSite({
               value={data.offer}
               onChange={(v) => edit!.field("offer", v)}
               placeholder="여기에 한 줄 제목 (예: 퇴근 후 1시간, 엑셀이 무기가 됩니다)"
-              className="text-[26px] font-extrabold leading-[1.2] tracking-[-0.03em] text-text sm:text-[36px]"
+              className="text-[26px] font-semibold leading-[1.2] tracking-[-0.03em] text-text sm:text-[36px]"
             />
           ) : (
-            <h1 className="text-[26px] font-extrabold leading-[1.2] tracking-[-0.03em] text-text sm:text-[38px]">
+            <h1 className="text-[26px] font-semibold leading-[1.2] tracking-[-0.03em] text-text sm:text-[38px]">
               {data.offer}
             </h1>
           )}
@@ -462,7 +473,7 @@ export default function ValidationSite({
               {/* 이런 걸 얻어갑니다 — 개수 자유. 편집은 3칸 고정, 읽기는 채운 만큼 전부. */}
               {(points.length > 0 || editable) && (
                 <div className="mt-8">
-                  <h2 className="text-[20px] font-extrabold tracking-[-0.02em] text-text sm:text-[24px]">
+                  <h2 className="text-[20px] font-semibold tracking-[-0.02em] text-text sm:text-[24px]">
                     이런 걸 얻어갑니다
                   </h2>
                   <div className="mt-4 space-y-2.5">
@@ -474,7 +485,7 @@ export default function ValidationSite({
                         key={i}
                         className="flex items-start gap-3 rounded-[14px] border border-border bg-surface px-4 py-3"
                       >
-                        <span className="mt-0.5 grid h-6 w-6 flex-shrink-0 place-items-center rounded-full bg-bg-light text-[12px] font-extrabold text-accent">
+                        <span className="mt-0.5 grid h-6 w-6 flex-shrink-0 place-items-center rounded-full bg-bg-light text-[12px] font-semibold text-accent">
                           {i + 1}
                         </span>
                         {editable ? (
@@ -498,7 +509,7 @@ export default function ValidationSite({
               {/* 자유 서술 본문 — 강조점 아래. 길게 자유롭게(줄바꿈=문단). */}
               {(prologueParas.length > 0 || editable) && (
                 <div className="mt-8">
-                  <h2 className="text-[20px] font-extrabold tracking-[-0.02em] text-text sm:text-[24px]">
+                  <h2 className="text-[20px] font-semibold tracking-[-0.02em] text-text sm:text-[24px]">
                     이 서비스를 소개합니다
                   </h2>
                   {editable ? (
@@ -532,13 +543,13 @@ export default function ValidationSite({
                   />
                 ) : (
                   <div className="grid aspect-[16/9] w-full place-items-center bg-bg-alt">
-                    <span className="grid h-11 w-11 place-items-center rounded-2xl bg-accent/10 text-[18px] font-black text-accent">
+                    <span className="grid h-11 w-11 place-items-center rounded-2xl bg-accent/10 text-[18px] font-bold text-accent">
                       {data.name.trim().slice(0, 1) || "·"}
                     </span>
                   </div>
                 )}
                 <div className="p-5">
-                  <p className="text-[16px] font-extrabold text-text">
+                  <p className="text-[16px] font-semibold text-text">
                     {data.name}
                   </p>
                   <p className="mt-0.5 text-[12px] text-text-tertiary">
@@ -575,7 +586,7 @@ export default function ValidationSite({
                               }
                               placeholder="0"
                               inputMode="numeric"
-                              className="w-20 rounded bg-transparent px-1 py-0.5 text-right text-[15px] font-extrabold text-text outline-none ring-1 ring-accent/20 focus:ring-accent"
+                              className="w-20 rounded bg-transparent px-1 py-0.5 text-right text-[15px] font-semibold text-text outline-none ring-1 ring-accent/20 focus:ring-accent"
                             />
                             <span className="text-[12px] font-semibold text-text-tertiary">
                               원
@@ -588,7 +599,7 @@ export default function ValidationSite({
                     /* 읽기 모드 — Skool식 3칸 통계 박스 (사전신청 · 수강료 · 형태) */
                     <div className="mt-4 flex overflow-hidden rounded-[12px] border border-border">
                       <div className="flex-1 px-2 py-2.5 text-center">
-                        <div className="text-[15px] font-extrabold text-text">
+                        <div className="text-[15px] font-semibold text-text">
                           {showSignups ? signups.toLocaleString() : "—"}
                         </div>
                         <div className="mt-0.5 text-[11px] text-text-tertiary">
@@ -596,7 +607,7 @@ export default function ValidationSite({
                         </div>
                       </div>
                       <div className="flex-1 border-x border-border px-2 py-2.5 text-center">
-                        <div className="text-[15px] font-extrabold text-text">
+                        <div className="text-[15px] font-semibold text-text">
                           {priceFrom !== Infinity
                             ? priceFrom.toLocaleString()
                             : "—"}
@@ -606,7 +617,7 @@ export default function ValidationSite({
                         </div>
                       </div>
                       <div className="flex-1 px-2 py-2.5 text-center">
-                        <div className="text-[14px] font-extrabold text-text">
+                        <div className="text-[14px] font-semibold text-text">
                           {CHIP_LABEL[data.intent]}
                         </div>
                         <div className="mt-0.5 text-[11px] text-text-tertiary">
@@ -648,7 +659,7 @@ export default function ValidationSite({
 
                   <button
                     onClick={() => openModal()}
-                    className="mt-4 w-full rounded-full bg-accent py-3.5 text-[15px] font-bold text-white transition hover:bg-accent-hover"
+                    className="mt-4 w-full rounded-[10px] bg-accent py-3.5 text-[15px] font-bold text-white transition hover:bg-accent-hover"
                   >
                     {cta}
                     {priceFrom !== Infinity && (
@@ -672,7 +683,7 @@ export default function ValidationSite({
       {/* ── 푸터 ── */}
       <footer className="border-t border-border">
         <div className="mx-auto flex max-w-5xl flex-col items-center gap-2 px-5 py-10 text-center">
-          <span className="text-[15px] font-extrabold text-text">
+          <span className="text-[15px] font-semibold text-text">
             {data.name}
           </span>
           <p className="text-[13px] text-text-tertiary">
@@ -710,7 +721,7 @@ export default function ValidationSite({
                     />
                   </svg>
                 </div>
-                <p className="mt-5 text-[18px] font-extrabold text-text">
+                <p className="mt-5 text-[18px] font-semibold text-text">
                   신청이 접수되었습니다
                 </p>
                 <p className="mt-2 text-[14px] leading-[1.6] text-text-secondary">
@@ -725,7 +736,7 @@ export default function ValidationSite({
               </div>
             ) : (
               <form onSubmit={submit}>
-                <p className="text-[19px] font-extrabold tracking-[-0.02em] text-text">
+                <p className="text-[19px] font-semibold tracking-[-0.02em] text-text">
                   {MODAL_TITLE[data.intent]}
                 </p>
                 <p className="mt-1.5 text-[14px] leading-[1.6] text-text-secondary">
@@ -756,7 +767,7 @@ export default function ValidationSite({
                 <button
                   type="submit"
                   disabled={sending || contact.trim().length < 7}
-                  className="mt-5 w-full rounded-full bg-accent py-3.5 text-[15px] font-bold text-white transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
+                  className="mt-5 w-full rounded-[10px] bg-accent py-3.5 text-[15px] font-bold text-white transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {sending ? "보내는 중…" : "보내기"}
                 </button>
