@@ -306,6 +306,8 @@ export default function ValidationSite({
   const hasMedia = !!video || (!!data.media && data.media.length > 0);
   const hasCover =
     !!data.heroImage && /^https?:\/\//.test(data.heroImage) && !imgError;
+  const hasInstructorPhoto =
+    !!data.instructorPhoto && /^https?:\/\//.test(data.instructorPhoto);
   const hasCredential = !!(data.credential && data.credential.trim());
 
   // 운영자 입력 accent — hex 형식일 때만 적용(잘못된 값으로 페이지가 깨지지 않게)
@@ -541,6 +543,16 @@ export default function ValidationSite({
                     onError={() => setImgError(true)}
                     className="aspect-[16/9] w-full object-cover"
                   />
+                ) : hasInstructorPhoto ? (
+                  // 강사·대표 사진 — 세로/가로 원본 비율 그대로(안 짤리게), 높이만 상한
+                  <div className="flex w-full items-center justify-center bg-bg-alt">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={data.instructorPhoto}
+                      alt={data.name}
+                      className="max-h-[440px] w-auto max-w-full object-contain"
+                    />
+                  </div>
                 ) : (
                   <div className="grid aspect-[16/9] w-full place-items-center bg-bg-alt">
                     <span className="grid h-11 w-11 place-items-center rounded-2xl bg-accent/10 text-[18px] font-bold text-accent">
