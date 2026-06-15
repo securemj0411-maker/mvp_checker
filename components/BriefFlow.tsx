@@ -644,33 +644,12 @@ function BriefStep({
   }
 
   if (drafting || (!draft && !draftError)) {
-    const steps = [
-      "광고에 쓸 핵심 문구(첫 줄)를 뽑고 있습니다",
-      "표시할 가격을 정하고 있습니다",
-      "검증용 사이트 구성을 짜고 있습니다",
-      "서비스 임시 이름을 만들고 있습니다",
-    ];
     return (
       <div className="cold-panel flex flex-col items-center rounded-lg p-8 text-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-[3px] border-border border-t-accent" />
-        <p className="mt-6 text-base font-bold text-text">
-          검증 준비안을 짜고 있습니다
+        <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-border border-t-accent" />
+        <p className="mt-5 text-sm font-semibold text-text-secondary">
+          불러오는 중…
         </p>
-        <p className="mt-1 text-sm text-text-secondary">
-          앞에서 받으신 검증 설계서를 바탕으로 광고 핵심 문구, 표시 가격, 페이지 구성을
-          준비합니다. 10~20초 걸립니다.
-        </p>
-        <div className="mt-6 h-2 w-56 max-w-full overflow-hidden rounded-full bg-bg-alt">
-          <div className="gen-progress h-full rounded-full bg-accent" />
-        </div>
-        <ol className="mt-6 space-y-1.5 text-left text-sm text-text-tertiary">
-          {steps.map((s) => (
-            <li key={s} className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-accent/50" />
-              {s}
-            </li>
-          ))}
-        </ol>
       </div>
     );
   }
@@ -1008,12 +987,12 @@ function BriefStep({
         </Card>
       )}
 
-      {/* 1. 오퍼 핵심 문구 — 비즈필터가 뽑은 안 택1 OR 직접 수정 */}
+      {/* 1. 오퍼 핵심 문구 — 고객이 직접 입력(막막하면 위 'AI 추천') */}
       <Card label="광고와 사이트에 들어갈 한 줄 제목" required>
         <p className="mb-2 text-xs leading-relaxed text-text-tertiary">
-          사람들이 가장 먼저 보게 될 한 줄입니다. 비즈필터가 먼저 뽑아본
-          후보를 고르거나, 직접 적으셔도 됩니다. 그대로 확정되는 게 아니라,
-          담당 전문가가 반응이 가장 좋게 다듬어 최종 결정합니다.
+          사람들이 가장 먼저 보게 될 한 줄입니다. 직접 적어주세요(막막하면 위
+          ‘AI 추천’을 누르세요). 그대로 확정되는 게 아니라, 담당 전문가가
+          반응이 가장 좋게 다듬어 최종 결정합니다.
         </p>
         <div className="space-y-2">
           {draft.offer_options.map((o) => {
