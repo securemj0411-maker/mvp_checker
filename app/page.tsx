@@ -149,9 +149,6 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
           <p className="mt-6 text-xs font-medium text-white/55">
             상담 무료 · 광고비 별도 청구 없음 · 될지 안 될지 판정 보장
           </p>
-          <div className="mt-9">
-            <HeroVisual />
-          </div>
         </div>
       </div>
 
@@ -201,8 +198,8 @@ function HeroVisual() {
           명
         </span>
       </div>
-      <span className="block text-[15px] font-bold text-text">
-        아무도 사지 않았습니다
+      <span className="block text-[14px] font-bold text-text-secondary">
+        구매 고객
       </span>
       <div className="my-5 h-px bg-border" />
       <div className="flex items-center justify-center gap-2">
