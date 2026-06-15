@@ -79,10 +79,12 @@ function Nav() {
           </a>
         </nav>
         <a
-          href="/start"
+          href={KAKAO_CHAT_URL}
+          target="_blank"
+          rel="noopener noreferrer"
           className="rounded-full bg-accent px-[18px] py-[10px] text-sm font-bold text-white transition hover:bg-accent-hover"
         >
-          검증 신청
+          카톡 상담
         </a>
       </div>
     </header>
@@ -104,10 +106,12 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
   const ctas = (
     <>
       <a
-        href="/start"
+        href={KAKAO_CHAT_URL}
+        target="_blank"
+        rel="noopener noreferrer"
         className="inline-flex items-center gap-2 rounded-full bg-accent px-7 py-4 text-base font-bold text-white shadow-[0_10px_24px_-8px_var(--accent-glow)] transition hover:-translate-y-0.5 hover:bg-accent-hover"
       >
-        내 강의 검증 신청
+        카톡으로 검증 상담
         <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
       </a>
       <a
@@ -143,7 +147,7 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
           </p>
           <div className="mt-7 flex flex-col gap-3">{ctas}</div>
           <p className="mt-6 text-xs font-medium text-white/55">
-            광고비 별도 청구 없음 · 신청은 결제가 아닙니다 · 될지 안 될지 판정 보장
+            상담 무료 · 광고비 별도 청구 없음 · 될지 안 될지 판정 보장
           </p>
         </div>
       </div>
@@ -160,7 +164,7 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
           </p>
           <div className="mt-9 flex flex-wrap items-center gap-3">{ctas}</div>
           <p className="mt-7 text-sm font-medium text-text-tertiary">
-            광고비 별도 청구 없음 · 신청은 결제가 아닙니다 · 될지 안 될지 판정 보장
+            상담 무료 · 광고비 별도 청구 없음 · 될지 안 될지 판정 보장
           </p>
         </div>
       </div>
@@ -486,7 +490,7 @@ function Pricing() {
         "될지 안 될지(Go/No-Go) 판정 리포트 + 다음에 할 일 제안",
         "재검증 30% 할인: 조건 바꿔 다시 돌리면 회당 약 20만원",
       ],
-      cta: "엔진으로 시작",
+      cta: "엔진으로 상담",
       highlight: false,
       consult: false,
     },
@@ -504,7 +508,7 @@ function Pricing() {
         "실시간 진행 대시보드 + 될지 안 될지(Go/No-Go) 판정 리포트 + 다음에 할 일 권고",
         "판정 보장: 될지 안 될지 분명한 결론(Go/No-Go)을 못 드리면 전액 환불",
       ],
-      cta: "Quick으로 시작",
+      cta: "Quick으로 상담",
       highlight: true,
       consult: false,
     },
@@ -643,9 +647,9 @@ function Pricing() {
                 ))}
               </ul>
               <a
-                href={t.consult ? KAKAO_CHAT_URL : "/start"}
-                target={t.consult ? "_blank" : undefined}
-                rel={t.consult ? "noopener noreferrer" : undefined}
+                href={KAKAO_CHAT_URL}
+                target="_blank"
+                rel="noopener noreferrer"
                 className={`mt-8 block rounded-full py-4 text-center text-[15px] font-bold transition ${
                   t.highlight
                     ? "bg-accent text-white hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-[0_14px_30px_-8px_var(--accent-glow)]"
@@ -1003,14 +1007,16 @@ function FinalCTA() {
               녹화 전에 확인하세요
             </h2>
             <p className="mx-auto mt-6 max-w-md text-lg leading-[1.7] text-text-secondary">
-              강의 주제 한 줄이면 시작됩니다. 광고 채널과 합격선이 담긴 검증
-              설계서를 그 자리에서 무료로 받아보세요.
+              강의 주제 한 줄이면 됩니다. 카카오톡으로 상담하시면 광고 채널·합격선이
+              담긴 검증 설계를 무료로 잡아드립니다.
             </p>
             <a
-              href="/start"
+              href={KAKAO_CHAT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               className="mt-9 inline-flex items-center gap-2 rounded-full bg-accent px-8 py-4 text-base font-bold text-white shadow-[0_10px_24px_-8px_var(--accent-glow)] transition hover:-translate-y-0.5 hover:bg-accent-hover"
             >
-              내 강의 검증 신청
+              카카오톡으로 상담 신청
               <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
             </a>
             <p className="mt-5 text-sm font-medium text-text-tertiary">
@@ -1088,8 +1094,13 @@ function Footer() {
                 </a>
               </li>
               <li>
-                <a href="/start" className="hover:text-accent">
-                  검증 신청
+                <a
+                  href={KAKAO_CHAT_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-accent"
+                >
+                  카톡 상담
                 </a>
               </li>
             </ul>
