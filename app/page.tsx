@@ -269,16 +269,6 @@ function Process() {
             </div>
           ))}
         </div>
-        <div className="reveal mx-auto mt-12 max-w-3xl rounded-[20px] border border-border bg-surface p-8 text-center">
-          <p className="text-lg font-bold text-text">
-            저희는 강의 제작을 팔지 않습니다.
-          </p>
-          <p className="mt-3 leading-[1.75] text-text-secondary">
-            수요조사와 촬영·편집을 함께 파는 곳은 "찍으세요"라고 말할 금전적
-            이유가 있습니다. 저희 수입은 판정의 정확도에서만 나옵니다. 그래서
-            안 되는 주제에는 안 된다고 말씀드립니다.
-          </p>
-        </div>
       </div>
     </section>
   );
