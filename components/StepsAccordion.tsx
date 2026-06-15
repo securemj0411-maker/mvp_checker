@@ -123,11 +123,10 @@ const steps: {
 
           {/* 중앙 — YouTube Shorts 워터마크 로고 */}
           <div className="absolute inset-x-0 top-[38%] flex -translate-y-1/2 flex-col items-center">
-            <svg viewBox="0 0 48 48" className="h-[52px] w-[52px] drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]">
-              {/* 기울인 빨간 캡슐 */}
-              <rect x="14" y="4" width="20" height="40" rx="10" fill="#FF0033" transform="rotate(24 24 24)" />
-              {/* 흰색 재생 삼각형 */}
-              <path d="M20.5 16.5 L20.5 31.5 L32.5 24 Z" fill="#ffffff" />
+            <svg viewBox="0 0 98.94 122.88" className="h-[54px] w-auto drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]">
+              {/* 공식 YouTube Shorts 아이콘 형태 (빨간 필름 실루엣 + 재생 삼각형 컷아웃) */}
+              <path d="M63.49 2.71c11.59-6.04 25.94-1.64 32.04 9.83 6.1 11.47 1.65 25.66-9.94 31.7l-9.53 5.01c8.21.3 16.04 4.81 20.14 12.52 6.1 11.47 1.66 25.66-9.94 31.7l-50.82 26.7c-11.59 6.04-25.94 1.64-32.04-9.83-6.1-11.47-1.65-25.66 9.94-31.7l9.53-5.01c-8.21-.3-16.04-4.81-20.14-12.52-6.1-11.47-1.65-25.66 9.94-31.7l50.82-26.7zM36.06 42.53l30.76 18.99-30.76 18.9V42.53z" fill="#f40407" />
+              <path d="M36.06,42.53 V 80.42 L 66.82,61.52Z" fill="#fff" />
             </svg>
             <span className="mt-1.5 text-[13px] font-bold tracking-tight text-white drop-shadow">Shorts</span>
           </div>
