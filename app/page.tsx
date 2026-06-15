@@ -28,7 +28,6 @@ export default function Home({
       <Nav />
       <Hero variant={heroVariant} />
       <PainStory />
-      <Statement />
       <TourFakeDoor />
       <TourAds />
       <TourDashboard />
@@ -210,9 +209,6 @@ function PainStory() {
   return (
     <section className="bg-bg-alt">
       <div className="mx-auto max-w-2xl px-6 py-24 sm:py-32">
-        <p className="reveal mb-8 text-center text-sm font-bold text-text-tertiary">
-          혹시, 이런 적 없으세요?
-        </p>
         <div className="space-y-3.5">
           {beats.map((b, i) => (
             <div
@@ -234,28 +230,7 @@ function PainStory() {
         <p className="reveal mt-12 text-center text-lg font-extrabold leading-[1.6] tracking-[-0.01em] text-text sm:text-[26px]">
           가장 흔하고, 가장 아픈 순간입니다.
           <br />
-          <span className="text-accent">비즈필터는 이걸 만들기 전에 막습니다.</span>
-        </p>
-      </div>
-    </section>
-  );
-}
-
-function Statement() {
-  return (
-    <section className="bg-bg">
-      <div className="mx-auto max-w-4xl px-6 py-28 text-center sm:py-36">
-        <p className="reveal text-2xl font-extrabold leading-[1.6] tracking-[-0.02em] text-text sm:text-[34px]">
-          “좋은 강의 같다”는 말은
-          <br />
-          어디서든 들을 수 있습니다.
-          <br />
-          <span className="text-text-tertiary">
-            돈 내고 들을 사람이 있는지는, 다른 문제입니다.
-          </span>
-        </p>
-        <p className="reveal mt-10 text-lg font-medium text-text-secondary sm:text-xl">
-          비즈필터는 그걸 녹화하기 전에 확인합니다.
+          <span className="text-accent">비즈필터는 만들기 전에, 팔릴지부터 확인합니다.</span>
         </p>
       </div>
     </section>
@@ -644,7 +619,7 @@ function Process() {
     <section id="process" className="border-y border-border bg-bg-alt">
       <div className="mx-auto max-w-6xl px-6 py-24 sm:py-32">
         <div className="reveal mx-auto max-w-2xl text-center">
-          <Label>진행 방식</Label>
+          <Label>그래서, 어떻게 확인하나요?</Label>
           <h2 className="mt-4 text-[32px] font-extrabold leading-[1.2] tracking-[-0.03em] text-text sm:text-5xl">
             빠르면 2~3일이면 끝납니다
           </h2>
