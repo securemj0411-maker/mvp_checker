@@ -466,65 +466,6 @@ function Cases() {
         <p className="reveal mt-16 text-center text-[13px] text-text-tertiary">
           위 3건은 비즈필터가 <b className="font-semibold text-text-secondary">어떻게 검증하고 판정이 어떻게 나오는지</b> 보여주는 시연 사례입니다. ‘수강신청 클릭’은 수강신청 버튼을 누른 수일 뿐 실제 결제는 받지 않으며, 실제 수강 검증 사례는 동의를 받아 순차적으로 공개합니다.
         </p>
-
-        {/* 사후 진단 — 실제 사례 (득템잡이): 광고조차 막힌 NO-GO라 맨 아래 배치 */}
-        <div className="reveal mt-20 grid items-center gap-10 sm:mt-28 lg:grid-cols-2 lg:gap-20">
-          {/* 제품 목업 */}
-          <div className="lg:order-2">
-            <div
-              className="relative overflow-hidden rounded-[32px] px-6 py-12 sm:px-10 sm:py-16"
-              style={{ background: "linear-gradient(160deg,#eef2fb,#dbe5f7)" }}
-            >
-              <CaseVisual slug="resale" />
-            </div>
-          </div>
-          {/* 내용 */}
-          <div className="lg:order-1">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <span
-                className="rounded-full px-3.5 py-1.5 text-sm font-extrabold"
-                style={{ color: verdict.nogo, background: verdict.nogoBg }}
-              >
-                NO-GO
-              </span>
-              <span className="rounded-full bg-text px-3 py-1 text-xs font-extrabold text-bg">
-                사후 진단 · 실제 사례
-              </span>
-            </div>
-            <h3 className="mt-5 text-[30px] font-extrabold leading-tight tracking-[-0.03em] text-text sm:text-[38px]">
-              득템잡이
-            </h3>
-            <p className="mt-2 text-[14px] font-semibold text-accent">
-              당근·번개·중고나라에서 시세보다 싼 매물을 찾아주는 중고 시세 차익 분석
-            </p>
-            <p className="mt-2.5 max-w-md text-[15px] leading-[1.7] text-text-secondary">
-              <b className="font-semibold text-text">한 달 동안 혼자 다 만들어</b> 출시한 뒤에야
-              비즈필터를 찾아왔습니다. 그제야 광고 자체가 막히고(중고 거래·시세
-              비교는 플랫폼 광고 정책에 걸립니다), 결제 전환도 안 되고 시장도 이미
-              포화라는 걸 알게 됐습니다.{" "}
-              <b className="font-semibold text-text">검증을 먼저 받았다면 한 달이 아니라 며칠 만에</b>,
-              광고비 몇만 원으로 똑같은 답을 받았을 겁니다. 그게 검증의 목적입니다.
-            </p>
-            <div className="mt-7 grid grid-cols-2 gap-3">
-              {[
-                ["관심 (클릭)", "높음", false],
-                ["결제까지", "막힘", true],
-                ["광고 승인", "제한", true],
-                ["경쟁 상태", "포화", true],
-              ].map(([k, v, bad]) => (
-                <div key={k as string} className="rounded-[18px] bg-bg-alt px-4 py-3.5">
-                  <p className="text-[11px] font-semibold text-text-tertiary">{k}</p>
-                  <p
-                    className="mt-1 text-[18px] font-extrabold tracking-tight"
-                    style={{ color: bad ? verdict.nogo : "var(--text)" }}
-                  >
-                    {v}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   );
