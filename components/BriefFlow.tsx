@@ -1907,9 +1907,9 @@ function DepositStep({
               <button
                 type="button"
                 onClick={onEdit}
-                className="flex-shrink-0 rounded-full border border-border px-3 py-1.5 text-xs font-bold text-text-secondary transition hover:border-accent/60 hover:text-text"
+                className="flex-shrink-0 rounded-full border border-accent/50 bg-accent/5 px-4 py-2 text-xs font-bold text-accent transition hover:bg-accent/10"
               >
-                수정하기
+                ✎ 내용 수정하기
               </button>
             )}
           </div>
@@ -1919,9 +1919,17 @@ function DepositStep({
             <ConfirmRow label="임시 이름" value={confirmed.name} />
           </dl>
           <p className="mt-3 text-xs leading-relaxed text-text-tertiary">
-            입금 전까지는 위 내용을 언제든 고치실 수 있습니다. 입금 후에는 담당
-            전문가가 검토를 시작합니다.
+            입금 전까지는 메시지·가격은 물론, <b className="font-bold text-text-secondary">강사 사진·소개 이미지·프롤로그</b>까지 ‘수정하기’에서 언제든 고치실 수 있습니다. 입금 후에는 담당 전문가가 검토를 시작합니다.
           </p>
+          {onEdit && (
+            <button
+              type="button"
+              onClick={onEdit}
+              className="mt-4 w-full rounded-xl border border-accent/40 bg-accent/5 px-4 py-3 text-sm font-bold text-accent transition hover:bg-accent/10"
+            >
+              ✎ 강사 사진·소개 이미지 등 수정하기
+            </button>
+          )}
         </div>
       )}
 
