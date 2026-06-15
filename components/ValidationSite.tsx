@@ -81,19 +81,30 @@ function embedUrl(raw?: string): string | null {
 }
 
 /** 강사 아바타 — 사진이 있으면 사진, 없으면 이름 첫 글자 기본 아바타(안 비어 보이게). */
-function Avatar({ photo, name }: { photo?: string; name: string }) {
+function Avatar({
+  photo,
+  name,
+  size = "md",
+}: {
+  photo?: string;
+  name: string;
+  size?: "sm" | "md";
+}) {
+  const box = size === "sm" ? "h-6 w-6 text-[11px]" : "h-12 w-12 text-[17px]";
   if (photo && /^https?:\/\//.test(photo)) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={photo}
         alt={name}
-        className="h-12 w-12 flex-shrink-0 rounded-full border border-border object-cover"
+        className={`${box} flex-shrink-0 rounded-full border border-border object-cover`}
       />
     );
   }
   return (
-    <span className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-full bg-accent/10 text-[17px] font-black text-accent">
+    <span
+      className={`${box} grid flex-shrink-0 place-items-center rounded-full bg-accent/10 font-black text-accent`}
+    >
       {name.trim().slice(0, 1) || "·"}
     </span>
   );
@@ -348,18 +359,9 @@ export default function ValidationSite({
     Infinity,
   );
 
-  // 정보 칩 — 가짜 숫자 대신 진짜 메타만. 사전신청 수는 일정 수 이상일 때만(정직).
+  // 사전신청 수는 일정 수 이상일 때만 노출(가짜 사회적 증거 금지).
   const signups = data.signupCount ?? 0;
   const showSignups = signups >= 3;
-  const chips: { icon: "globe" | "tag" | "users"; label: string }[] = [
-    { icon: "globe", label: CHIP_LABEL[data.intent] },
-    ...(priceFrom !== Infinity
-      ? [{ icon: "tag" as const, label: `${priceFrom.toLocaleString()}원~` }]
-      : []),
-    ...(showSignups
-      ? [{ icon: "users" as const, label: `${signups.toLocaleString()}명 사전신청` }]
-      : []),
-  ];
 
   return (
     <div className="min-h-screen bg-bg text-text" style={rootStyle}>
@@ -395,26 +397,7 @@ export default function ValidationSite({
             </h1>
           )}
 
-          {/* 정보 칩 — Public·Free·멤버수 자리. 가짜 숫자 없이 진짜 메타만. */}
-          {chips.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-2">
-              {chips.map((c, i) => (
-                <span
-                  key={i}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] font-semibold ${
-                    c.icon === "users"
-                      ? "border-accent/30 bg-accent/10 text-accent"
-                      : "border-border bg-surface text-text-secondary"
-                  }`}
-                >
-                  <ChipIcon name={c.icon} />
-                  {c.label}
-                </span>
-              ))}
-            </div>
-          )}
-
-          <div className="mt-7 grid gap-8 lg:grid-cols-[1fr_360px]">
+          <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_360px]">
             {/* ── 좌: 미디어 + 강사 + 본문 ── */}
             <div className="min-w-0">
               {hasMedia ? (
@@ -431,29 +414,50 @@ export default function ValidationSite({
                 <DefaultCover name={data.name} />
               )}
 
-              {/* 강사 블록 — 얼굴(사진 또는 기본 아바타) + 이름 + 약력 */}
-              <div className="mt-6 flex items-center gap-3">
-                <Avatar photo={data.instructorPhoto} name={data.name} />
-                <div className="min-w-0">
-                  <p className="text-[15px] font-extrabold text-text">
-                    {data.name}
-                  </p>
-                  {editable ? (
-                    <EditText
-                      value={data.credential ?? ""}
-                      onChange={(v) => edit!.field("credential", v)}
-                      placeholder="강사 소개·실적 한 줄 (예: 구독 1.2만 유튜버 · 5년차) — 선택"
-                      className="mt-0.5 text-[13px] font-semibold text-text-secondary"
-                    />
-                  ) : (
-                    hasCredential && (
-                      <p className="mt-0.5 text-[13px] font-semibold text-text-secondary">
-                        {data.credential}
-                      </p>
-                    )
-                  )}
-                </div>
+              {/* 정보 줄 (Skool식) — 형태 · 가격 · 사전신청 · By 강사 (회색 아이콘) */}
+              <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-border pb-5 text-[13px] text-text-secondary">
+                <span className="inline-flex items-center gap-1.5">
+                  <ChipIcon name="globe" />
+                  {CHIP_LABEL[data.intent]}
+                </span>
+                {priceFrom !== Infinity && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <ChipIcon name="tag" />
+                    {priceFrom.toLocaleString()}원~
+                  </span>
+                )}
+                {showSignups && (
+                  <span className="inline-flex items-center gap-1.5 font-bold text-accent">
+                    <ChipIcon name="users" />
+                    {signups.toLocaleString()}명 사전신청
+                  </span>
+                )}
+                <span className="inline-flex items-center gap-1.5">
+                  <Avatar
+                    photo={data.instructorPhoto}
+                    name={data.name}
+                    size="sm"
+                  />
+                  By {data.name}
+                </span>
               </div>
+              {/* 강사 약력 한 줄 */}
+              {editable ? (
+                <div className="mt-4">
+                  <EditText
+                    value={data.credential ?? ""}
+                    onChange={(v) => edit!.field("credential", v)}
+                    placeholder="강사 소개·실적 한 줄 (예: 구독 1.2만 유튜버 · 5년차) — 선택"
+                    className="text-[14px] font-semibold text-text-secondary"
+                  />
+                </div>
+              ) : (
+                hasCredential && (
+                  <p className="mt-4 text-[14px] font-semibold text-text-secondary">
+                    {data.credential}
+                  </p>
+                )
+              )}
 
               {/* 이런 걸 얻어갑니다 — 개수 자유. 편집은 3칸 고정, 읽기는 채운 만큼 전부. */}
               {(points.length > 0 || editable) && (
@@ -537,30 +541,29 @@ export default function ValidationSite({
                   <p className="text-[16px] font-extrabold text-text">
                     {data.name}
                   </p>
+                  <p className="mt-0.5 text-[12px] text-text-tertiary">
+                    {CHIP_LABEL[data.intent]}
+                  </p>
                   {data.problemLine && (
-                    <p className="mt-1.5 text-[13px] leading-[1.6] text-text-secondary">
+                    <p className="mt-2.5 text-[13px] leading-[1.6] text-text-secondary">
                       {data.problemLine}
                     </p>
                   )}
-                  <div className="mt-4 space-y-2">
-                    {plans.map((p, i) => (
-                      <div
-                        key={i}
-                        className="flex items-center justify-between gap-2 rounded-[12px] bg-bg-alt px-3.5 py-2.5"
-                      >
-                        {editable ? (
+
+                  {editable ? (
+                    /* 편집 모드 — 인라인 플랜 편집 (확정 단계) */
+                    <div className="mt-4 space-y-2">
+                      {plans.map((p, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between gap-2 rounded-[12px] bg-bg-alt px-3.5 py-2.5"
+                        >
                           <input
                             value={p.label}
                             onChange={(e) => edit!.plan(i, "label", e.target.value)}
                             placeholder="플랜"
                             className="min-w-0 flex-1 rounded bg-transparent px-1.5 py-0.5 text-[13px] font-bold text-text outline-none ring-1 ring-accent/20 focus:ring-accent"
                           />
-                        ) : (
-                          <span className="min-w-0 truncate text-[13px] font-bold text-text">
-                            {p.label || "기본"}
-                          </span>
-                        )}
-                        {editable ? (
                           <span className="flex flex-shrink-0 items-baseline">
                             <input
                               value={p.price > 0 ? String(p.price) : ""}
@@ -578,23 +581,71 @@ export default function ValidationSite({
                               원
                             </span>
                           </span>
-                        ) : (
-                          <span className="flex-shrink-0 text-[15px] font-extrabold text-text">
-                            {p.price > 0 ? p.price.toLocaleString() : "0"}
-                            <span className="text-[12px] font-semibold text-text-tertiary">
-                              원
-                            </span>
-                          </span>
-                        )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    /* 읽기 모드 — Skool식 3칸 통계 박스 (사전신청 · 수강료 · 형태) */
+                    <div className="mt-4 flex overflow-hidden rounded-[12px] border border-border">
+                      <div className="flex-1 px-2 py-2.5 text-center">
+                        <div className="text-[15px] font-extrabold text-text">
+                          {showSignups ? signups.toLocaleString() : "—"}
+                        </div>
+                        <div className="mt-0.5 text-[11px] text-text-tertiary">
+                          사전신청
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                  {showSignups && (
-                    <p className="mt-4 flex items-center justify-center gap-1.5 text-[12px] font-bold text-accent">
-                      <span className="h-1.5 w-1.5 rounded-full bg-go" />
-                      이미 {signups.toLocaleString()}명이 사전신청했어요
-                    </p>
+                      <div className="flex-1 border-x border-border px-2 py-2.5 text-center">
+                        <div className="text-[15px] font-extrabold text-text">
+                          {priceFrom !== Infinity
+                            ? priceFrom.toLocaleString()
+                            : "—"}
+                        </div>
+                        <div className="mt-0.5 text-[11px] text-text-tertiary">
+                          수강료(원)
+                        </div>
+                      </div>
+                      <div className="flex-1 px-2 py-2.5 text-center">
+                        <div className="text-[14px] font-extrabold text-text">
+                          {CHIP_LABEL[data.intent]}
+                        </div>
+                        <div className="mt-0.5 text-[11px] text-text-tertiary">
+                          형태
+                        </div>
+                      </div>
+                    </div>
                   )}
+
+                  {/* 사전신청자 아바타 줄 — 익명(신원 비노출), 실제 수치만 */}
+                  {!editable && showSignups && (
+                    <div className="mt-3.5 flex items-center">
+                      {[15, 22, 30, 18].map((op, i) => (
+                        <span
+                          key={i}
+                          className="grid h-6 w-6 place-items-center rounded-full border-2 border-surface"
+                          style={{
+                            marginLeft: i === 0 ? 0 : -7,
+                            background: `color-mix(in srgb, var(--accent) ${op}%, var(--surface))`,
+                          }}
+                        >
+                          <svg
+                            width="11"
+                            height="11"
+                            viewBox="0 0 24 24"
+                            fill="var(--accent)"
+                            aria-hidden
+                          >
+                            <circle cx="12" cy="8" r="4" />
+                            <path d="M4 21a8 8 0 0 1 16 0Z" />
+                          </svg>
+                        </span>
+                      ))}
+                      <span className="ml-2.5 text-[12px] text-text-tertiary">
+                        +{signups.toLocaleString()}명이 사전신청했어요
+                      </span>
+                    </div>
+                  )}
+
                   <button
                     onClick={() => openModal()}
                     className="mt-4 w-full rounded-full bg-accent py-3.5 text-[15px] font-bold text-white transition hover:bg-accent-hover"
