@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { BrandMark } from "./Brand";
 
 type Plan = { label: string; price: number; desc?: string };
 
@@ -395,8 +396,12 @@ export default function ValidationSite({
       {/* ── 상단 바 (고객 브랜드) ── */}
       <header className="sticky top-0 z-30 border-b border-border/70 bg-bg/85 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-5">
-          <span className="text-[17px] font-semibold tracking-[-0.02em] text-text">
-            {data.name}
+          {/* 로고 — 지금은 비즈필터 기본 로고, 추후 고객 업로드 로고로 교체 예정 */}
+          <span className="flex items-center gap-2">
+            <BrandMark size={26} />
+            <span className="text-[17px] font-semibold tracking-[-0.02em] text-text">
+              {data.name}
+            </span>
           </span>
           <button
             onClick={() => openModal()}
@@ -409,7 +414,7 @@ export default function ValidationSite({
 
       {/* ── Skool식 2단: 좌 콘텐츠 카드 + 우 신청 카드 ── */}
       <section>
-        <div className="mx-auto max-w-6xl px-5 py-8 sm:py-10">
+        <div className="mx-auto max-w-6xl px-5 pb-10 pt-4 sm:pt-5">
           <div className="grid gap-6 lg:grid-cols-[1fr_360px] lg:items-start">
             {/* ── 좌: 제목+미디어+정보+본문을 흰 카드 하나로 (Skool about식) ── */}
             <div className="min-w-0 rounded-[16px] border border-border bg-surface p-5 sm:p-7">
