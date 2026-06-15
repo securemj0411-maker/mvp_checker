@@ -1665,6 +1665,26 @@ function DepositStep({
           </a>
         )}
 
+        {onEdit && (
+          <button
+            type="button"
+            onClick={onEdit}
+            className="mt-3 flex w-full items-center justify-between gap-3 rounded-xl border border-accent/40 bg-accent/5 p-4 text-left transition hover:border-accent hover:bg-accent/10"
+          >
+            <span>
+              <span className="block text-[14px] font-bold text-accent">
+                ✎ 페이지 내용 수정하기
+              </span>
+              <span className="mt-0.5 block text-[12px] leading-relaxed text-text-secondary">
+                문구·표시 가격·강사 사진·소개 이미지까지 입금 전까지 언제든 고칠 수 있어요.
+              </span>
+            </span>
+            <span className="flex-shrink-0 text-lg font-bold text-accent" aria-hidden>
+              →
+            </span>
+          </button>
+        )}
+
         <div className="mt-5 rounded-xl border border-accent/30 bg-accent/[0.05] p-5">
           <div className="flex items-baseline justify-between gap-3">
             <span className="text-sm font-semibold text-text-secondary">
@@ -1900,37 +1920,20 @@ function DepositStep({
       <VerdictSample />
 
       {confirmed && (
-        <div className="cold-panel rounded-lg p-6">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-bold text-text">확정 내용</p>
-            {onEdit && (
-              <button
-                type="button"
-                onClick={onEdit}
-                className="flex-shrink-0 rounded-full border border-accent/50 bg-accent/5 px-4 py-2 text-xs font-bold text-accent transition hover:bg-accent/10"
-              >
-                ✎ 내용 수정하기
-              </button>
-            )}
-          </div>
+        <details className="cold-panel rounded-lg p-5">
+          <summary className="cursor-pointer text-sm font-bold text-text-secondary">
+            확정 내용 보기
+          </summary>
           <dl className="mt-3 space-y-3">
             <ConfirmRow label="핵심 메시지" value={confirmed.offer} />
             <ConfirmRow label="표시 가격·플랜" value={planText(confirmed)} />
             <ConfirmRow label="임시 이름" value={confirmed.name} />
           </dl>
           <p className="mt-3 text-xs leading-relaxed text-text-tertiary">
-            입금 전까지는 메시지·가격은 물론, <b className="font-bold text-text-secondary">강사 사진·소개 이미지·프롤로그</b>까지 ‘수정하기’에서 언제든 고치실 수 있습니다. 입금 후에는 담당 전문가가 검토를 시작합니다.
+            입금 전까지는 위 ‘페이지 내용 수정하기’에서 문구·가격·강사 사진까지
+            언제든 고치실 수 있습니다. 입금 후에는 담당 전문가가 검토를 시작합니다.
           </p>
-          {onEdit && (
-            <button
-              type="button"
-              onClick={onEdit}
-              className="mt-4 w-full rounded-xl border border-accent/40 bg-accent/5 px-4 py-3 text-sm font-bold text-accent transition hover:bg-accent/10"
-            >
-              ✎ 강사 사진·소개 이미지 등 수정하기
-            </button>
-          )}
-        </div>
+        </details>
       )}
 
       <details className="cold-panel rounded-lg p-5">
