@@ -28,6 +28,7 @@ export default function Home({
       <Nav />
       <Hero variant={heroVariant} />
       <PainStory />
+      <TourIntro />
       <TourFakeDoor />
       <TourAds />
       <TourDashboard />
@@ -271,10 +272,23 @@ function TourRow({
   );
 }
 
+function TourIntro() {
+  return (
+    <section className="bg-bg">
+      <div className="mx-auto max-w-2xl px-6 pb-4 pt-24 text-center sm:pt-32">
+        <Label>그래서, 어떻게 확인하나요?</Label>
+        <h2 className="mt-4 text-[32px] font-extrabold leading-[1.2] tracking-[-0.03em] text-text sm:text-[42px]">
+          3단계로 팔릴지 확인합니다
+        </h2>
+      </div>
+    </section>
+  );
+}
+
 function TourFakeDoor() {
   return (
     <TourRow
-      label="검증용 수강신청 페이지"
+      label="1 · 검증용 수강신청 페이지"
       title={
         <>
           진짜 강의처럼 보이는
@@ -369,7 +383,7 @@ function TourAds() {
   return (
     <TourRow
       flip
-      label="진짜 광고"
+      label="2 · 진짜 광고"
       title={
         <>
           당신을 모르는 사람들에게
@@ -453,7 +467,7 @@ function TourAds() {
 function TourDashboard() {
   return (
     <TourRow
-      label="라이브 대시보드"
+      label="3 · 라이브 대시보드"
       title={
         <>
           노출부터 수강신청 클릭까지,
@@ -532,7 +546,7 @@ function TourVerdict() {
   return (
     <TourRow
       flip
-      label="판정"
+      label="4 · 판정"
       title={
         <>
           표본이 차면, Go/No-Go
@@ -619,7 +633,7 @@ function Process() {
     <section id="process" className="border-y border-border bg-bg-alt">
       <div className="mx-auto max-w-6xl px-6 py-24 sm:py-32">
         <div className="reveal mx-auto max-w-2xl text-center">
-          <Label>그래서, 어떻게 확인하나요?</Label>
+          <Label>진행 방식</Label>
           <h2 className="mt-4 text-[32px] font-extrabold leading-[1.2] tracking-[-0.03em] text-text sm:text-5xl">
             빠르면 2~3일이면 끝납니다
           </h2>
