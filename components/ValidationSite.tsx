@@ -82,7 +82,7 @@ function embedUrl(raw?: string): string | null {
 }
 
 /** 고객이 아직 강사 사진을 안 올렸을 때 보여줄 기본 이미지(예시용). public/defaults 에 위치. */
-const DEFAULT_INSTRUCTOR_PHOTO = "/defaults/instructor-default.png";
+const DEFAULT_INSTRUCTOR_PHOTO = "/defaults/instructor-default.webp";
 /** 영상 링크도, 소개 이미지도 없을 때만 채우는 기본 예시 영상. 링크를 올리거나 사진을 넣으면 사라진다. */
 const DEFAULT_INTRO_VIDEO = "https://www.youtube.com/watch?v=dCREiWLElTQ";
 
