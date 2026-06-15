@@ -27,6 +27,7 @@ export default function Home({
     <main className="flex-1">
       <Nav />
       <Hero variant={heroVariant} />
+      <PainStory />
       <Statement />
       <TourFakeDoor />
       <TourAds />
@@ -230,6 +231,47 @@ function Browser({
 
 
 /* ─────────────  STATEMENT — 토스식 단독 선언 섹션  ───────────── */
+/* ─────────────  공감 스토리 — "이거 내 얘기네" 한 컷 (캐주얼 목소리)  ───────────── */
+function PainStory() {
+  const beats: { text: string; crash?: boolean }[] = [
+    { text: "한 달 꼬박 갈아넣어 만든 내 강의·전자책, 드디어 완성! 🎉" },
+    { text: "이제 홍보만 하면 되겠지? 😎" },
+    { text: "…엥? 아무도 안 사 ㅠㅠ", crash: true },
+  ];
+  return (
+    <section className="bg-bg-alt">
+      <div className="mx-auto max-w-2xl px-6 py-24 sm:py-32">
+        <p className="reveal mb-8 text-center text-sm font-bold text-text-tertiary">
+          혹시, 이런 적 없으세요?
+        </p>
+        <div className="space-y-3.5">
+          {beats.map((b, i) => (
+            <div
+              key={i}
+              className={`reveal flex ${b.crash ? "justify-center" : "justify-start"}`}
+            >
+              <span
+                className={
+                  b.crash
+                    ? "rounded-2xl bg-text px-6 py-4 text-xl font-extrabold text-white sm:text-2xl"
+                    : "rounded-2xl rounded-bl-md border border-border bg-surface px-5 py-3.5 text-base font-semibold text-text shadow-[0_6px_18px_-12px_rgba(10,23,38,0.25)] sm:text-lg"
+                }
+              >
+                {b.text}
+              </span>
+            </div>
+          ))}
+        </div>
+        <p className="reveal mt-12 text-center text-lg font-extrabold leading-[1.6] tracking-[-0.01em] text-text sm:text-[26px]">
+          가장 흔하고, 가장 아픈 순간입니다.
+          <br />
+          <span className="text-accent">비즈필터는 이걸 만들기 전에 막습니다.</span>
+        </p>
+      </div>
+    </section>
+  );
+}
+
 function Statement() {
   return (
     <section className="bg-bg">
