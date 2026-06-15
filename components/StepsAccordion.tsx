@@ -103,42 +103,78 @@ const steps: {
     flip: true,
     shot: (
       <div className="flex justify-center">
-        {/* 세로형 숏폼 UI — YouTube Shorts / TikTok 스타일 */}
-        <div className="relative w-[260px] overflow-hidden rounded-[24px] shadow-[0_16px_48px_-12px_rgba(10,23,38,0.30)]" style={{ aspectRatio: "9/16" }}>
-          {/* 배경 영상 영역 */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0d1b35] via-[#102040] to-[#0a1220]" />
-          {/* 상단 채널 표시 */}
-          <div className="absolute left-0 right-0 top-0 flex items-center justify-between px-4 pt-4">
-            <div className="flex items-center gap-1.5">
-              <span className="grid h-6 w-6 place-items-center rounded-full bg-accent text-[10px] font-black text-white">H</span>
-              <span className="text-[12px] font-bold text-white/90">homefit</span>
-              <span className="rounded-sm bg-white/20 px-1 py-0.5 text-[9px] font-bold text-white">광고</span>
+        <div className="relative w-[260px] overflow-hidden rounded-[20px] bg-black shadow-[0_20px_60px_-12px_rgba(0,0,0,0.5)]" style={{ aspectRatio: "9/16" }}>
+          {/* 배경 */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#111] via-[#0a0a0a] to-[#000]" />
+
+          {/* 상단 바 — 재생·음량·더보기 */}
+          <div className="absolute left-0 right-0 top-0 flex items-center justify-between px-3 pt-3">
+            <div className="flex items-center gap-3">
+              <svg viewBox="0 0 24 24" className="h-5 w-5 fill-white"><path d="M8 5v14l11-7z"/></svg>
+              <svg viewBox="0 0 24 24" className="h-5 w-5 fill-white"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
             </div>
-            <span className="text-[11px] text-white/50">1 / 2</span>
+            <svg viewBox="0 0 24 24" className="h-5 w-5 fill-white"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
           </div>
-          {/* 중앙 콘텐츠 */}
+
+          {/* 중앙 — Shorts 로고 + 광고 텍스트 */}
           <div className="absolute inset-0 flex flex-col items-center justify-center px-5 text-center">
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-white/50">홈트 챌린지</p>
-            <p className="mt-3 text-[22px] font-extrabold leading-[1.25] tracking-tight text-white">
-              하루 15분으로<br />살이 빠진다고?
+            {/* YouTube Shorts 로고 SVG */}
+            <svg viewBox="0 0 56 56" className="mb-4 h-14 w-14" fill="none">
+              <rect width="56" height="56" rx="12" fill="#FF0000"/>
+              {/* 왼쪽 필름 스트립 */}
+              <rect x="6" y="18" width="28" height="12" rx="6" fill="white" transform="rotate(-18 20 24)"/>
+              {/* 오른쪽 필름 스트립 */}
+              <rect x="22" y="26" width="28" height="12" rx="6" fill="white" transform="rotate(-18 36 32)"/>
+              {/* 플레이 삼각형 */}
+              <polygon points="22,17 22,33 36,25" fill="#FF0000"/>
+            </svg>
+            <p className="text-[20px] font-extrabold leading-[1.3] tracking-tight text-white drop-shadow">
+              하루 15분으로<br/>살이 빠진다고?
             </p>
-            <p className="mt-3 text-[13px] leading-relaxed text-white/70">기구 없이 8주. 지금 확인하세요.</p>
+            <p className="mt-2 text-[12px] text-white/60">기구 없이 8주 챌린지</p>
           </div>
-          {/* 우측 액션 버튼들 (틱톡식) */}
-          <div className="absolute bottom-20 right-3 flex flex-col items-center gap-4">
-            {[["❤️", "2.4만"], ["💬", "318"], ["↗️", "공유"]].map(([icon, label]) => (
-              <div key={label} className="flex flex-col items-center gap-0.5">
-                <span className="text-xl">{icon}</span>
-                <span className="text-[10px] font-bold text-white/80">{label}</span>
-              </div>
-            ))}
+
+          {/* 우측 액션 버튼 */}
+          <div className="absolute bottom-28 right-2 flex flex-col items-center gap-5">
+            {/* 좋아요 */}
+            <div className="flex flex-col items-center gap-0.5">
+              <svg viewBox="0 0 24 24" className="h-6 w-6 fill-white"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg>
+              <span className="text-[10px] font-bold text-white">1.8만</span>
+            </div>
+            {/* 싫어요 */}
+            <div className="flex flex-col items-center gap-0.5">
+              <svg viewBox="0 0 24 24" className="h-6 w-6 fill-white"><path d="M15 3H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v2c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L9.83 23l6.59-6.59c.36-.36.58-.86.58-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z"/></svg>
+              <span className="text-[10px] font-bold text-white">싫어요</span>
+            </div>
+            {/* 댓글 */}
+            <div className="flex flex-col items-center gap-0.5">
+              <svg viewBox="0 0 24 24" className="h-6 w-6 fill-white"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+              <span className="text-[10px] font-bold text-white">1,187</span>
+            </div>
+            {/* 공유 */}
+            <div className="flex flex-col items-center gap-0.5">
+              <svg viewBox="0 0 24 24" className="h-6 w-6 fill-white"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
+              <span className="text-[10px] font-bold text-white">공유</span>
+            </div>
+            {/* 리믹스 */}
+            <div className="flex flex-col items-center gap-0.5">
+              <svg viewBox="0 0 24 24" className="h-6 w-6 fill-white"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+              <span className="text-[10px] font-bold text-white">3</span>
+            </div>
           </div>
-          {/* 하단 텍스트 + CTA */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-4 pb-5 pt-10">
-            <p className="text-[11px] text-white/60">@homefit · 스폰서</p>
-            <div className="mt-2 flex items-center justify-between">
-              <p className="text-[13px] font-bold text-white">클릭률 5.8%</p>
-              <span className="rounded-full bg-accent px-4 py-1.5 text-[11px] font-bold text-white">수강신청 →</span>
+
+          {/* 하단 채널 정보 */}
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent px-3 pb-4 pt-12">
+            <div className="flex items-center gap-2">
+              <div className="grid h-7 w-7 flex-shrink-0 place-items-center rounded-full bg-accent text-[11px] font-black text-white">H</div>
+              <span className="text-[12px] font-bold text-white">@homefit</span>
+              <span className="ml-1 rounded border border-white/60 px-2 py-0.5 text-[10px] font-bold text-white">구독</span>
+            </div>
+            <p className="mt-1.5 text-[11px] leading-snug text-white/80">하루 15분 홈트, 기구 없이 8주 만에 변화</p>
+            <p className="mt-0.5 text-[10px] text-white/40">#홈트 #다이어트 #shorts</p>
+            {/* 진행 바 */}
+            <div className="mt-3 h-[3px] w-full rounded-full bg-white/20">
+              <div className="h-full w-[38%] rounded-full bg-white" />
             </div>
           </div>
         </div>
