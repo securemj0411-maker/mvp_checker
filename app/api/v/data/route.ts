@@ -53,6 +53,12 @@ export async function GET(request: Request) {
     return Response.json({ ok: true, published: false });
   }
 
+  // 진짜 사전신청 수 — Skool의 '멤버수' 자리를 정직하게 메운다(가짜 아님).
+  const { count: signupCount } = await admin
+    .from("o2o_signups")
+    .select("id", { count: "exact", head: true })
+    .eq("code", code);
+
   const ov: NonNullable<SiteOverrides> =
     (lead.site_overrides as SiteOverrides) ?? {};
   const srcPlans =
@@ -90,6 +96,7 @@ export async function GET(request: Request) {
       undefined,
     heroImage: ov.hero_image || undefined,
     accent: ov.accent || undefined,
+    signupCount: signupCount ?? 0,
   };
 
   // 게시된 노출에서만 측정한다(미리보기 제외).

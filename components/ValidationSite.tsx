@@ -27,6 +27,8 @@ export type ValidationSiteData = {
   /** 운영자 폴리시(리드별 override) — 전문가가 게시 전 다듬는 값 */
   heroImage?: string;
   accent?: string;
+  /** 진짜 사전신청 수 — 일정 수 이상일 때만 노출(가짜 사회적 증거 금지). */
+  signupCount?: number;
 };
 
 /* CTA 문구 — t.js가 결제의향으로 집계하도록 '시작/예약/신청' 키워드를 포함한다 */
@@ -94,6 +96,42 @@ function Avatar({ photo, name }: { photo?: string; name: string }) {
     <span className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-full bg-accent/10 text-[17px] font-black text-accent">
       {name.trim().slice(0, 1) || "·"}
     </span>
+  );
+}
+
+/** 정보 칩 아이콘 — 형태/가격/사전신청 (Skool의 Public·Free·members 자리). */
+function ChipIcon({ name }: { name: "globe" | "tag" | "users" }) {
+  const common = {
+    width: 13,
+    height: 13,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 2.2,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    "aria-hidden": true,
+  };
+  if (name === "globe")
+    return (
+      <svg {...common}>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z" />
+      </svg>
+    );
+  if (name === "tag")
+    return (
+      <svg {...common}>
+        <path d="M20.6 13.4 12 22l-9-9V3h10l8.6 8.6a2 2 0 0 1 0 2.8Z" />
+        <circle cx="7" cy="7" r="1.2" />
+      </svg>
+    );
+  return (
+    <svg {...common}>
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
   );
 }
 
@@ -310,11 +348,18 @@ export default function ValidationSite({
     Infinity,
   );
 
-  // 정보 칩 — 가짜 숫자(멤버 수 등) 대신 진짜 메타만. (신청 형태 + 표시 가격)
-  const chips = [
-    CHIP_LABEL[data.intent],
-    priceFrom !== Infinity ? `${priceFrom.toLocaleString()}원~` : null,
-  ].filter(Boolean) as string[];
+  // 정보 칩 — 가짜 숫자 대신 진짜 메타만. 사전신청 수는 일정 수 이상일 때만(정직).
+  const signups = data.signupCount ?? 0;
+  const showSignups = signups >= 3;
+  const chips: { icon: "globe" | "tag" | "users"; label: string }[] = [
+    { icon: "globe", label: CHIP_LABEL[data.intent] },
+    ...(priceFrom !== Infinity
+      ? [{ icon: "tag" as const, label: `${priceFrom.toLocaleString()}원~` }]
+      : []),
+    ...(showSignups
+      ? [{ icon: "users" as const, label: `${signups.toLocaleString()}명 사전신청` }]
+      : []),
+  ];
 
   return (
     <div className="min-h-screen bg-bg text-text" style={rootStyle}>
@@ -356,9 +401,14 @@ export default function ValidationSite({
               {chips.map((c, i) => (
                 <span
                   key={i}
-                  className="rounded-full border border-border bg-surface px-3 py-1 text-[12px] font-semibold text-text-secondary"
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] font-semibold ${
+                    c.icon === "users"
+                      ? "border-accent/30 bg-accent/10 text-accent"
+                      : "border-border bg-surface text-text-secondary"
+                  }`}
                 >
-                  {c}
+                  <ChipIcon name={c.icon} />
+                  {c.label}
                 </span>
               ))}
             </div>
@@ -539,6 +589,12 @@ export default function ValidationSite({
                       </div>
                     ))}
                   </div>
+                  {showSignups && (
+                    <p className="mt-4 flex items-center justify-center gap-1.5 text-[12px] font-bold text-accent">
+                      <span className="h-1.5 w-1.5 rounded-full bg-go" />
+                      이미 {signups.toLocaleString()}명이 사전신청했어요
+                    </p>
+                  )}
                   <button
                     onClick={() => openModal()}
                     className="mt-4 w-full rounded-full bg-accent py-3.5 text-[15px] font-bold text-white transition hover:bg-accent-hover"
