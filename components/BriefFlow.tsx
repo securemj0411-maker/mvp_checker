@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { sendGAEvent } from "@next/third-parties/google";
-import { BANK_INFO, type BriefDraft, type ConfirmedBrief } from "@/lib/diagnosis";
+import { type BriefDraft, type ConfirmedBrief } from "@/lib/diagnosis";
 import { KAKAO_CHAT_URL } from "@/lib/site";
 import { BrandMark, Wordmark } from "@/components/Brand";
 import ValidationSite, { type ValidationSiteData } from "@/components/ValidationSite";
@@ -1623,18 +1623,6 @@ function DepositStep({
       ? Math.min(lockedAmount, listPrice)
       : listPrice;
   const discounted = payAmount < listPrice;
-  const discountPct = discounted
-    ? Math.round((1 - payAmount / listPrice) * 100)
-    : 0;
-  // 고객이 '입금했어요'를 눌렀는지 — 누른 뒤엔 '확인 중' 화면으로 바꾼다.
-  const depositReported = !!lead.brief?.deposit_reported_at;
-  const due = lead.depositDueAt
-    ? new Date(lead.depositDueAt).toLocaleDateString("ko-KR", {
-        month: "long",
-        day: "numeric",
-        weekday: "short",
-      })
-    : null;
 
   // 입금 화면 진입 측정 — 확정→입금화면→입금했어요 퍼널에서 최대 누수 구간을 잡는다
   useEffect(() => {
@@ -1699,165 +1687,25 @@ function DepositStep({
           </button>
         )}
 
-        <div className="mt-5 rounded-xl border border-accent/30 bg-accent/[0.05] p-5">
-          <div className="flex items-baseline justify-between gap-3">
-            <span className="text-sm font-semibold text-text-secondary">
-              {tier.label}
-            </span>
-            <span className="text-right">
-              {discounted && (
-                <span className="mr-2 text-base font-semibold text-text-tertiary line-through">
-                  {listPrice.toLocaleString()}원
-                </span>
-              )}
-              <span className="text-[26px] font-extrabold tracking-tight text-text">
-                {payAmount.toLocaleString()}원
-              </span>
-            </span>
-          </div>
-          {discounted && (
-            <div className="mt-2 flex items-center gap-1.5 rounded-lg bg-go-tint px-3 py-2 text-xs font-bold text-go">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" aria-hidden>
-                <path d="M20 6 9 17l-5-5" />
-              </svg>
-              재검증 고객 {discountPct}% 할인이 적용된 금액입니다
-            </div>
-          )}
-
-          <div className="mt-4 rounded-2xl border border-border bg-surface p-4">
-            <p className="text-xs font-semibold text-text-tertiary">입금 계좌</p>
-            <div className="mt-1.5 flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className="break-all text-base font-bold text-text">
-                  {BANK_INFO.bank} {BANK_INFO.account}
-                </p>
-                <p className="mt-0.5 text-xs text-text-tertiary">
-                  예금주 {BANK_INFO.holder}
-                </p>
-              </div>
-              <CopyButton
-                value={BANK_INFO.account.replace(/\D/g, "")}
-                label="계좌번호 복사"
-              />
-            </div>
-          </div>
-
-          <div
-            className="mt-3 rounded-2xl px-4 py-3"
-            style={{ background: "var(--pivot-tint)" }}
-          >
-            <p
-              className="flex items-center gap-1.5 text-xs font-bold"
-              style={{ color: "var(--pivot)" }}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden>
-                <path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" />
-              </svg>
-              입금자명
-            </p>
-            <p className="mt-1 text-sm font-bold text-text">
-              반드시{" "}
-              <span style={{ color: "var(--pivot)" }}>&ldquo;{lead.name}&rdquo;</span>{" "}
-              으로 입금해주세요
-            </p>
-          </div>
-
-          {due && (
-            <div className="mt-3 flex items-center justify-between px-1 text-sm">
-              <span className="text-text-tertiary">입금 기한</span>
-              <span className="font-bold text-text">{due}</span>
-            </div>
-          )}
-
-          <p className="mt-3 text-xs leading-relaxed text-text-tertiary">
-            비즈필터는 개인사업자 &lsquo;득템잡이&rsquo;(대표 이민제)가 운영하는
-            브랜드라 예금주가 위와 같이 표시됩니다.
+        {/* 결제는 카카오톡에서 담당자가 직접 안내한다 (자동 입금 UI 제거) */}
+        <div className="mt-5 rounded-xl border border-accent/30 bg-accent/5 p-6 text-center">
+          <p className="text-lg font-bold text-text">
+            결제 안내는 카카오톡으로 드립니다
           </p>
-        </div>
-
-        {/* 이체 3단계 안내 — 수동 이체는 화면 밖(은행앱)에서 일어나므로
-            복사→이체→복귀 동선을 명시해 '이체했는데 신고 안 함' 이탈을 막는다 */}
-        <div className="mt-4 rounded-xl border border-border bg-surface p-5">
-          <p className="text-sm font-bold text-text">이렇게 이체하시면 됩니다</p>
-          <ol className="mt-3 space-y-2">
-            {[
-              "아래 버튼으로 계좌·금액·입금자명을 한 번에 복사하세요.",
-              "쓰시는 은행 앱에 붙여넣어 이체합니다 (계좌이체는 24시간 가능).",
-              "이 화면으로 돌아와 아래 ‘입금했어요’를 눌러주세요.",
-            ].map((s, i) => (
-              <li key={i} className="flex gap-2.5">
-                <span className="grid h-5 w-5 flex-shrink-0 place-items-center rounded-full bg-accent/15 text-[11px] font-bold text-accent">
-                  {i + 1}
-                </span>
-                <span className="text-[13px] leading-relaxed text-text-secondary">
-                  {s}
-                </span>
-              </li>
-            ))}
-          </ol>
-          <CopyButton
-            full
-            value={`${BANK_INFO.bank} ${BANK_INFO.account} / ${payAmount.toLocaleString()}원 / 입금자명 ${lead.name}`}
-            label="계좌·금액·입금자명 한 번에 복사"
-            onCopied={() => sendGAEvent("event", "deposit_copy", { tier: lead.tier })}
-          />
-        </div>
-
-        {/* 입금했어요 — 계좌이체를 끝낸 고객이 직접 누르는 자가 알림.
-            자동 발송/자동 처리는 없고, 운영자 확인을 위한 신호일 뿐이다. */}
-        {depositReported ? (
-          <div
-            className="mt-4 rounded-xl border bg-go-tint p-5"
-            style={{ borderColor: "var(--go)" }}
+          <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+            담당자가 카카오톡으로 결제 방법과 금액을 안내해 드려요. 아래 버튼으로
+            문의 주시면 바로 이어서 진행됩니다.
+          </p>
+          <a
+            href={KAKAO_CHAT_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl px-6 py-4 text-base font-bold transition hover:brightness-95"
+            style={{ background: "#FEE500", color: "#191600" }}
           >
-            <p className="flex items-center gap-2 text-sm font-bold text-go">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-go" />
-              입금을 확인하고 있습니다
-            </p>
-            <p className="mt-1.5 text-sm leading-relaxed text-text-secondary">
-              담당자가 영업시간 기준{" "}
-              <b className="text-text">2시간 안에</b> 입금을 확인한 뒤, 남겨주신
-              번호로 문자를 보내드립니다. 이 화면은 닫으셔도 되고, 확인이 끝나면
-              다음 단계로 자동으로 바뀝니다.
-            </p>
-            {/* 무엇을 보냈어야 하는지 재확인 (오클릭/금액 착오 구제) */}
-            <div className="mt-3 rounded-lg border border-border bg-surface px-4 py-3 text-xs leading-relaxed text-text-secondary">
-              <span className="font-semibold text-text">{payAmount.toLocaleString()}원</span>
-              {" · "}
-              {BANK_INFO.bank} {BANK_INFO.account}
-              {" · 입금자명 "}
-              <span className="font-semibold text-text">{lead.name}</span>
-            </div>
-            <button
-              type="button"
-              disabled={reporting || !onReportDeposit}
-              onClick={() => onReportDeposit?.(true)}
-              className="mt-2.5 text-xs font-semibold text-text-tertiary underline underline-offset-2 transition hover:text-text disabled:opacity-50"
-            >
-              아직 이체 전인데 잘못 눌렀어요 — 되돌리기
-            </button>
-          </div>
-        ) : (
-          <div className="mt-4">
-            <button
-              type="button"
-              disabled={reporting || !onReportDeposit}
-              onClick={() => onReportDeposit?.(false)}
-              className="w-full rounded-xl bg-accent px-6 py-4 text-base font-bold text-white transition hover:bg-accent-hover disabled:opacity-50"
-            >
-              {reporting ? "전송 중..." : "입금했어요"}
-            </button>
-            <p className="mt-2 text-center text-xs leading-relaxed text-text-tertiary">
-              위 계좌로{" "}
-              <b className="text-text-secondary">
-                {payAmount.toLocaleString()}원
-              </b>{" "}
-              이체를 <b className="text-text-secondary">끝내신 다음</b> 눌러주세요.
-              담당자가 영업시간 기준 2시간 안에 입금을 확인하고, 남겨주신 번호로
-              문자를 드립니다.
-            </p>
-          </div>
-        )}
+            카카오톡으로 결제 문의
+          </a>
+        </div>
 
         {/* 신뢰 스트립 — 입금 직전, 우리가 실제로 가진 약속을 적시에 */}
         <div className="mt-4 grid gap-2.5 rounded-xl border border-border bg-surface p-4 sm:grid-cols-3">
