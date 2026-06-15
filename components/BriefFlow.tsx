@@ -522,6 +522,7 @@ function BriefStep({
   const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
 
   const fetchDraft = useCallback(async () => {
     setDrafting(true);
@@ -545,6 +546,33 @@ function BriefStep({
   useEffect(() => {
     if (!draft) fetchDraft();
   }, [draft, fetchDraft]);
+
+  // 'AI 추천' — 고객이 누를 때만 AI가 문구 초안을 뽑아 채운다(수동 우선, 강제 아님).
+  async function aiSuggest() {
+    if (aiLoading) return;
+    setAiLoading(true);
+    try {
+      const res = await fetch("/api/brief", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "ai_draft", code }),
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      const d = (await res.json()).draft as BriefDraft;
+      // intake는 의도적으로 제거된 단계 — AI 추천이 되살리지 않게 빈 배열로 박는다.
+      setDraft({ ...d, intake_questions: [] });
+      if (d.offer_options?.[0]?.headline) {
+        setOffer(d.offer_options[0].headline);
+        setOfferCustom(false);
+      }
+      if (d.name_candidates?.[0]) setName(d.name_candidates[0]);
+      if (d.selling_points?.length) setPoints(d.selling_points.slice(0, 3));
+    } catch {
+      /* 실패 시 조용히 — 다시 누르면 됨 */
+    } finally {
+      setAiLoading(false);
+    }
+  }
 
   // 초안 도착 시 프리필 (고객 편집 대상 3개만)
   useEffect(() => {
@@ -879,16 +907,23 @@ function BriefStep({
         <p className="text-lg font-bold text-text">
           {editing
             ? "확정 내용을 고치고 계십니다"
-            : "담당 전문가에게 넘기기 전, 마지막으로 확인합니다"}
+            : "광고로 띄울 페이지를 직접 구성해주세요"}
         </p>
         <p className="mt-1 text-sm leading-relaxed text-text-secondary">
-          아래 내용은 비즈필터가 먼저 잡아본 초안입니다. 여기 적어주신 걸
-          바탕으로 <b className="text-text">담당 검증 전문가가 광고로 띄울
-          검증용 사이트(실제 서비스처럼 보이는 한 장짜리 웹사이트)와 광고를
-          직접 만듭니다.</b> 단순히 만들기만 하는 게 아니라, 사람들이 더 많이
-          누르고 결제까지 가도록 문구와 구성을 최적화해 드려요. 빠지거나 애매한
-          게 있으면 시작 전에 먼저 연락드릴게요.
+          아래 내용을 직접 채워주시면 그대로{" "}
+          <b className="text-text">검증용 사이트(실제 서비스처럼 보이는 한 장짜리
+          웹사이트)와 광고</b>에 들어가고, 담당 검증 전문가가 더 잘 눌리도록
+          다듬어 드립니다. 막막하시면 아래 ‘AI 추천’으로 초안을 받아 고치셔도
+          됩니다.
         </p>
+        <button
+          type="button"
+          onClick={aiSuggest}
+          disabled={aiLoading}
+          className="mt-4 inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-[13px] font-bold text-text-secondary transition hover:border-accent/60 hover:text-accent disabled:opacity-60"
+        >
+          {aiLoading ? "AI가 문구를 뽑는 중…" : "✨ AI 추천 받기 (문구·이름)"}
+        </button>
       </div>
 
 

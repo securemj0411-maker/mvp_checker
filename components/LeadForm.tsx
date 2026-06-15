@@ -1382,8 +1382,7 @@ function ReportView({
         )}
 
         <p className="mt-3 text-sm leading-relaxed text-text-secondary">
-          위 내용은 출발점입니다. 광고 문구 · 표시 가격(플랜 추가 가능) ·
-          서비스 가칭은 다음 화면에서 직접 보고 고치신 뒤에 시작됩니다.
+          광고 문구 · 표시 가격 · 서비스 이름은 다음 화면에서 직접 구성하시면 됩니다.
         </p>
 
         {/* 1차 CTA — 가격 빼고 가치로. 스크롤 전에 바로 전환 */}
