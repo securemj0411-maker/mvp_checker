@@ -470,7 +470,7 @@ function Pricing() {
   const tiers = [
     {
       tag: "엔진",
-      price: "29만원",
+      price: "29만원~",
       period: "당일 시작 · 보통 3~5일",
       desc: "수강신청 페이지를 직접 만들 수 있다면, 광고·측정·판정만 가져가세요.",
       lines: [
@@ -486,7 +486,7 @@ function Pricing() {
     },
     {
       tag: "QUICK 검증",
-      price: "50만원",
+      price: "39만원~",
       period: "당일 시작 · 보통 2~3일",
       desc: "아무도 원하지 않는 건 아닌지, 수요부터 확인합니다.",
       lines: [
@@ -504,7 +504,7 @@ function Pricing() {
     },
     {
       tag: "DEEP 검증",
-      price: "130만원",
+      price: "79만원~",
       period: "당일 시작 · 광고 판정 1~2일",
       desc: "원하는데 돈이 안 되는 건 아닌지, 수강료와 손익까지 확인합니다. 광고비를 가장 많이 집행해 판정이 제일 빠른 플랜입니다.",
       lines: [
@@ -534,6 +534,9 @@ function Pricing() {
             엔진은 '수강신청 페이지가 이미 있는 분'을 위해, Quick은 '들을 사람이
             있는가'에, Deep은 '팔수록 남는가'에 답합니다.
           </p>
+          <p className="mt-5 inline-block rounded-full border border-accent/30 bg-accent/5 px-4 py-2 text-[14px] font-bold text-accent">
+            표시 금액은 시작가예요 · 정확한 견적은 카톡 상담에서 함께 정합니다
+          </p>
         </div>
 
         {/* 비용 비교 */}
@@ -558,7 +561,7 @@ function Pricing() {
           <div className="rounded-[20px] bg-bg-light p-7">
             <p className="text-sm font-bold text-accent">Quick 검증</p>
             <p className="mt-2 text-2xl font-extrabold tracking-tight text-text">
-              보통 2~3일 · 50만원
+              보통 2~3일 · 39만원~
             </p>
             <p className="mt-2 text-[14px] leading-relaxed text-text-secondary">
               검증 비용이 아니라, 몇 달짜리 오답에 대한 보험료입니다.
