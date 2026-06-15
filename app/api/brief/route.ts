@@ -420,6 +420,45 @@ async function generateBrief(
   return JSON.parse(text.text) as BriefDraft;
 }
 
+/** 수강료대 → 기본 표시 가격(고객이 바로 고칠 수 있는 출발 숫자). 0이면 직접 입력. */
+function priceDefault(band: string): number {
+  switch (band) {
+    case "under10k":
+      return 9000;
+    case "10kto50k":
+      return 30000;
+    case "50kto100k":
+      return 70000;
+    case "over100k":
+      return 150000;
+    default:
+      return 0;
+  }
+}
+
+/** 수동 우선 스켈레톤 — AI가 멋대로 문구를 만들지 않는다. 고객이 직접 입력한 값
+ *  (강의 제목·강사명)만 채우고 나머지는 비워, 결제 전 화면을 고객이 직접 구성하게 한다.
+ *  AI 생성은 고객이 'AI 추천'을 명시적으로 누를 때(action: ai_draft)만 돈다. */
+function manualSkeleton(lead: Record<string, unknown>): BriefDraft {
+  const answers = leadAnswers(lead);
+  const report = (lead.ai_report as Record<string, unknown> | null) ?? {};
+  const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
+  const title = str(report.course_title);
+  const instructor = str(report.instructor_name);
+  return {
+    offer_options: title ? [{ headline: title, angle: "" }] : [],
+    target_line: str(report.target),
+    problem_line: str(report.problem),
+    price_value: priceDefault(answers.price),
+    price_rationale:
+      "수강생에게 보여줄 가격을 직접 정해주세요. 플랜은 여러 개 추가할 수 있어요.",
+    selling_points: [],
+    name_candidates: instructor ? [instructor] : [],
+    excluded: [],
+    intake_questions: [],
+  };
+}
+
 /* ───────── 라우트 ───────── */
 
 interface BriefBody {
@@ -486,7 +525,8 @@ export async function POST(request: Request) {
     return Response.json({ lead: pub });
   }
 
-  /* 브리프 초안 생성 (이미 있으면 재사용) */
+  /* 브리프 초안 — 수동 우선. AI 호출 없이 즉시 스켈레톤(고객 입력값만 채움)을 준다.
+     기다림·강제 생성 없음. AI 문구가 필요하면 고객이 'AI 추천'(ai_draft)을 직접 누른다. */
   if (body.action === "draft") {
     const existing = lead.brief as { draft?: BriefDraft } | null;
     if (existing?.draft) {
@@ -495,19 +535,28 @@ export async function POST(request: Request) {
     if ((lead.policy_flag as string) === "prohibited") {
       return Response.json({ error: "policy blocked" }, { status: 403 });
     }
+    const draft = manualSkeleton(lead);
+    await admin
+      .from("o2o_leads")
+      .update({ brief: { ...(existing ?? {}), draft } })
+      .eq("id", lead.id as string);
+    return Response.json({ draft });
+  }
+
+  /* 'AI 추천' — 고객이 명시적으로 누를 때만 AI가 초안 문구를 생성한다(저장 안 함, 참고용). */
+  if (body.action === "ai_draft") {
+    if ((lead.policy_flag as string) === "prohibited") {
+      return Response.json({ error: "policy blocked" }, { status: 403 });
+    }
     try {
       const draft = await generateBrief(lead);
       if (!draft) {
-        return Response.json({ error: "draft failed" }, { status: 503 });
+        return Response.json({ error: "ai unavailable" }, { status: 503 });
       }
-      await admin
-        .from("o2o_leads")
-        .update({ brief: { draft } })
-        .eq("id", lead.id as string);
       return Response.json({ draft });
     } catch (e) {
-      console.error("[brief draft]", e);
-      return Response.json({ error: "draft failed" }, { status: 503 });
+      console.error("[brief ai_draft]", e);
+      return Response.json({ error: "ai failed" }, { status: 503 });
     }
   }
 
