@@ -102,27 +102,46 @@ const steps: {
       "지인 칭찬은 수요가 아닙니다. 나를 전혀 모르는 사람에게 광고를 보여줘야 진짜 반응이 나옵니다. 문구 2~3종을 나눠 돌려 어떤 카피에 반응하는지까지 확인합니다. 반응이 없으면 강의 주제가 문제인지 카피가 문제인지까지 가려냅니다.",
     flip: true,
     shot: (
-      <div className="space-y-3">
-        <div className="flex gap-2">
-          {["YouTube Shorts", "TikTok", "Reels"].map((ch, i) => (
-            <span key={ch} className={`rounded-full px-3 py-1 text-xs font-bold ${i === 0 ? "bg-accent text-white" : "border border-border bg-surface text-text-tertiary"}`}>{ch}</span>
-          ))}
-        </div>
-        {[
-          { copy: "하루 15분으로 살이 빠진다고?", ctr: "5.8%", hot: true },
-          { copy: "기구 없이 8주 챌린지, 진짜 될까요?", ctr: "2.3%", hot: false },
-        ].map((ad) => (
-          <div key={ad.copy} className={`overflow-hidden rounded-[18px] border bg-surface shadow-[0_8px_24px_-12px_rgba(10,23,38,0.08)] ${ad.hot ? "border-border-hover" : "border-border"}`}>
-            <div className="relative flex h-28 items-end bg-gradient-to-br from-[#1a1a2e] to-[#0f3460] p-4">
-              <span className="absolute right-3 top-3 rounded-full bg-red-500 px-1.5 py-0.5 text-[9px] font-bold text-white">AD</span>
-              <p className="text-sm font-bold leading-snug text-white">{ad.copy}</p>
+      <div className="flex justify-center">
+        {/* 세로형 숏폼 UI — YouTube Shorts / TikTok 스타일 */}
+        <div className="relative w-[260px] overflow-hidden rounded-[24px] shadow-[0_16px_48px_-12px_rgba(10,23,38,0.30)]" style={{ aspectRatio: "9/16" }}>
+          {/* 배경 영상 영역 */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0d1b35] via-[#102040] to-[#0a1220]" />
+          {/* 상단 채널 표시 */}
+          <div className="absolute left-0 right-0 top-0 flex items-center justify-between px-4 pt-4">
+            <div className="flex items-center gap-1.5">
+              <span className="grid h-6 w-6 place-items-center rounded-full bg-accent text-[10px] font-black text-white">H</span>
+              <span className="text-[12px] font-bold text-white/90">homefit</span>
+              <span className="rounded-sm bg-white/20 px-1 py-0.5 text-[9px] font-bold text-white">광고</span>
             </div>
-            <div className="flex items-center justify-between px-5 py-3">
-              <span className="text-xs text-text-tertiary">@homefit · 스폰서</span>
-              <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${ad.hot ? "text-accent" : "text-text-tertiary"}`} style={{ background: ad.hot ? "var(--bg-light)" : "var(--bg-alt)" }}>클릭률 {ad.ctr}</span>
+            <span className="text-[11px] text-white/50">1 / 2</span>
+          </div>
+          {/* 중앙 콘텐츠 */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center px-5 text-center">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-white/50">홈트 챌린지</p>
+            <p className="mt-3 text-[22px] font-extrabold leading-[1.25] tracking-tight text-white">
+              하루 15분으로<br />살이 빠진다고?
+            </p>
+            <p className="mt-3 text-[13px] leading-relaxed text-white/70">기구 없이 8주. 지금 확인하세요.</p>
+          </div>
+          {/* 우측 액션 버튼들 (틱톡식) */}
+          <div className="absolute bottom-20 right-3 flex flex-col items-center gap-4">
+            {[["❤️", "2.4만"], ["💬", "318"], ["↗️", "공유"]].map(([icon, label]) => (
+              <div key={label} className="flex flex-col items-center gap-0.5">
+                <span className="text-xl">{icon}</span>
+                <span className="text-[10px] font-bold text-white/80">{label}</span>
+              </div>
+            ))}
+          </div>
+          {/* 하단 텍스트 + CTA */}
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-4 pb-5 pt-10">
+            <p className="text-[11px] text-white/60">@homefit · 스폰서</p>
+            <div className="mt-2 flex items-center justify-between">
+              <p className="text-[13px] font-bold text-white">클릭률 5.8%</p>
+              <span className="rounded-full bg-accent px-4 py-1.5 text-[11px] font-bold text-white">수강신청 →</span>
             </div>
           </div>
-        ))}
+        </div>
       </div>
     ),
   },
