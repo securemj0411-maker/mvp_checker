@@ -4,7 +4,7 @@ import { ArrowRight, LayoutGrid, Plus } from "lucide-react";
 import { getSupabaseServer } from "@/lib/supabaseServer";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { BrandMark, Wordmark } from "@/components/Brand";
-import { KAKAO_CHAT_URL } from "@/lib/site";
+import { KakaoCTA } from "@/components/KakaoCTA";
 import MyLeads, { type MyLead } from "./MyLeads";
 
 export const dynamic = "force-dynamic";
@@ -183,15 +183,13 @@ export default async function MyPage() {
           )}
 
           <div className="mt-auto space-y-2 pt-6">
-            <a
-              href={KAKAO_CHAT_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+            <KakaoCTA
+              from="d_me"
               className="flex items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-xs font-bold transition hover:brightness-95"
               style={{ background: "#FEE500", color: "#191600" }}
             >
               카카오톡 문의
-            </a>
+            </KakaoCTA>
             <form action="/api/auth/logout" method="post">
               <button className="block w-full rounded-lg px-3 py-2 text-center text-xs font-semibold text-text-tertiary transition hover:text-text">
                 로그아웃

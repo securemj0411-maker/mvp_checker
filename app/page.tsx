@@ -3,7 +3,7 @@ import StepsAccordion from "@/components/StepsAccordion";
 import { ArrowRight, Check, ShieldCheck } from "lucide-react";
 import { BrandMark, Wordmark } from "@/components/Brand";
 import { CaseVisual } from "@/components/CaseMockups";
-import { KAKAO_CHAT_URL } from "@/lib/site";
+import { KakaoCTA } from "@/components/KakaoCTA";
 
 export const metadata = { alternates: { canonical: "/" } };
 
@@ -78,14 +78,12 @@ function Nav() {
             내 검증 현황
           </a>
         </nav>
-        <a
-          href={KAKAO_CHAT_URL}
-          target="_blank"
-          rel="noopener noreferrer"
+        <KakaoCTA
+          from="header"
           className="rounded-full bg-accent px-[18px] py-[10px] text-sm font-bold text-white transition hover:bg-accent-hover"
         >
           지금 검증받기
-        </a>
+        </KakaoCTA>
       </div>
     </header>
   );
@@ -105,15 +103,13 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
 
   const ctas = (
     <>
-      <a
-        href={KAKAO_CHAT_URL}
-        target="_blank"
-        rel="noopener noreferrer"
+      <KakaoCTA
+        from="hero"
         className="inline-flex items-center gap-2 rounded-full bg-accent px-7 py-4 text-base font-bold text-white shadow-[0_10px_24px_-8px_var(--accent-glow)] transition hover:-translate-y-0.5 hover:bg-accent-hover"
       >
         지금 바로 검증받기
         <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
-      </a>
+      </KakaoCTA>
       <a
         href="#process"
         className="rounded-full border border-white/25 bg-white/5 px-7 py-4 text-base font-bold text-white transition hover:border-white/50 sm:border-border-hover sm:bg-surface sm:text-text sm:hover:border-accent sm:hover:text-accent"
@@ -679,10 +675,8 @@ function Pricing() {
                   </li>
                 ))}
               </ul>
-              <a
-                href={KAKAO_CHAT_URL}
-                target="_blank"
-                rel="noopener noreferrer"
+              <KakaoCTA
+                from="pricing"
                 className={`mt-8 block rounded-full py-4 text-center text-[15px] font-bold transition ${
                   t.highlight
                     ? "bg-accent text-white hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-[0_14px_30px_-8px_var(--accent-glow)]"
@@ -690,7 +684,7 @@ function Pricing() {
                 }`}
               >
                 {t.cta} →
-              </a>
+              </KakaoCTA>
             </div>
           ))}
         </div>
@@ -1043,15 +1037,13 @@ function FinalCTA() {
               강의 주제 한 줄이면 됩니다. 카카오톡으로 상담하시면 광고 채널·합격선이
               담긴 검증 설계를 무료로 잡아드립니다.
             </p>
-            <a
-              href={KAKAO_CHAT_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+            <KakaoCTA
+              from="final"
               className="mt-9 inline-flex items-center gap-2 rounded-full bg-accent px-8 py-4 text-base font-bold text-white shadow-[0_10px_24px_-8px_var(--accent-glow)] transition hover:-translate-y-0.5 hover:bg-accent-hover"
             >
               지금 바로 검증받기
               <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
-            </a>
+            </KakaoCTA>
             <p className="mt-5 text-sm font-medium text-text-tertiary">
               신청은 결제가 아닙니다 · 설계서 무료 · 비밀유지 약속
             </p>
@@ -1127,14 +1119,9 @@ function Footer() {
                 </a>
               </li>
               <li>
-                <a
-                  href={KAKAO_CHAT_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-accent"
-                >
+                <KakaoCTA from="footer" className="hover:text-accent">
                   검증 시작하기
-                </a>
+                </KakaoCTA>
               </li>
             </ul>
           </div>
@@ -1145,14 +1132,12 @@ function Footer() {
             <ul className="mt-4 space-y-2.5 text-sm">
               <li>
                 카카오톡 ·{" "}
-                <a
-                  href="https://pf.kakao.com/_xiCvnX/chat"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <KakaoCTA
+                  from="footer_channel"
                   className="font-medium text-text-secondary hover:text-accent"
                 >
                   @비즈필터 채널 상담
-                </a>
+                </KakaoCTA>
               </li>
               <li>
                 이메일 ·{" "}
