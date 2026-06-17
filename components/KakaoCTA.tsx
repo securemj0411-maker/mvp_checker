@@ -2,7 +2,7 @@
 
 import type { AnchorHTMLAttributes, ReactNode } from "react";
 import { sendGAEvent } from "@next/third-parties/google";
-import { KAKAO_CHAT_URL } from "@/lib/site";
+import { ADS_KAKAO_CONVERSION, KAKAO_CHAT_URL } from "@/lib/site";
 
 /**
  * 카카오 채널 상담 CTA. 클릭 시 GA4 `kakao_open` 이벤트를 발화해
@@ -19,7 +19,11 @@ export function KakaoCTA({
       href={KAKAO_CHAT_URL}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={() => sendGAEvent("event", "kakao_open", { from })}
+      onClick={() => {
+        sendGAEvent("event", "kakao_open", { from });
+        // Google Ads 네이티브 전환("문의") — 카톡 상담 클릭
+        sendGAEvent("event", "conversion", { send_to: ADS_KAKAO_CONVERSION });
+      }}
     >
       {children}
     </a>

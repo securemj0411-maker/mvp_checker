@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { sendGAEvent } from "@next/third-parties/google";
-import { KAKAO_CHAT_URL } from "@/lib/site";
+import { ADS_KAKAO_CONVERSION, KAKAO_CHAT_URL } from "@/lib/site";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import type {
   InterpretResult,
@@ -1028,7 +1028,10 @@ export default function LeadForm() {
             href={KAKAO_CHAT_URL}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={() => sendGAEvent("event", "kakao_open", { from: "form" })}
+            onClick={() => {
+              sendGAEvent("event", "kakao_open", { from: "form" });
+              sendGAEvent("event", "conversion", { send_to: ADS_KAKAO_CONVERSION });
+            }}
             className="font-bold text-text underline underline-offset-2"
           >
             카카오톡 채널

@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
-import { SITE_URL, SITE_NAME, SITE_DESC } from "@/lib/site";
+import { SITE_URL, SITE_NAME, SITE_DESC, ADS_CONVERSION_ID } from "@/lib/site";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
@@ -46,6 +46,14 @@ export default function RootLayout({
             __html: "document.documentElement.classList.add('js')",
           }}
         />
+        {/* Google Ads 네이티브 전환 — 프로덕션에서만. gtag.js는 GoogleAnalytics가 로드하고, 여기선 AW 대상만 등록 */}
+        {process.env.NODE_ENV === "production" && (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${ADS_CONVERSION_ID}');`,
+            }}
+          />
+        )}
         <link
           rel="preconnect"
           href="https://cdn.jsdelivr.net"
