@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import { SITE_URL, SITE_NAME, SITE_DESC, ADS_CONVERSION_ID } from "@/lib/site";
+import { UtmCapture } from "@/components/UtmCapture";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
@@ -86,6 +87,7 @@ export default function RootLayout({
             }),
           }}
         />
+        <UtmCapture />
         {children}
       </body>
       {GA_ID && process.env.NODE_ENV === "production" && (

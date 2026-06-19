@@ -12,6 +12,8 @@ export type ServiceType =
   | "content"
   | "unknown";
 export type BuildStatus = "self" | "need" | "built";
+/** 광고 쇼츠 소재를 누가 만드나 — have=직접 보유 / need=비즈필터 제작(별도비) / unsure=상담 때 결정 */
+export type AdCreative = "have" | "need" | "unsure";
 export type Audience = "b2c" | "b2b" | "both" | "unknown";
 export type Revenue =
   | "once"
@@ -39,6 +41,8 @@ export interface QuizAnswers {
   ideaRefined?: string | null;
   service: ServiceType;
   build: BuildStatus;
+  /** 광고에 쓸 쇼츠 영상을 누가 만드나 (have/need/unsure) */
+  adCreative?: AdCreative | null;
   audience: Audience;
   revenue: Revenue;
   price: PriceBand;
@@ -347,7 +351,7 @@ export interface ConfirmedBrief {
 }
 
 const SERVICE_LABEL: Record<ServiceType, string> = {
-  web: "VOD 녹화 강의",
+  web: "녹화 영상 강의",
   app: "멤버십 · 구독 클래스",
   commerce: "전자책 · PDF · 자료",
   offline: "오프라인 강의 · 워크숍",

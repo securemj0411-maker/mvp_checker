@@ -5,7 +5,7 @@ import { BrandMark, Wordmark } from "@/components/Brand";
 export const metadata: Metadata = {
   title: "내 강의 검증 신청 | 비즈필터",
   description:
-    "강의 주제 한 줄이면 시작됩니다. 광고 채널과 합격선이 담긴 검증 설계서를 무료로 받아보세요.",
+    "강의 주제 한 줄이면 됩니다. 신청하면 담당자가 검토하고, 카카오톡으로 검증 방법을 바로 안내드립니다.",
   robots: { index: false, follow: false },
 };
 
@@ -34,8 +34,8 @@ export default function StartPage() {
             진짜 수강할 사람으로 확인합니다
           </h1>
           <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-text-secondary">
-            강의 주제를 적으면, 이 강의가 팔릴지 어떻게 확인할지 담긴 검증
-            설계서를 그 자리에서 무료로 드립니다.
+            강의 주제 한 줄만 적고 신청하면, 담당자가 검토하고 카카오톡으로
+            맞춤 상담을 바로 드립니다.
           </p>
         </div>
 

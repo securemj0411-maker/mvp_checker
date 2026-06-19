@@ -78,12 +78,12 @@ function Nav() {
             내 검증 현황
           </a>
         </nav>
-        <KakaoCTA
-          from="header"
+        <a
+          href="/start"
           className="rounded-full bg-accent px-[18px] py-[10px] text-sm font-bold text-white transition hover:bg-accent-hover"
         >
           지금 검증받기
-        </KakaoCTA>
+        </a>
       </div>
     </header>
   );
@@ -103,13 +103,13 @@ function Hero({ variant = "a" }: { variant?: HeroVariant }) {
 
   const ctas = (
     <>
-      <KakaoCTA
-        from="hero"
+      <a
+        href="/start"
         className="inline-flex items-center gap-2 rounded-full bg-accent px-7 py-4 text-base font-bold text-white shadow-[0_10px_24px_-8px_var(--accent-glow)] transition hover:-translate-y-0.5 hover:bg-accent-hover"
       >
         지금 바로 검증받기
         <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
-      </KakaoCTA>
+      </a>
       <a
         href="#process"
         className="rounded-full border border-white/25 bg-white/5 px-7 py-4 text-base font-bold text-white transition hover:border-white/50 sm:border-border-hover sm:bg-surface sm:text-text sm:hover:border-accent sm:hover:text-accent"
@@ -675,8 +675,8 @@ function Pricing() {
                   </li>
                 ))}
               </ul>
-              <KakaoCTA
-                from="pricing"
+              <a
+                href="/start"
                 className={`mt-8 block rounded-full py-4 text-center text-[15px] font-bold transition ${
                   t.highlight
                     ? "bg-accent text-white hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-[0_14px_30px_-8px_var(--accent-glow)]"
@@ -684,7 +684,7 @@ function Pricing() {
                 }`}
               >
                 {t.cta} →
-              </KakaoCTA>
+              </a>
             </div>
           ))}
         </div>
@@ -966,7 +966,7 @@ function FAQ() {
     },
     {
       q: "어떤 강의든 가능한가요?",
-      a: "온라인 VOD·라이브 클래스, 전자책·PDF, 코칭·컨설팅, 오프라인 강의·워크숍까지 폭넓게 됩니다. 다만 오프라인·지역 기반 강의는 검증 설계가 달라집니다(지역 타겟 광고 + 사전 예약 측정). 신청하시면 그에 맞춘 검증 설계서를 그 자리에서 바로 확인하실 수 있습니다.",
+      a: "녹화 영상 강의·라이브 클래스, 전자책·PDF, 코칭·컨설팅, 오프라인 강의·워크숍까지 폭넓게 됩니다. 다만 오프라인·지역 기반 강의는 검증 설계가 달라집니다(지역 타겟 광고 + 사전 예약 측정). 신청하시면 그에 맞춘 검증 방법을 카카오톡으로 바로 안내드립니다.",
     },
     {
       q: "검증용 수강신청 페이지면, 진짜 강의 사이트도 만들어 주시나요?",
@@ -1034,16 +1034,16 @@ function FinalCTA() {
               녹화 전에 확인하세요
             </h2>
             <p className="mx-auto mt-6 max-w-md text-lg leading-[1.7] text-text-secondary">
-              강의 주제 한 줄이면 됩니다. 카카오톡으로 상담하시면 광고 채널·합격선이
-              담긴 검증 설계를 무료로 잡아드립니다.
+              강의 주제 한 줄이면 됩니다. 신청하면 담당자가 검토하고 카카오톡으로
+              바로 맞춤 상담드립니다.
             </p>
-            <KakaoCTA
-              from="final"
+            <a
+              href="/start"
               className="mt-9 inline-flex items-center gap-2 rounded-full bg-accent px-8 py-4 text-base font-bold text-white shadow-[0_10px_24px_-8px_var(--accent-glow)] transition hover:-translate-y-0.5 hover:bg-accent-hover"
             >
               지금 바로 검증받기
               <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
-            </KakaoCTA>
+            </a>
             <p className="mt-5 text-sm font-medium text-text-tertiary">
               신청은 결제가 아닙니다 · 설계서 무료 · 비밀유지 약속
             </p>
@@ -1119,9 +1119,9 @@ function Footer() {
                 </a>
               </li>
               <li>
-                <KakaoCTA from="footer" className="hover:text-accent">
+                <a href="/start" className="hover:text-accent">
                   검증 시작하기
-                </KakaoCTA>
+                </a>
               </li>
             </ul>
           </div>

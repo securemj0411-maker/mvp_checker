@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { sendGAEvent } from "@next/third-parties/google";
-import { ADS_KAKAO_CONVERSION, KAKAO_CHAT_URL } from "@/lib/site";
+import { KAKAO_CHAT_URL } from "@/lib/site";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import { KakaoCTA } from "@/components/KakaoCTA";
 import type {
   InterpretResult,
   QuizAnswers,
@@ -17,12 +18,13 @@ import type {
    AI가 보기 미리 채움) → 객관식 청크 → 연락처 → 무료 AI 검증 설계서.
    ───────────────────────────────────────────────────────────── */
 
-type Phase = "idea" | "interpret" | "quiz" | "contact" | "generating" | "done";
+type Phase = "idea" | "interpret" | "quiz" | "generating" | "done";
 
 type QuizKey = keyof Pick<
   QuizAnswers,
   | "service"
   | "build"
+  | "adCreative"
   | "audience"
   | "revenue"
   | "price"
@@ -52,29 +54,11 @@ interface Question {
 
 const QUESTIONS: Question[] = [
   {
-    id: "instructorName",
-    title: "어떤 이름으로 보여드릴까요?",
-    sub: "강사명·브랜드명·닉네임 다 좋아요. 없으면 답변을 보고 후보를 만들어 드립니다.",
-    context: "페이지에 보일 강사·브랜드 이름",
-    kind: "text",
-    placeholder: "예: 민지쌤 · 오늘의꽃다발 · 노션연구소",
-    skipLabel: "아직 없어요 (AI가 추천)",
-  },
-  {
-    id: "courseTitle",
-    title: "강의 제목, 정하셨어요?",
-    sub: "정해두신 게 있으면 적어주세요. 없으면 답변을 보고 헤드라인 후보를 만들어 드립니다.",
-    context: "광고에서 가장 먼저 보일 제목",
-    kind: "text",
-    placeholder: "예: 퇴근 후 1시간, 엑셀이 무기가 됩니다",
-    skipLabel: "아직 안 정했어요 (AI가 추천)",
-  },
-  {
     id: "service",
     title: "어떤 형태의 강의인가요?",
     context: "페이지 구성·신청 버튼 문구",
     options: [
-      { value: "web", label: "VOD 녹화 강의", hint: "미리 찍어 올리는 온라인 강의 (클래스101·인프런·자사몰 등)" },
+      { value: "web", label: "녹화 영상 강의", hint: "미리 찍어 올려두고 파는 온라인 강의 (클래스101·인프런·자사몰 등)" },
       { value: "content", label: "라이브 · 실시간 클래스", hint: "줌 등으로 정해진 시간에 진행" },
       { value: "commerce", label: "전자책 · PDF · 자료", hint: "글·템플릿·자료로 파는 지식 상품" },
       { value: "app", label: "멤버십 · 구독 클래스", hint: "월 구독 커뮤니티 · 강의 멤버십" },
@@ -106,6 +90,25 @@ const QUESTIONS: Question[] = [
     ],
   },
   {
+    id: "adCreative",
+    title: "광고에 쓸 짧은 영상, 있으세요?",
+    sub: "강의를 소개하는 쇼츠 영상이 광고 소재가 됩니다. 답에 따라 견적이 조금 달라져요.",
+    context: "광고 소재를 누가 만들지",
+    options: [
+      {
+        value: "have",
+        label: "직접 찍은 영상 있어요",
+        hint: "강의·강사 소개 클립 등 — 그대로 광고에 씁니다 (추가 비용 없음)",
+      },
+      {
+        value: "need",
+        label: "비즈필터가 만들어 주세요",
+        hint: "강의 소개 쇼츠를 저희가 제작해 드립니다 (제작비 별도)",
+      },
+      { value: "unsure", label: "상담 때 같이 정할게요" },
+    ],
+  },
+  {
     id: "region",
     title: "주 수강생은 어디서 오나요?",
     context: "광고가 닿을 지역",
@@ -124,7 +127,8 @@ const QUESTIONS: Question[] = [
     kind: "text",
     placeholder: "예: 서울 강남구 역삼동",
     skipLabel: "아직 안 정했어요",
-    when: (a) => a.service === "offline",
+    // 동네 상권(local)일 때만 — 전국/도시 선택 시엔 묻지 않는다
+    when: (a) => a.service === "offline" && a.region === "local",
   },
   {
     id: "pageUrl",
@@ -139,14 +143,6 @@ const QUESTIONS: Question[] = [
 ];
 
 const STORAGE_KEY = "bizfilter_quiz_v2";
-
-/** 휴대폰 번호 입력 시 자동으로 하이픈 삽입 (010-1234-5678) */
-function formatPhone(v: string): string {
-  const d = v.replace(/\D/g, "").slice(0, 11);
-  if (d.length <= 3) return d;
-  if (d.length <= 7) return `${d.slice(0, 3)}-${d.slice(3)}`;
-  return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`;
-}
 
 /* 설계서 생성(10~30초) 동안 보여줄 "이렇게 검증해요" 3비트 */
 const BEATS: { title: string; sub: string }[] = [
@@ -254,7 +250,6 @@ export default function LeadForm() {
   const [customRefine, setCustomRefine] = useState("");
 
   const [submitting, setSubmitting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [report, setReport] = useState<Report | null>(null);
   const [path, setPath] = useState<RecommendedPath>("quick");
   const [accessCode, setAccessCode] = useState<string | null>(null);
@@ -282,8 +277,11 @@ export default function LeadForm() {
       if (s.answers && typeof s.answers === "object") setAnswers(s.answers);
       if (typeof s.name === "string") setName(s.name);
       if (typeof s.contact === "string") setContact(s.contact);
+      // early-capture로 이미 만든 행의 코드 — 복원해 두면 완료 시 그 행을 갱신(중복 방지)
+      if (typeof s.accessCode === "string") setAccessCode(s.accessCode);
+      // 옛 저장값의 contact 단계는 더 이상 없으므로 quiz로 복원
       if (s.phase === "quiz" || s.phase === "contact") {
-        setPhase(s.phase);
+        setPhase("quiz");
         setQIndex(Math.max(0, Math.min(s.qIndex ?? 0, QUESTIONS.length - 1)));
       }
     } catch {
@@ -305,6 +303,7 @@ export default function LeadForm() {
           answers,
           name,
           contact,
+          accessCode,
         }),
       );
     } catch {
@@ -366,46 +365,15 @@ export default function LeadForm() {
     }
   }
 
-  /* ── 1단계: 아이디어 제출 → AI 되물음 요청 ── */
+  /* ── 1단계: 아이디어 제출 → 바로 퀴즈 (AI 되물음 단계 제거 — 단순 포착형) ── */
   async function submitIdea() {
     if (idea.trim().length < 5) return;
     sendGAEvent("event", "quiz_start", { method: "idea_first" });
-    setPhase("interpret");
-    skippedInterpret.current = false;
-
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 20000);
-    try {
-      const res = await fetch("/api/diagnose", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "interpret", idea: idea.trim() }),
-        signal: controller.signal,
-      });
-      const data = await res.json();
-      if (data?.result?.summary) {
-        const r = data.result as InterpretResult;
-        // 마찰 상한: 빈칸 최대 2개, 보기 최대 4개로 잘라 보장
-        const normalized: InterpretResult = {
-          summary: r.summary,
-          gaps: (r.gaps ?? [])
-            .slice(0, 2)
-            .map((g) => ({ ...g, suggestions: (g.suggestions ?? []).slice(0, 4) })),
-        };
-        setInterp(normalized);
-        setInterpStage("confirm");
-        setGapIdx(0);
-        setGapAnswers([]);
-        setGapSel([]);
-        setGapCustomMode(false);
-      } else {
-        skipInterpret();
-      }
-    } catch {
-      skipInterpret();
-    } finally {
-      clearTimeout(timeout);
-    }
+    interpretStatus.current = "skipped";
+    setInterp(null);
+    setPhase("quiz");
+    // 들어온 순간 먼저 리드를 남긴다(중간 이탈해도 기록). 끝까지 풀면 같은 행 갱신.
+    saveLeadEarly(null);
   }
 
   function skipInterpret() {
@@ -479,7 +447,8 @@ export default function LeadForm() {
     const visible = QUESTIONS.filter((q) => !q.when || q.when(next));
     setTimeout(() => {
       if (qIndex + 1 < visible.length) setQIndex((i) => i + 1);
-      else setPhase("contact");
+      // 마지막 답 → 이름·전화 단계 없이 바로 제출(카톡 핸드오프). next로 방금 고른 값까지 전달
+      else runGenerate(ideaRefined, null, next);
     }, 170);
   }
 
@@ -488,32 +457,91 @@ export default function LeadForm() {
     else setPhase("idea");
   }
 
+  /* 현재 답으로 제출용 QuizAnswers 구성 — early-capture/최종 제출 공용 */
+  function buildQuizAnswers(
+    refined: string | null,
+    a: Partial<Record<QuizKey, string>>,
+  ): QuizAnswers {
+    return {
+      idea: idea.trim(),
+      ideaRefined: refined,
+      service: (a.service ?? "unknown") as QuizAnswers["service"],
+      build: (a.build ?? "need") as QuizAnswers["build"],
+      adCreative: (a.adCreative as QuizAnswers["adCreative"]) ?? null,
+      audience: (a.audience ?? "unknown") as QuizAnswers["audience"],
+      revenue: (a.revenue ?? "undecided") as QuizAnswers["revenue"],
+      price: (a.price ?? "unknown") as QuizAnswers["price"],
+      alternative: (a.alternative ?? "unknown") as QuizAnswers["alternative"],
+      region: (a.region as QuizAnswers["region"]) ?? null,
+      location: a.location?.trim() || null,
+      pageUrl: a.pageUrl?.trim() || null,
+      instructorName: a.instructorName?.trim() || null,
+      courseTitle: a.courseTitle?.trim() || null,
+    };
+  }
+
+  /* ── early-capture: 아이디어 적고 퀴즈에 '들어온 순간' 먼저 리드를 남긴다 ──
+     카톡 클릭/퀴즈 완료와 무관하게 기록되며, 끝까지 풀면 같은 행을 갱신한다(중복 X).
+     중간 이탈자도 "이런 강의 주제로 들어왔다 나감"이 관리자에 남는다. */
+  const earlySaveRef = useRef<Promise<string | null> | null>(null);
+  function saveLeadEarly(refined: string | null): Promise<string | null> {
+    if (earlySaveRef.current) return earlySaveRef.current;
+    earlySaveRef.current = (async () => {
+      try {
+        const res = await fetch("/api/diagnose", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "report",
+            saveOnly: true,
+            answers: buildQuizAnswers(refined, answers),
+            name: "",
+            contact: "",
+            utm: getUtm(),
+            interpretStatus: interpretStatus.current,
+            userAgent:
+              typeof navigator !== "undefined" ? navigator.userAgent : null,
+          }),
+        });
+        if (!res.ok) throw new Error(`status ${res.status}`);
+        const data = await res.json();
+        const code = (data.accessCode as string) ?? null;
+        if (code) setAccessCode(code);
+        return code;
+      } catch (err) {
+        console.error("[lead early-save error]", err);
+        earlySaveRef.current = null; // 실패 시 최종 제출에서 새로 INSERT 되도록
+        return null;
+      }
+    })();
+    return earlySaveRef.current;
+  }
+
   /* ── 설계서 생성 (신규 제출 + 재해석 재생성 공통) ──
-     existingCode가 있으면 새 리드를 만들지 않고 그 리드를 갱신해 재생성한다 */
+     existingCode(또는 early-capture로 만든 코드)가 있으면 새 리드를 만들지 않고 그 행을 갱신한다 */
   async function runGenerate(
     refined: string | null,
     existingCode: string | null,
+    answersOverride?: Partial<Record<QuizKey, string>>,
   ) {
     setSubmitting(true);
-    setErrorMsg(null);
     setPhase("generating");
 
-    const quizAnswers: QuizAnswers = {
-      idea: idea.trim(),
-      ideaRefined: refined,
-      service: (answers.service ?? "unknown") as QuizAnswers["service"],
-      build: (answers.build ?? "need") as QuizAnswers["build"],
-      audience: (answers.audience ?? "unknown") as QuizAnswers["audience"],
-      revenue: (answers.revenue ?? "undecided") as QuizAnswers["revenue"],
-      price: (answers.price ?? "unknown") as QuizAnswers["price"],
-      alternative: (answers.alternative ??
-        "unknown") as QuizAnswers["alternative"],
-      region: (answers.region as QuizAnswers["region"]) ?? null,
-      location: answers.location?.trim() || null,
-      pageUrl: answers.pageUrl?.trim() || null,
-      instructorName: answers.instructorName?.trim() || null,
-      courseTitle: answers.courseTitle?.trim() || null,
-    };
+    // pick()이 방금 고른 값은 아직 state에 반영 전일 수 있어, 마지막 답을 직접 넘겨받는다
+    const a = answersOverride ?? answers;
+    const quizAnswers: QuizAnswers = buildQuizAnswers(refined, a);
+
+    // early-capture가 이미 만든 행이 있으면 그 코드로 '갱신'한다(중복 리드 방지).
+    // 진행 중이면 끝날 때까지 기다렸다가 코드를 받고, 세션 복원 시엔 저장된 accessCode를 쓴다.
+    let code = existingCode;
+    if (!code && earlySaveRef.current) {
+      try {
+        code = await earlySaveRef.current;
+      } catch {
+        code = null;
+      }
+    }
+    if (!code) code = accessCode;
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 55000);
@@ -523,13 +551,15 @@ export default function LeadForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "report",
+          // 카톡 핸드오프 플로우 — 리드만 저장하고 즉시 완료(AI 설계서 생성 스킵)
+          saveOnly: true,
           answers: quizAnswers,
           name: name.trim(),
           contact: contact.trim(),
           phone: contact.trim() || undefined,
           utm: getUtm(),
           interpretStatus: interpretStatus.current,
-          code: existingCode ?? undefined,
+          code: code ?? undefined,
           userAgent:
             typeof navigator !== "undefined" ? navigator.userAgent : null,
         }),
@@ -537,9 +567,6 @@ export default function LeadForm() {
       });
       if (!res.ok) throw new Error(`status ${res.status}`);
       const data = await res.json();
-      // prohibited면 report가 null로 와도 정상 (짧은 거절 화면). 그 외엔 report 필수.
-      const blocked = data?.policyFlag === "prohibited";
-      if (!data?.report && !blocked) throw new Error("no report");
 
       sendGAEvent("event", "generate_lead", {
         method: "quiz_v2",
@@ -564,20 +591,13 @@ export default function LeadForm() {
         // 재해석 재생성 실패 — 기존 설계서를 그대로 다시 보여준다
         setPhase("done");
       } else {
-        setErrorMsg(
-          "설계서 생성 중 문제가 생겼습니다. 잠시 후 다시 시도해주세요. 계속 문제가 생기면 카톡 채널로 문의해주세요.",
-        );
-        setPhase("contact");
+        // 저장 실패해도 막다른 길을 만들지 않는다 — 카톡 핸드오프 화면으로 보내 채널로 닿게 한다
+        setPhase("done");
       }
     } finally {
       clearTimeout(timeout);
       setSubmitting(false);
     }
-  }
-
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    await runGenerate(ideaRefined, null);
   }
 
   /* ───────────────────── 화면 ───────────────────── */
@@ -586,23 +606,7 @@ export default function LeadForm() {
     if (policyFlag === "prohibited") {
       return <RejectView policyLabel={policyLabel} />;
     }
-    if (report) {
-      return (
-        <ReportView
-          report={report}
-          path={path}
-          build={(answers.build ?? "need") as QuizAnswers["build"]}
-          accessCode={accessCode}
-          answers={answers}
-          onRevise={() => {
-            reviseRef.current = true;
-            setCustomMode(false);
-            setInterpStage("confirm");
-            setPhase(interp ? "interpret" : "idea");
-          }}
-        />
-      );
-    }
+    return <SubmittedView />;
   }
 
   if (phase === "generating") {
@@ -611,7 +615,7 @@ export default function LeadForm() {
     return (
       <div className="cold-panel rounded-lg p-6 sm:p-8">
         <p className="text-center text-sm font-medium text-text-secondary">
-          설계서를 만드는 동안, 저희가 어떻게 검증하는지 보여드립니다
+          신청을 접수하는 동안, 저희가 어떻게 검증하는지 보여드립니다
         </p>
 
         {/* 3비트 설명 — 5초 자동, 카드/점 탭하면 직접 넘김(자동 멈춤) */}
@@ -675,7 +679,7 @@ export default function LeadForm() {
         <div className="mt-5 flex items-center justify-center gap-2.5">
           <div className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-accent" />
           <p className="text-sm font-medium text-text-secondary">
-            내 설계서를 만들고 있습니다 · 10~30초
+            신청을 접수하고 있어요
           </p>
         </div>
         <div className="mx-auto mt-3 h-1.5 w-48 max-w-full overflow-hidden rounded-full bg-bg-alt">
@@ -695,9 +699,8 @@ export default function LeadForm() {
             검증하고 싶은 강의 주제, 편하게 적어주세요
           </p>
           <p className="mt-1 text-sm text-text-secondary">
-            지금은 짧아도 괜찮습니다. 한 줄로 시작하면 다음 화면에서 같이
-            구체화해 드립니다. 끝까지 답하시면 이 강의가 팔릴지 어떻게
-            확인할지 담긴 검증 설계서를 그 자리에서 무료로 드립니다.
+            지금은 짧아도 괜찮습니다. 한 줄로 시작하면 됩니다. 몇 가지만
+            답하고 신청하면, 담당자가 검토하고 카카오톡으로 바로 상담드립니다.
           </p>
         </div>
         <FunnelRoadmap />
@@ -761,7 +764,7 @@ export default function LeadForm() {
                   value={customRefine}
                   onChange={(e) => setCustomRefine(e.target.value)}
                   className={`${inputBase} min-h-[80px] resize-y leading-relaxed`}
-                  placeholder="예: 엑셀이 막막한 사회초년생에게 실무 함수만 골라 가르치는 VOD 강의"
+                  placeholder="예: 엑셀이 막막한 사회초년생에게 실무 함수만 골라 가르치는 녹화 영상 강의"
                   maxLength={300}
                 />
                 <button
@@ -935,124 +938,6 @@ export default function LeadForm() {
   }
 
   /* 연락처 — 마지막 청크 */
-  if (phase === "contact") {
-    return (
-      <form
-        onSubmit={handleSubmit}
-        className="cold-panel space-y-5 rounded-lg p-6 sm:p-8"
-      >
-        <Progress current={chunkIndex} total={totalChunks} />
-        <div>
-          <p className="text-xl font-bold text-text">
-            거의 다 왔습니다. 연락받을 곳만 남겨 주세요.
-          </p>
-          <p className="mt-1 text-sm text-text-secondary">
-            검증 설계서는 바로 다음 화면에 뜹니다. 전화를 드리는 일은 없고,
-            진행 상황은 문자로만 알려드립니다.
-          </p>
-        </div>
-        <div>
-          <label className="mb-2 block text-sm font-semibold text-text-secondary">
-            이름
-          </label>
-          <input
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className={inputBase}
-            placeholder="홍길동"
-            maxLength={100}
-          />
-        </div>
-        <div>
-          <label className="mb-2 block text-sm font-semibold text-text-secondary">
-            휴대폰 번호
-          </label>
-          <input
-            required
-            type="tel"
-            inputMode="tel"
-            value={contact}
-            onChange={(e) => setContact(formatPhone(e.target.value))}
-            className={inputBase}
-            placeholder="010-1234-5678"
-            maxLength={13}
-          />
-          <p className="mt-1.5 text-xs leading-relaxed text-text-tertiary">
-            검증 진행 상황과 최종 판정 결과를 문자로 보내는 데만 씁니다. 영업
-            전화나 광고 문자는 보내지 않습니다.
-          </p>
-        </div>
-
-        {/* 자산 준비 팁 — 다음 단계 미리보기 + 정직한 전환 이유(가짜 수치 없음) */}
-        <div className="flex items-start gap-2.5 rounded-xl border border-accent/25 bg-accent/[0.04] px-4 py-3">
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="var(--accent)"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="mt-0.5 flex-shrink-0"
-            aria-hidden
-          >
-            <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z" />
-            <circle cx="12" cy="13" r="3.5" />
-          </svg>
-          <p className="text-[13px] leading-relaxed text-text-secondary">
-            <b className="text-text">팁.</b> 다음 단계에서{" "}
-            <b className="text-text">강사 사진·소개 영상</b>을 더할 수 있어요.
-            얼굴과 목소리가 보이면 ‘진짜 사람이 하는구나’ 하는 신뢰가 생겨 신청으로
-            더 잘 이어집니다. 지금 없어도 괜찮아요 — 나중에 올리시면 됩니다.
-          </p>
-        </div>
-
-        {errorMsg && (
-          <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-            {errorMsg}
-          </div>
-        )}
-
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full rounded-md bg-accent px-6 py-4 text-base font-bold text-white transition hover:bg-accent-hover hover:shadow-[0_12px_32px_var(--accent-glow)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-50"
-        >
-          {submitting ? "보내는 중..." : "무료 검증 설계서 받기"}
-        </button>
-        <p className="text-center text-xs text-text-tertiary">
-          작성 중 막히는 부분이 있으면{" "}
-          <a
-            href={KAKAO_CHAT_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => {
-              sendGAEvent("event", "kakao_open", { from: "form" });
-              sendGAEvent("event", "conversion", { send_to: ADS_KAKAO_CONVERSION });
-            }}
-            className="font-bold text-text underline underline-offset-2"
-          >
-            카카오톡 채널
-          </a>
-          로 알려주세요.
-        </p>
-        <div className="flex items-center justify-between">
-          <BackButton
-            onClick={() => {
-              setPhase("quiz");
-              setQIndex(visibleQuestions.length - 1);
-            }}
-          />
-          <p className="text-xs text-text-tertiary">
-            신청은 결제가 아닙니다 · 비밀유지 약속
-          </p>
-        </div>
-      </form>
-    );
-  }
-
   /* 객관식 청크 */
   const q = visibleQuestions[Math.min(qIndex, visibleQuestions.length - 1)];
   return (
@@ -1126,7 +1011,7 @@ export default function LeadForm() {
         <div className="flex items-center justify-between">
           <BackButton onClick={goBackFromQuiz} />
           <p className="text-xs text-text-tertiary">
-            답할수록 네 페이지가 완성돼요 · 끝에서 설계서 무료
+            몇 개만 답하면 끝 · 신청 후 카톡으로 바로 상담
           </p>
         </div>
       </div>
@@ -1165,6 +1050,44 @@ function RejectView({ policyLabel }: { policyLabel: string | null }) {
       >
         카카오톡으로 문의하기
       </a>
+    </div>
+  );
+}
+
+/* ───────────────── 신청 완료 — 후킹 + 카톡 핸드오프 (사람이 클로징) ───────────────── */
+function SubmittedView() {
+  return (
+    <div className="cold-panel rounded-lg p-6 text-center sm:p-8">
+      <div
+        className="mx-auto flex h-14 w-14 items-center justify-center rounded-full text-3xl font-black"
+        style={{ background: "var(--go-tint)", color: "var(--go)" }}
+      >
+        ✓
+      </div>
+      <h2 className="mt-5 text-2xl font-extrabold tracking-tight text-text">
+        신청 완료됐어요
+      </h2>
+      <p className="mt-4 text-base leading-relaxed text-text-secondary">
+        지금 카카오톡으로 상담하면,{" "}
+        <b className="text-text">
+          이르면 다음 날 광고가 나가고 2일 안에 이 강의가 돈이 되는 주제인지,
+          진짜 살 사람이 있는지 숫자로
+        </b>{" "}
+        확인됩니다.
+      </p>
+      <p className="mt-2 text-sm text-text-tertiary">
+        담당자가 신청 내용을 보고 바로 맞춤 상담드려요.
+      </p>
+      <KakaoCTA
+        from="quiz_end"
+        className="mt-6 flex items-center justify-center gap-2 rounded-lg px-6 py-4 text-base font-bold transition hover:brightness-95"
+        style={{ background: "#FEE500", color: "#191600" }}
+      >
+        카카오톡으로 상담 시작하기 →
+      </KakaoCTA>
+      <p className="mt-3 text-xs text-text-tertiary">
+        상담 무료 · 신청은 결제가 아닙니다
+      </p>
     </div>
   );
 }
@@ -1661,7 +1584,7 @@ function Progress({ current, total }: { current: number; total: number }) {
 
 /* 전체 흐름 미리보기 — "지금 결제되나?" 불안을 입력 전에 끈다 */
 function FunnelRoadmap() {
-  const steps = ["무료 설계서", "검토·플랜 선택", "결제", "검증 시작"];
+  const steps = ["신청", "카톡 상담", "결제", "검증 시작"];
   return (
     <div className="rounded-xl border border-border bg-bg-alt/60 p-3.5">
       <div className="flex items-start justify-between gap-1">

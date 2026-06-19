@@ -169,7 +169,7 @@ const POLICY_SCHEMA = {
 
 const LABELS: Record<string, Record<string, string>> = {
   service: {
-    web: "VOD 녹화 강의",
+    web: "녹화 영상 강의",
     app: "멤버십·구독 클래스",
     commerce: "전자책·PDF·자료",
     offline: "오프라인 강의·워크숍",
@@ -319,6 +319,8 @@ interface DiagnoseBody {
   interpretStatus?: string;
   /** 재해석 재생성 시 기존 리드 코드 (있으면 insert 대신 update) */
   code?: string;
+  /** 카톡 핸드오프 플로우 — 리드만 저장하고 AI 설계서 생성 스킵, 즉시 반환 */
+  saveOnly?: boolean;
 }
 
 export async function POST(request: Request) {
@@ -348,12 +350,14 @@ export async function POST(request: Request) {
 
   if (body.action === "report") {
     const { answers, name, contact } = body;
+    // 카톡 핸드오프(saveOnly) 플로우는 이름·전화를 받지 않는다 — 상담은 카카오 채널에서.
+    // 그 외(레거시) 경로에서만 연락처를 필수로 본다.
+    const needsContact = !body.saveOnly;
     if (
       !answers ||
       typeof answers.idea !== "string" ||
       answers.idea.trim().length < 5 ||
-      !name?.trim() ||
-      !contact?.trim()
+      (needsContact && (!name?.trim() || !contact?.trim()))
     ) {
       return Response.json({ error: "missing fields" }, { status: 400 });
     }
@@ -371,6 +375,7 @@ export async function POST(request: Request) {
       audience: answers.audience,
       revenue_model: answers.revenue,
       build_status: answers.build,
+      ad_creative: answers.adCreative ?? null,
       price_band: answers.price,
       alternative: answers.alternative,
       region: answers.region ?? null,
@@ -413,8 +418,9 @@ export async function POST(request: Request) {
         .from("o2o_leads")
         .insert({
           ...fields,
-          name: name.trim().slice(0, 100),
-          email: contact.trim().slice(0, 254),
+          // 카톡 핸드오프 플로우는 이름·연락처를 받지 않는다 — 빈 값은 null로(빈 문자열은 길이 체크 제약 위반)
+          name: name?.trim().slice(0, 100) || null,
+          email: contact?.trim().slice(0, 254) || null,
           phone: body.phone?.trim().slice(0, 20) || null,
           source: "landing-quiz-v2",
           utm_source: body.utm?.slice(0, 50) ?? null,
@@ -428,6 +434,35 @@ export async function POST(request: Request) {
         return Response.json({ error: "insert failed" }, { status: 500 });
       }
       leadId = lead.id as string;
+    }
+
+    // saveOnly: 카톡 핸드오프 플로우 — AI 설계서/정책 더블체크 스킵, 리드만 저장하고 즉시 반환.
+    // 광고 정책은 룰 기반(빠름)만 적용해 명백한 차단 업종은 거른다.
+    if (body.saveOnly) {
+      const rule = classifyProhibited(answers.idea, answers.ideaRefined);
+      if (rule.prohibited) {
+        await admin
+          .from("o2o_leads")
+          .update({ policy_flag: "prohibited", tier: null })
+          .eq("id", leadId);
+        return Response.json({
+          report: null,
+          path,
+          source: "saved",
+          accessCode,
+          policyFlag: "prohibited",
+          policyLabel: rule.label,
+          pageMeasurable: measurable,
+        });
+      }
+      return Response.json({
+        report: null,
+        path,
+        source: "saved",
+        accessCode,
+        policyFlag: "none",
+        pageMeasurable: measurable,
+      });
     }
 
     // 2) 정책 분류를 먼저 — 차단 업종이면 설계서 생성을 스킵(토큰 0)하고 짧게 거절
